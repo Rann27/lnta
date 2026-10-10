@@ -37,6 +37,7 @@
   },
   "common": {
     "save": "Save",
+    "edit": "Edit",
     "cancel": "Cancel",
     "delete": "Delete",
     "close": "Close",
@@ -386,7 +387,24 @@
     "status": {
       "failed": "failed",
       "missing": "image missing"
-    }
+    },
+    "retranslate_chapter": "Retranslate chapter",
+    "retranslate_chapter_title": "Retranslate this chapter?",
+    "retranslate_chapter_desc": "This chapter will be retranslated from the raw text. Previous versions remain preserved in history.",
+    "retranslate_chapter_confirm": "Retranslate",
+    "retranslate_segment": "Retranslate segment",
+    "retranslating_segment": "Retranslating...",
+    "edit_segment_title": "Edit Segment {{index}}",
+    "editor_format_help": "*italics* for monologue and SFX. Blank line separates paragraphs.",
+    "history_title": "Version history ({{count}})",
+    "history_version": "Version {{version}}",
+    "history_current": "Current",
+    "restore_version": "Restore this version",
+    "restoring": "Restoring...",
+    "saving": "Saving...",
+    "validation_warning_residual_jp": "Warning: Contains residual Japanese characters.",
+    "validation_warning_unbalanced_quotes": "Warning: Unbalanced quotation marks.",
+    "validation_warning_empty": "Warning: Translation text is empty."
   },
   "qa": {
     "title": "Quality Assurance (QA)",

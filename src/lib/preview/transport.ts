@@ -9,6 +9,7 @@ import type {
   GlossaryEntry,
   GlossaryEntryInput,
   ModelEntry,
+  ModelReference,
   PreflightReport,
   ProjectConfig,
   ProjectOpenResult,
@@ -636,6 +637,119 @@ export class PreviewTransport implements IpcTransport {
   async undoQaRun(path: string, runId: string): Promise<void> {
     void path;
     void runId;
+  }
+
+  async retranslateChapter(
+    path: string,
+    chapterId: string,
+    model?: ModelReference
+  ): Promise<string> {
+    void path;
+    void chapterId;
+    void model;
+    return "started";
+  }
+
+  async getSegmentHistory(
+    path: string,
+    chapterId: string,
+    segFrom: number,
+    segTo: number
+  ): Promise<Translation[]> {
+    void path;
+    void chapterId;
+    return [
+      {
+        id: `tr_${chapterId}_${segFrom}_v1`,
+        chapter_id: chapterId,
+        seg_from: segFrom,
+        seg_to: segTo,
+        text: "Terjemahan versi 1 terdahulu.",
+        origin: "model",
+        call_id: null,
+        version: 1,
+        is_current: false,
+        created_at: new Date(Date.now() - 3600000).toISOString(),
+      },
+      {
+        id: `tr_${chapterId}_${segFrom}_v2`,
+        chapter_id: chapterId,
+        seg_from: segFrom,
+        seg_to: segTo,
+        text: "Terjemahan versi 2 terkini.",
+        origin: "manual",
+        call_id: null,
+        version: 2,
+        is_current: true,
+        created_at: new Date().toISOString(),
+      },
+    ];
+  }
+
+  async editSegment(
+    path: string,
+    chapterId: string,
+    segFrom: number,
+    segTo: number,
+    text: string
+  ): Promise<Translation> {
+    void path;
+    return {
+      id: `tr_${chapterId}_${segFrom}_v_new`,
+      chapter_id: chapterId,
+      seg_from: segFrom,
+      seg_to: segTo,
+      text,
+      origin: "manual",
+      call_id: null,
+      version: 2,
+      is_current: true,
+      created_at: new Date().toISOString(),
+    };
+  }
+
+  async restoreSegmentVersion(
+    path: string,
+    chapterId: string,
+    translationId: string
+  ): Promise<Translation> {
+    void path;
+    void chapterId;
+    return {
+      id: translationId,
+      chapter_id: chapterId,
+      seg_from: 1,
+      seg_to: 1,
+      text: "Versi dipulihkan.",
+      origin: "model",
+      call_id: null,
+      version: 1,
+      is_current: true,
+      created_at: new Date().toISOString(),
+    };
+  }
+
+  async retranslateSegment(
+    path: string,
+    chapterId: string,
+    segFrom: number,
+    segTo: number,
+    model?: ModelReference
+  ): Promise<Translation> {
+    void path;
+    void model;
+    return {
+      id: `tr_${chapterId}_${segFrom}_v_retranslated`,
+      chapter_id: chapterId,
+      seg_from: segFrom,
+      seg_to: segTo,
+      text: "Terjemahan ulang AI berhasil.",
+      origin: "ai",
+      call_id: null,
+      version: 3,
+      is_current: true,
+      created_at: new Date().toISOString(),
+    };
   }
 
   // Events

@@ -320,3 +320,117 @@ pub fn get_run_state(path: String) -> Result<RunStateResponse, AppError> {
         latest_run,
     })
 }
+
+#[tauri::command]
+pub async fn retranslate_chapter(
+    app: tauri::AppHandle,
+    path: String,
+    chapter_id: String,
+    model: Option<ModelReference>,
+) -> Result<String, AppError> {
+    let p = Path::new(&path);
+    if !p.exists() || !p.is_dir() {
+        return Err(AppError::FileNotFound {
+            path: format!("Directory not found: {path}"),
+        });
+    }
+
+    let manager = RunManager::global();
+    if let Some(existing) = manager.get(&path) {
+        if !existing.should_stop_now() {
+            return Err(AppError::Internal {
+                message: "A run is already active in this project".to_string(),
+            });
+        }
+    }
+
+    let layout = ProjectLayout::new(p);
+    let config = if layout.config_file.exists() {
+        ProjectConfig::load_from_file(&layout.config_file)?
+    } else {
+        ProjectConfig::for_profile("ja-id")
+    };
+    layout.ensure_layout(&config.profile)?;
+
+    let global = GlobalSettings::load_from_app_data().unwrap_or_default();
+    let mut effective = EffectiveSettings::merge(&global, &config, None);
+    if let Some(m) = model {
+        effective.roles.translator.primary = m;
+    }
+
+    // Set chapter status to pending
+    {
+        let conn = open_path(&layout.db_file)?;
+        let chap_repo = ChapterRepo::new(&conn);
+        let ch = chap_repo
+            .get_by_id(&chapter_id)?
+            .ok_or_else(|| AppError::NotFound {
+                entity: "chapter".to_string(),
+                id: chapter_id.clone(),
+            })?;
+        if ch.frozen {
+            return Err(AppError::Internal {
+                message: "Cannot retranslate a frozen chapter".to_string(),
+            });
+        }
+        chap_repo.update_status(&chapter_id, "pending")?;
+    }
+
+    let run_control = Arc::new(RunControl::new());
+    manager.insert(&path, run_control.clone());
+
+    let path_clone = path.clone();
+    let run_ctrl_clone = run_control.clone();
+    let chap_id_clone = chapter_id.clone();
+
+    std::thread::spawn(move || {
+        let rt = match tokio::runtime::Builder::new_current_thread()
+            .enable_all()
+            .build()
+        {
+            Ok(r) => r,
+            Err(_) => {
+                RunManager::global().remove(&path_clone);
+                return;
+            }
+        };
+
+        rt.block_on(async move {
+            if let Ok(conn) = open_path(&layout.db_file) {
+                let emitter = TauriEventEmitter { app };
+                let resolver = DynamicProviderResolver::new(global);
+                let chap_repo = ChapterRepo::new(&conn);
+                if let Ok(Some(ch)) = chap_repo.get_by_id(&chap_id_clone) {
+                    if let Ok(profile) = crate::profiles::load_profile(&effective.profile) {
+                        let contract_text = &profile.contract_text;
+                        let instruction_path = layout.root.join(
+                            effective
+                                .instruction_file
+                                .as_deref()
+                                .unwrap_or("instruction.md"),
+                        );
+                        let instruction_text =
+                            std::fs::read_to_string(&instruction_path).unwrap_or_default();
+
+                        let _ = crate::engine::chapter::execute_single_chapter(
+                            &conn,
+                            &layout,
+                            &effective,
+                            contract_text,
+                            &instruction_text,
+                            &ch,
+                            &resolver,
+                            &emitter,
+                            &run_ctrl_clone,
+                            None,
+                        )
+                        .await;
+                    }
+                }
+            }
+            RunManager::global().remove(&path_clone);
+        });
+    });
+
+    Ok("started".to_string())
+}

@@ -2,6 +2,7 @@ import React from "react";
 import { useTranslation } from "react-i18next";
 import { PencilSimple, Image as ImageIcon } from "@phosphor-icons/react";
 import { StatusTag } from "../../components/ui/StatusTag";
+import { Button } from "../../components/ui/Button";
 import { Tooltip } from "../../components/ui/Tooltip";
 import { renderRuby } from "./ruby";
 import type { SegmentPair } from "./types";
@@ -13,6 +14,7 @@ export interface SegmentPairRowProps {
   targetLanguage?: string;
   onClick: () => void;
   onDoubleClick?: () => void;
+  onEdit?: () => void;
 }
 
 export const SegmentPairRow: React.FC<SegmentPairRowProps> = ({
@@ -21,6 +23,7 @@ export const SegmentPairRow: React.FC<SegmentPairRowProps> = ({
   targetLanguage = "id",
   onClick,
   onDoubleClick,
+  onEdit,
 }) => {
   const { t } = useTranslation();
 
@@ -125,6 +128,20 @@ export const SegmentPairRow: React.FC<SegmentPairRowProps> = ({
         )}
         {pair.hasFindings && pair.findingMessage && (
           <StatusTag status="needs_attention" label={pair.findingMessage} />
+        )}
+        {!pair.isFixed && onEdit && isSelected && (
+          <Button
+            variant="ghost"
+            size="sm"
+            icon={<PencilSimple size={14} />}
+            onClick={(e) => {
+              e.stopPropagation();
+              onEdit();
+            }}
+            aria-label={t("common.edit")}
+          >
+            {t("common.edit")}
+          </Button>
         )}
       </div>
     </div>

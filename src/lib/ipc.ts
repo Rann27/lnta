@@ -11,6 +11,7 @@ import type {
   GlossaryEntry,
   GlossaryEntryInput,
   ModelEntry,
+  ModelReference,
   PreflightReport,
   ProjectConfig,
   ProjectOpenResult,
@@ -68,12 +69,42 @@ export interface IpcTransport {
   resumeRun(path: string): Promise<void>;
   stopRun(path: string): Promise<void>;
   getRunState(path: string): Promise<RunStateResponse>;
+  retranslateChapter(
+    path: string,
+    chapterId: string,
+    model?: ModelReference
+  ): Promise<string>;
 
   // Chapters & Segments
   listChapters(path: string): Promise<Chapter[]>;
   getChapter(path: string, chapterId: string): Promise<ChapterDetail>;
   listSegments(path: string, chapterId: string): Promise<Segment[]>;
   listTranslations(path: string, chapterId: string): Promise<Translation[]>;
+  getSegmentHistory(
+    path: string,
+    chapterId: string,
+    segFrom: number,
+    segTo: number
+  ): Promise<Translation[]>;
+  editSegment(
+    path: string,
+    chapterId: string,
+    segFrom: number,
+    segTo: number,
+    text: string
+  ): Promise<Translation>;
+  restoreSegmentVersion(
+    path: string,
+    chapterId: string,
+    translationId: string
+  ): Promise<Translation>;
+  retranslateSegment(
+    path: string,
+    chapterId: string,
+    segFrom: number,
+    segTo: number,
+    model?: ModelReference
+  ): Promise<Translation>;
 
   // Glossary
   listGlossary(path: string): Promise<GlossaryEntry[]>;
@@ -205,6 +236,14 @@ export class TauriTransport implements IpcTransport {
     return invoke<RunStateResponse>("get_run_state", { path });
   }
 
+  retranslateChapter(
+    path: string,
+    chapterId: string,
+    model?: ModelReference
+  ): Promise<string> {
+    return invoke<string>("retranslate_chapter", { path, chapterId, model });
+  }
+
   listChapters(path: string): Promise<Chapter[]> {
     return invoke<Chapter[]>("list_chapters", { path });
   }
@@ -219,6 +258,64 @@ export class TauriTransport implements IpcTransport {
 
   listTranslations(path: string, chapterId: string): Promise<Translation[]> {
     return invoke<Translation[]>("list_translations", { path, chapterId });
+  }
+
+  getSegmentHistory(
+    path: string,
+    chapterId: string,
+    segFrom: number,
+    segTo: number
+  ): Promise<Translation[]> {
+    return invoke<Translation[]>("get_segment_history", {
+      path,
+      chapterId,
+      segFrom,
+      segTo,
+    });
+  }
+
+  editSegment(
+    path: string,
+    chapterId: string,
+    segFrom: number,
+    segTo: number,
+    text: string
+  ): Promise<Translation> {
+    return invoke<Translation>("edit_segment", {
+      path,
+      chapterId,
+      segFrom,
+      segTo,
+      text,
+    });
+  }
+
+  restoreSegmentVersion(
+    path: string,
+    chapterId: string,
+    translationId: string
+  ): Promise<Translation> {
+    return invoke<Translation>("restore_segment_version", {
+      path,
+      chapterId,
+      translationId,
+    });
+  }
+
+  retranslateSegment(
+    path: string,
+    chapterId: string,
+    segFrom: number,
+    segTo: number,
+    model?: ModelReference
+  ): Promise<Translation> {
+    return invoke<Translation>("retranslate_segment", {
+      path,
+      chapterId,
+      segFrom,
+      segTo,
+      model,
+    });
   }
 
   listGlossary(path: string): Promise<GlossaryEntry[]> {

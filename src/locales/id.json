@@ -37,6 +37,7 @@
   },
   "common": {
     "save": "Simpan",
+    "edit": "Edit",
     "cancel": "Batal",
     "delete": "Hapus",
     "close": "Tutup",
@@ -386,7 +387,24 @@
     "status": {
       "failed": "gagal",
       "missing": "gambar hilang"
-    }
+    },
+    "retranslate_chapter": "Terjemahkan ulang bab",
+    "retranslate_chapter_title": "Terjemahkan ulang bab ini?",
+    "retranslate_chapter_desc": "Bab ini akan diterjemahkan ulang dari teks raw. Versi sebelumnya tetap tersimpan di riwayat.",
+    "retranslate_chapter_confirm": "Terjemahkan ulang",
+    "retranslate_segment": "Terjemahkan ulang segmen",
+    "retranslating_segment": "Menerjemahkan ulang...",
+    "edit_segment_title": "Edit Segmen {{index}}",
+    "editor_format_help": "*miring* untuk monolog dan SFX. Baris kosong memisah paragraf.",
+    "history_title": "Riwayat versi ({{count}})",
+    "history_version": "Versi {{version}}",
+    "history_current": "Saat ini",
+    "restore_version": "Pulihkan versi ini",
+    "restoring": "Memulihkan...",
+    "saving": "Menyimpan...",
+    "validation_warning_residual_jp": "Perhatian: Masih memuat aksara Jepang.",
+    "validation_warning_unbalanced_quotes": "Perhatian: Tanda kutip tidak seimbang.",
+    "validation_warning_empty": "Perhatian: Teks terjemahan kosong."
   },
   "qa": {
     "title": "Jaminan Kualitas (QA)",

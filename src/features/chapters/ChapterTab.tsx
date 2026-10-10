@@ -1,6 +1,7 @@
-import React, { useEffect, useMemo, useRef } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useVirtualizer } from "@tanstack/react-virtual";
+import { ArrowClockwise } from "@phosphor-icons/react";
 import { Breadcrumb, type BreadcrumbItem } from "../../components/ui/Breadcrumb";
 import { SearchField } from "../../components/ui/SearchField";
 import {
@@ -9,9 +10,12 @@ import {
 } from "../../components/ui/SegmentedControl";
 import { StateBlock } from "../../components/ui/StateBlock";
 import { Button } from "../../components/ui/Button";
+import { Dialog } from "../../components/ui/Dialog";
 import { SegmentPairRow } from "./SegmentPairRow";
+import { SegmentEditor } from "./SegmentEditor";
 import { useChaptersStore, buildSegmentPairs } from "./store";
 import { useWorkspaceStore } from "../workspace/store";
+import { ipc } from "../../lib/ipc";
 import type { SegmentFilter } from "./types";
 import styles from "./ChapterTab.module.css";
 
@@ -39,6 +43,10 @@ export const ChapterTab: React.FC = () => {
     setFilter,
     resetFilters,
   } = useChaptersStore();
+
+  const [editingPairId, setEditingPairId] = useState<string | null>(null);
+  const [isRetranslateDialogOpen, setIsRetranslateDialogOpen] = useState(false);
+  const [isRetranslatingChapter, setIsRetranslatingChapter] = useState(false);
 
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
@@ -110,12 +118,34 @@ export const ChapterTab: React.FC = () => {
     overscan: 10,
   });
 
-  // Keyboard navigation: J (next), K (prev), N (next finding), Shift+N (prev finding)
+  const handleRetranslateChapter = async () => {
+    if (!projectPath || !chapter) return;
+    setIsRetranslatingChapter(true);
+    try {
+      await ipc.retranslateChapter(projectPath, chapter.id);
+      setIsRetranslateDialogOpen(false);
+      await fetchChapter(projectPath, chapter.id);
+    } catch (err) {
+      console.error("Failed to retranslate chapter:", err);
+    } finally {
+      setIsRetranslatingChapter(false);
+    }
+  };
+
+  // Keyboard navigation: J (next), K (prev), N (next finding), Shift+N (prev finding), E (edit)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       const targetTag = (e.target as HTMLElement)?.tagName?.toLowerCase();
       if (targetTag === "input" || targetTag === "textarea") {
         return;
+      }
+
+      if (e.key === "e" || e.key === "E") {
+        if (selectedPairId && selectedPair && !selectedPair.isFixed) {
+          e.preventDefault();
+          setEditingPairId(selectedPairId);
+          return;
+        }
       }
 
       if (e.key === "j" || e.key === "J") {
@@ -179,7 +209,7 @@ export const ChapterTab: React.FC = () => {
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [filteredPairs, selectedPairId, selectPair, rowVirtualizer]);
+  }, [filteredPairs, selectedPairId, selectedPair, selectPair, rowVirtualizer]);
 
   // Breadcrumb items
   const breadcrumbItems: BreadcrumbItem[] = useMemo(() => {
@@ -268,6 +298,17 @@ export const ChapterTab: React.FC = () => {
       <div className={styles.topBar}>
         <div className={styles.breadcrumbRow}>
           <Breadcrumb items={breadcrumbItems} />
+          {chapter && (
+            <Button
+              variant="secondary"
+              size="sm"
+              icon={<ArrowClockwise size={14} />}
+              disabled={isRetranslatingChapter || chapter.status === "translating"}
+              onClick={() => setIsRetranslateDialogOpen(true)}
+            >
+              {t("chapters.retranslate_chapter")}
+            </Button>
+          )}
         </div>
 
         <div className={styles.filterRow}>
@@ -341,6 +382,7 @@ export const ChapterTab: React.FC = () => {
           >
             {rowVirtualizer.getVirtualItems().map((virtualRow) => {
               const pair = filteredPairs[virtualRow.index];
+              const isEditing = editingPairId === pair.id;
               return (
                 <div
                   key={pair.id}
@@ -354,18 +396,68 @@ export const ChapterTab: React.FC = () => {
                     transform: `translateY(${virtualRow.start}px)`,
                   }}
                 >
-                  <SegmentPairRow
-                    pair={pair}
-                    isSelected={selectedPairId === pair.id}
-                    targetLanguage={targetLang}
-                    onClick={() => selectPair(pair.id)}
-                  />
+                  {isEditing ? (
+                    <SegmentEditor
+                      pair={pair}
+                      projectPath={projectPath}
+                      chapterId={activeChapterId || ""}
+                      targetLanguage={targetLang}
+                      onClose={() => setEditingPairId(null)}
+                      onSaved={() => {
+                        setEditingPairId(null);
+                        if (activeChapterId) {
+                          fetchChapter(projectPath, activeChapterId);
+                        }
+                      }}
+                    />
+                  ) : (
+                    <SegmentPairRow
+                      pair={pair}
+                      isSelected={selectedPairId === pair.id}
+                      targetLanguage={targetLang}
+                      onClick={() => selectPair(pair.id)}
+                      onDoubleClick={() => {
+                        if (!pair.isFixed) {
+                          setEditingPairId(pair.id);
+                        }
+                      }}
+                      onEdit={() => setEditingPairId(pair.id)}
+                    />
+                  )}
                 </div>
               );
             })}
           </div>
         </div>
       )}
+
+      {/* Retranslate Chapter Dialog */}
+      <Dialog
+        isOpen={isRetranslateDialogOpen}
+        onClose={() => setIsRetranslateDialogOpen(false)}
+        title={t("chapters.retranslate_chapter_title")}
+        description={t("chapters.retranslate_chapter_desc")}
+        actions={
+          <>
+            <Button
+              variant="secondary"
+              onClick={() => setIsRetranslateDialogOpen(false)}
+              disabled={isRetranslatingChapter}
+            >
+              {t("common.cancel")}
+            </Button>
+            <Button
+              variant="primary"
+              onClick={handleRetranslateChapter}
+              disabled={isRetranslatingChapter}
+            >
+              {isRetranslatingChapter
+                ? t("chapters.retranslating_segment")
+                : t("chapters.retranslate_chapter_confirm")}
+            </Button>
+          </>
+        }
+      />
     </div>
   );
 };
