@@ -8,6 +8,7 @@ import { RunTab } from "./RunTab";
 import { ChapterTab } from "../chapters";
 import { GlossaryTab } from "../glossary";
 import { QaTab } from "../qa";
+import { UsageTab } from "../usage";
 import { useWorkspaceStore, type WorkspaceTab } from "./store";
 import { useProjectsStore } from "../projects/store";
 import styles from "./Workspace.module.css";
@@ -191,16 +192,7 @@ export const Workspace: React.FC = () => {
             {activeTab === "chapters" && <ChapterTab />}
             {activeTab === "glossary" && <GlossaryTab />}
             {activeTab === "qa" && <QaTab />}
-            {activeTab === "usage" && (
-              <div className={styles.placeholderCard}>
-                <h3 style={{ margin: 0, font: "var(--text-title)" }}>
-                  {t("workspace.tabs.usage")}
-                </h3>
-                <p style={{ margin: 0, color: "var(--color-text-2)" }}>
-                  Tab Pemakaian menampilkan akuntansi token dan perkiraan biaya model.
-                </p>
-              </div>
-            )}
+            {activeTab === "usage" && <UsageTab />}
             {activeTab === "project" && (
               <div className={styles.placeholderCard}>
                 <h3 style={{ margin: 0, font: "var(--text-title)" }}>

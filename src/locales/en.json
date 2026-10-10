@@ -467,6 +467,51 @@
       "undoBatch": "Undo Selected",
       "undoRun": "Undo QA Run"
     }
+  },
+  "usage": {
+    "title": "Usage",
+    "description": "Token accounting and estimated model costs for the translation pipeline.",
+    "grouping": {
+      "chapter": "By Chapter",
+      "role": "By Role",
+      "model": "By Model"
+    },
+    "columns": {
+      "ordinal": "#",
+      "chapter": "Chapter",
+      "role": "Role",
+      "model": "Provider / Model",
+      "pricing_source": "Pricing Source",
+      "calls": "Calls",
+      "input_tokens": "Input Tokens",
+      "cached_tokens": "Cached",
+      "output_tokens": "Output Tokens",
+      "reasoning_tokens": "Reasoning",
+      "cost": "Cost (USD)"
+    },
+    "summary": {
+      "total_calls": "{{count}} calls",
+      "total_tokens": "{{tokens}} total tokens",
+      "total_cost": "${{cost}} total cost",
+      "unknown_cost_note": "* Some calls used models without configured pricing."
+    },
+    "roles": {
+      "translator": "Translator",
+      "repair": "Repair",
+      "qa_reviewer": "QA Reviewer",
+      "qa_fixer": "QA Fixer"
+    },
+    "sources": {
+      "default_registry": "Default",
+      "provider_metadata": "Provider",
+      "user_supplied": "Custom"
+    },
+    "total": "Grand Total",
+    "cost_missing": "Price not set",
+    "loading": "Loading usage data...",
+    "error_loading": "Failed to load usage data.",
+    "empty_title": "No calls recorded in this project",
+    "empty_desc": "Token usage and cost estimates will appear once translation or QA runs."
   }
 }
 

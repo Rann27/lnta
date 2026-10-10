@@ -467,6 +467,51 @@
       "undoBatch": "Batalkan Terpilih",
       "undoRun": "Batalkan Run QA"
     }
+  },
+  "usage": {
+    "title": "Pemakaian",
+    "description": "Akuntansi token dan perkiraan biaya model pipa terjemahan.",
+    "grouping": {
+      "chapter": "Per Bab",
+      "role": "Per Peran",
+      "model": "Per Model"
+    },
+    "columns": {
+      "ordinal": "#",
+      "chapter": "Bab",
+      "role": "Peran",
+      "model": "Provider / Model",
+      "pricing_source": "Sumber Harga",
+      "calls": "Panggilan",
+      "input_tokens": "Token Masuk",
+      "cached_tokens": "Ter-cache",
+      "output_tokens": "Token Keluar",
+      "reasoning_tokens": "Reasoning",
+      "cost": "Biaya (USD)"
+    },
+    "summary": {
+      "total_calls": "{{count}} panggilan",
+      "total_tokens": "{{tokens}} total token",
+      "total_cost": "${{cost}} total biaya",
+      "unknown_cost_note": "* Beberapa panggilan menggunakan model tanpa data harga."
+    },
+    "roles": {
+      "translator": "Penerjemah",
+      "repair": "Perbaikan",
+      "qa_reviewer": "Reviewer QA",
+      "qa_fixer": "Perbaikan QA"
+    },
+    "sources": {
+      "default_registry": "Bawaan",
+      "provider_metadata": "Provider",
+      "user_supplied": "Kustom"
+    },
+    "total": "Total Keseluruhan",
+    "cost_missing": "Harga belum ada",
+    "loading": "Memuat data pemakaian...",
+    "error_loading": "Gagal memuat data pemakaian.",
+    "empty_title": "Belum ada panggilan di proyek ini",
+    "empty_desc": "Data pemakaian token dan estimasi biaya akan muncul saat terjemahan atau QA berjalan."
   }
 }
 

@@ -21,6 +21,7 @@ import type {
   RunStateResponse,
   Segment,
   Translation,
+  ProjectUsageResponse,
 } from "../bindings";
 import type { IpcTransport } from "../ipc";
 import {
@@ -749,6 +750,79 @@ export class PreviewTransport implements IpcTransport {
       version: 3,
       is_current: true,
       created_at: new Date().toISOString(),
+    };
+  }
+
+  async getProjectUsage(path: string, runId?: string): Promise<ProjectUsageResponse> {
+    void path;
+    void runId;
+    return {
+      summary: {
+        total_input_tokens: 15420,
+        total_cached_tokens: 6100,
+        total_output_tokens: 8340,
+        total_reasoning_tokens: 0,
+        total_cost: 0.084,
+        has_unknown_cost: false,
+        total_calls: 12,
+      },
+      by_chapter: [
+        {
+          chapter_id: "c1",
+          chapter_ordinal: 1,
+          chapter_title: "Bab 1: Awal Mula",
+          input_tokens: 7200,
+          cached_tokens: 3000,
+          output_tokens: 3900,
+          reasoning_tokens: 0,
+          cost: 0.039,
+          call_count: 6,
+        },
+        {
+          chapter_id: "c2",
+          chapter_ordinal: 2,
+          chapter_title: "Bab 2: Pertemuan",
+          input_tokens: 8220,
+          cached_tokens: 3100,
+          output_tokens: 4440,
+          reasoning_tokens: 0,
+          cost: 0.045,
+          call_count: 6,
+        },
+      ],
+      by_role: [
+        {
+          role: "translator",
+          input_tokens: 13500,
+          cached_tokens: 5500,
+          output_tokens: 7500,
+          reasoning_tokens: 0,
+          cost: 0.075,
+          call_count: 10,
+        },
+        {
+          role: "repair",
+          input_tokens: 1920,
+          cached_tokens: 600,
+          output_tokens: 840,
+          reasoning_tokens: 0,
+          cost: 0.009,
+          call_count: 2,
+        },
+      ],
+      by_model: [
+        {
+          provider: "anthropic",
+          model: "claude-3-5-sonnet-20241022",
+          input_tokens: 15420,
+          cached_tokens: 6100,
+          output_tokens: 8340,
+          reasoning_tokens: 0,
+          cost: 0.084,
+          call_count: 12,
+          pricing_source: "default_registry",
+        },
+      ],
     };
   }
 

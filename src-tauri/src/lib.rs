@@ -68,6 +68,7 @@ pub fn run() {
             commands::qa::undo_qa_fix,
             commands::qa::undo_qa_batch,
             commands::qa::undo_qa_run,
+            commands::usage::get_project_usage,
         ])
         .run(tauri::generate_context!())
     {

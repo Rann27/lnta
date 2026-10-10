@@ -611,3 +611,55 @@ async fn test_fixture_smoke_mock_provider() {
 
     let _ = fs::remove_dir_all(&temp_dir);
 }
+
+#[tokio::test]
+async fn test_budget_pause_with_mock_provider() {
+    let (temp_dir, layout, conn, mut settings) = setup_min_project();
+    // Set a very low budget limit so that a single call exceeds it
+    settings.budget_token_limit = Some(15);
+
+    let mock_xml = r#"<t>Bab 1: Perjalanan Dimulai</t>
+<s id="1">Kenta berdiri dalam keheningan malam.</s>
+<s id="2">"Misaki, apakah persiapanmu sudah selesai?"</s>
+<s id="3">"Tentu saja, kapan pun kita bisa berangkat."</s>
+<s id="5">Keduanya melangkah maju menyusuri jalan setapak di tengah hutan.</s>
+<s id="7">Cahaya mentari pagi mulai menembus celah dedaunan.</s>"#;
+
+    let mock = Arc::new(MockProvider::new());
+    // Create a step reporting 20 input + 10 output = 30 tokens (> 15 limit)
+    let step = MockStep::Success {
+        text: mock_xml.to_string(),
+        finish: lnta_lib::provider::types::FinishReason::Stop,
+        usage: TokenUsage {
+            input_tokens: 20,
+            output_tokens: 10,
+            cached_input_tokens: 0,
+            cache_write_tokens: 0,
+            reasoning_tokens: 0,
+        },
+    };
+    mock.push_step(step);
+
+    let resolver = MultiModelResolver::new(AnyProvider::Mock(mock.clone()));
+    let emitter = RecordingEventEmitter::new();
+    let run_control = RunControl::new();
+
+    let state = run_engine(&conn, &layout, &settings, &resolver, &emitter, &run_control)
+        .await
+        .unwrap();
+
+    // Verify engine paused on budget exceeded
+    assert_eq!(state, RunState::Paused);
+
+    // Verify warning log event was emitted
+    let events = emitter.events();
+    let has_budget_log = events.iter().any(|e| match e {
+        lnta_lib::engine::events::EngineEvent::LogLine { message, .. } => {
+            message.contains("batas anggaran")
+        }
+        _ => false,
+    });
+    assert!(has_budget_log, "Expected budget warning log event");
+
+    let _ = fs::remove_dir_all(&temp_dir);
+}

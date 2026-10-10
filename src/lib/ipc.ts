@@ -23,6 +23,7 @@ import type {
   RunStateResponse,
   Segment,
   Translation,
+  ProjectUsageResponse,
 } from "./bindings";
 
 export interface IpcTransport {
@@ -118,6 +119,9 @@ export interface IpcTransport {
   undoQaFix(path: string, fixId: string): Promise<void>;
   undoQaBatch(path: string, fixIds: string[]): Promise<void>;
   undoQaRun(path: string, runId: string): Promise<void>;
+
+  // Usage
+  getProjectUsage(path: string, runId?: string): Promise<ProjectUsageResponse>;
 
   // Events
   onEngineEvent(handler: (event: EngineEvent) => void): Promise<UnlistenFn>;
@@ -352,6 +356,10 @@ export class TauriTransport implements IpcTransport {
 
   undoQaRun(path: string, runId: string): Promise<void> {
     return invoke<void>("undo_qa_run", { path, runId });
+  }
+
+  getProjectUsage(path: string, runId?: string): Promise<ProjectUsageResponse> {
+    return invoke<ProjectUsageResponse>("get_project_usage", { path, runId });
   }
 
   onEngineEvent(handler: (event: EngineEvent) => void): Promise<UnlistenFn> {

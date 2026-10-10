@@ -24,7 +24,7 @@ use crate::project::settings::EffectiveSettings;
 use crate::raw::classify::IllustrationSet;
 use crate::raw::encoding::read_raw_file;
 use crate::raw::segment::{parse_chapter, ParseOptions};
-use crate::store::repo::{Chapter, ChapterRepo, Run, RunRepo};
+use crate::store::repo::{CallRepo, Chapter, ChapterRepo, Run, RunRepo};
 
 /// Runs the translation pipeline across all chapters of the project.
 pub async fn run_engine(
@@ -123,6 +123,42 @@ pub async fn run_engine(
 
         if run_control.should_stop_now() || run_control.should_pause() {
             run_repo.update_status(&run_id, "paused")?;
+            event_emitter.emit(EngineEvent::RunState {
+                state: "paused".to_string(),
+                run_id: Some(run_id),
+            });
+            return Ok(RunState::Paused);
+        }
+
+        // Check budget limits before starting next chapter per FR-RUN-10 and Story H2
+        let call_repo = CallRepo::new(conn);
+        let calls_so_far = call_repo.list_by_run(&run_id).unwrap_or_default();
+        let total_run_tokens: u64 = calls_so_far
+            .iter()
+            .map(|c| (c.in_tokens + c.out_tokens) as u64)
+            .sum();
+        let total_run_cost: f64 = calls_so_far.iter().filter_map(|c| c.cost).sum();
+
+        if let Some(reason) = crate::usage::check_budget(settings, total_run_tokens, total_run_cost)
+        {
+            let msg = match reason {
+                crate::usage::BudgetExceeded::TokenLimit { limit, current } => {
+                    format!(
+                        "Run dijeda: batas anggaran {limit} token tercapai (terpakai: {current})"
+                    )
+                }
+                crate::usage::BudgetExceeded::CostLimit { limit, current } => {
+                    format!(
+                        "Run dijeda: batas anggaran ${limit:.2} tercapai (terpakai: ${current:.2})"
+                    )
+                }
+            };
+            run_repo.update_status(&run_id, "paused")?;
+            event_emitter.emit(EngineEvent::LogLine {
+                level: "warn".to_string(),
+                message: msg,
+                timestamp: chrono::Utc::now().to_rfc3339(),
+            });
             event_emitter.emit(EngineEvent::RunState {
                 state: "paused".to_string(),
                 run_id: Some(run_id),

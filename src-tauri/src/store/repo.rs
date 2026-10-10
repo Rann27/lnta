@@ -770,6 +770,22 @@ impl<'a> CallRepo<'a> {
         Ok(result)
     }
 
+    pub fn list_all(&self) -> Result<Vec<Call>, AppError> {
+        let mut stmt = self.conn.prepare(
+            "SELECT id, run_id, role, provider, model, chapter_id, part_index,
+                    kind, status, finish_reason, in_tokens, cached_in,
+                    cache_write, out_tokens, reasoning_tokens, cost,
+                    latency_ms, contract_version, manifest_json, error, raw_response
+             FROM call ORDER BY rowid ASC",
+        )?;
+        let rows = stmt.query_map([], Self::map_row)?;
+        let mut result = Vec::new();
+        for r in rows {
+            result.push(r?);
+        }
+        Ok(result)
+    }
+
     fn map_row(row: &Row) -> rusqlite::Result<Call> {
         Ok(Call {
             id: row.get(0)?,

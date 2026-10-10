@@ -1,0 +1,131 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+  background-color: var(--color-surface);
+  overflow: hidden;
+}
+
+.topBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding: var(--space-3) var(--space-6);
+  border-bottom: 1px solid var(--color-border);
+  background-color: var(--color-surface);
+  flex-shrink: 0;
+  flex-wrap: wrap;
+}
+
+.summaryGroup {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  font: var(--text-small);
+  color: var(--color-text-2);
+  flex-wrap: wrap;
+}
+
+.summaryMetric {
+  font: var(--text-body-strong);
+  color: var(--color-text);
+}
+
+.unknownCostNote {
+  font: var(--text-small);
+  color: var(--color-warn);
+}
+
+.tableWrapper {
+  flex: 1;
+  overflow: auto;
+  background-color: var(--color-surface);
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font: var(--text-body);
+  color: var(--color-text);
+}
+
+.th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  height: var(--row-dense);
+  padding: 0 var(--space-3);
+  background-color: var(--color-field);
+  border-bottom: 1px solid var(--color-border);
+  font: var(--text-label);
+  color: var(--color-text-2);
+  text-align: left;
+  white-space: nowrap;
+  user-select: none;
+}
+
+.thNumeric {
+  text-align: right;
+}
+
+.tr {
+  height: var(--row-dense);
+  border-bottom: 1px solid var(--color-border);
+  transition: background-color var(--duration-fast) var(--ease-standard);
+}
+
+.tr:hover {
+  background-color: var(--state-hover);
+}
+
+.td {
+  padding: 0 var(--space-3);
+  font: var(--text-body);
+  color: var(--color-text);
+  white-space: nowrap;
+}
+
+.tdNumeric {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+}
+
+.tdMono {
+  font-family: var(--font-mono);
+}
+
+.costMissing {
+  color: var(--color-text-3);
+  font: var(--text-small);
+}
+
+.sourceBadge {
+  display: inline-block;
+  padding: 0 var(--space-2);
+  border-radius: var(--radius-sm);
+  background-color: var(--color-field);
+  border: 1px solid var(--color-border);
+  font: var(--text-label);
+  color: var(--color-text-2);
+}
+
+.totalRow {
+  background-color: var(--color-field);
+  border-top: 1px solid var(--color-border);
+  border-bottom: 1px solid var(--color-border);
+  font: var(--text-body-strong);
+  position: sticky;
+  bottom: 0;
+  z-index: 1;
+}
+
+.stateContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  padding: var(--space-6);
+}

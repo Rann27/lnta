@@ -12,6 +12,7 @@ pub mod providers;
 pub mod qa;
 pub mod run;
 pub mod settings;
+pub mod usage;
 
 pub use app::*;
 pub use chapters::*;
@@ -23,6 +24,7 @@ pub use providers::*;
 pub use qa::*;
 pub use run::*;
 pub use settings::*;
+pub use usage::*;
 
 use serde::{Deserialize, Serialize};
 use ts_rs::TS;
@@ -81,6 +83,11 @@ mod tests {
         qa::QaFixLogItem::export(&cfg).unwrap();
         crate::docx::import::ExtractedDocxHeading::export(&cfg).unwrap();
         crate::docx::import::FrozenChapterMapping::export(&cfg).unwrap();
+        crate::usage::UsageSummary::export(&cfg).unwrap();
+        crate::usage::ChapterUsage::export(&cfg).unwrap();
+        crate::usage::RoleUsage::export(&cfg).unwrap();
+        crate::usage::ModelUsage::export(&cfg).unwrap();
+        crate::usage::ProjectUsageResponse::export(&cfg).unwrap();
         AppErrorPayload::export(&cfg).unwrap();
     }
 }

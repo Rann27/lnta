@@ -35,3 +35,8 @@ export * from "./Translation";
 export * from "./ExtractedDocxHeading";
 export * from "./FrozenChapterMapping";
 export * from "./ValueSource";
+export * from "./UsageSummary";
+export * from "./ChapterUsage";
+export * from "./RoleUsage";
+export * from "./ModelUsage";
+export * from "./ProjectUsageResponse";

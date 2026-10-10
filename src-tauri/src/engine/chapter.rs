@@ -349,6 +349,40 @@ pub async fn execute_single_chapter(
 
         last_part_translations = final_part_segments.clone();
         accumulated_chapter_translations.extend(final_part_segments);
+
+        // Check budget limits per FR-RUN-10 and Story H2
+        if let Some(rid) = run_id {
+            let call_repo = CallRepo::new(conn);
+            let all_calls = call_repo.list_by_run(rid).unwrap_or_default();
+            let total_run_tokens: u64 = all_calls
+                .iter()
+                .map(|c| (c.in_tokens + c.out_tokens) as u64)
+                .sum();
+            let total_run_cost: f64 = all_calls.iter().filter_map(|c| c.cost).sum();
+
+            if let Some(reason) =
+                crate::usage::check_budget(settings, total_run_tokens, total_run_cost)
+            {
+                let msg = match reason {
+                    crate::usage::BudgetExceeded::TokenLimit { limit, current } => {
+                        format!(
+                            "Run dijeda: batas anggaran {limit} token tercapai (terpakai: {current})"
+                        )
+                    }
+                    crate::usage::BudgetExceeded::CostLimit { limit, current } => {
+                        format!(
+                            "Run dijeda: batas anggaran ${limit:.2} tercapai (terpakai: ${current:.2})"
+                        )
+                    }
+                };
+                event_emitter.emit(EngineEvent::LogLine {
+                    level: "warn".to_string(),
+                    message: msg,
+                    timestamp: chrono::Utc::now().to_rfc3339(),
+                });
+                return Ok(ChapterExecutionResult::Paused);
+            }
+        }
     }
 
     // 4. Update chapter to done in SQLite
@@ -531,6 +565,16 @@ async fn translate_part_with_truncation_depth(
         let usage = outcome.usage().cloned().unwrap_or(TokenUsage::default());
         let raw_text = outcome.text().unwrap_or("").to_string();
 
+        let model_pricing = crate::provider::registry::ModelRegistry::default()
+            .get(&model_ref.provider, &model_ref.model_id)
+            .map(|m| m.pricing.clone());
+        let call_cost = crate::usage::calculate_call_cost(
+            model_pricing.as_ref(),
+            usage.input_tokens,
+            usage.cached_input_tokens,
+            usage.output_tokens,
+        );
+
         let call_record = Call {
             id: call_id,
             run_id: run_id.map(|s| s.to_string()),
@@ -551,7 +595,7 @@ async fn translate_part_with_truncation_depth(
             cache_write: usage.cache_write_tokens,
             out_tokens: usage.output_tokens,
             reasoning_tokens: usage.reasoning_tokens,
-            cost: None,
+            cost: call_cost,
             latency_ms,
             contract_version: Some("1.0".to_string()),
             manifest_json: None,
