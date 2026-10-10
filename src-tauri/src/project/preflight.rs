@@ -33,10 +33,12 @@ use crate::project::discover::discover_chapters;
 use crate::project::instruction::resolve_instruction_candidates;
 use crate::raw::classify::{Classifier, IllustrationSet, RawLineKind};
 use crate::raw::encoding::read_raw_file;
+use ts_rs::TS;
 
 /// Preflight check severity status per PRD §5.2.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, TS)]
 #[serde(rename_all = "snake_case")]
+#[ts(export, export_to = "../../src/lib/bindings/PreflightStatus.ts")]
 pub enum PreflightStatus {
     Pass,
     Info,
@@ -45,14 +47,16 @@ pub enum PreflightStatus {
 }
 
 /// A suggested action offered to resolve a preflight finding.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, TS)]
+#[ts(export, export_to = "../../src/lib/bindings/PreflightAction.ts")]
 pub struct PreflightAction {
     pub id: String,
     pub label_code: String,
 }
 
 /// An individual preflight check result.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, TS)]
+#[ts(export, export_to = "../../src/lib/bindings/PreflightItem.ts")]
 pub struct PreflightItem {
     pub id: String,
     pub status: PreflightStatus,
@@ -74,7 +78,8 @@ impl PreflightItem {
 }
 
 /// Aggregated preflight report for a project folder.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, TS)]
+#[ts(export, export_to = "../../src/lib/bindings/PreflightReport.ts")]
 pub struct PreflightReport {
     pub items: Vec<PreflightItem>,
     pub can_run: bool,
@@ -183,6 +188,39 @@ pub fn detect_instruction_language(content: &str) -> Option<&'static str> {
     } else {
         None
     }
+}
+
+/// Helper running preflight on a project folder using its project.toml and global settings.
+pub fn run_preflight_on_folder(
+    project_root: &Path,
+    settings: &crate::project::settings::GlobalSettings,
+) -> PreflightReport {
+    let layout = crate::project::layout::ProjectLayout::new(project_root);
+    let profile = if layout.config_file.exists() {
+        crate::project::config::ProjectConfig::load_from_file(&layout.config_file)
+            .map(|c| c.profile)
+            .unwrap_or_else(|_| "ja-id".to_string())
+    } else {
+        "ja-id".to_string()
+    };
+
+    let trans_role = settings
+        .roles
+        .for_role(crate::project::settings::Role::Translator);
+    let has_key = crate::secrets::get_api_key(&trans_role.primary.provider)
+        .ok()
+        .flatten()
+        .is_some();
+
+    let env = PreflightEnvironment {
+        translator_model_configured: !trans_role.primary.model_id.is_empty(),
+        api_key_or_cli_available: has_key,
+        max_output_tokens: trans_role.max_output_tokens.or(Some(4096)),
+        skip_model_check: false,
+        chunk_threshold_lines: 1500,
+    };
+
+    run_preflight(project_root, &profile, &env)
 }
 
 /// Runs all 16 preflight checks on `project_root` against `profile`.

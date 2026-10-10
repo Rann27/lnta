@@ -5,10 +5,12 @@
 
 use serde::{Deserialize, Serialize};
 use std::sync::{Arc, Mutex};
+use ts_rs::TS;
 
 /// Typed engine events per FR-RUN-05.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[serde(tag = "event", content = "data", rename_all = "snake_case")]
+#[ts(export, export_to = "../../src/lib/bindings/EngineEvent.ts")]
 pub enum EngineEvent {
     #[serde(rename = "run:state")]
     RunState {

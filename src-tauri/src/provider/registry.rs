@@ -5,12 +5,14 @@
 //! Also supports fetching model lists from provider endpoints.
 
 use serde::{Deserialize, Serialize};
+use ts_rs::TS;
 
 use crate::error::AppError;
 
 /// Source of the model's configuration values.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, TS)]
 #[serde(rename_all = "snake_case")]
+#[ts(export, export_to = "../../src/lib/bindings/ValueSource.ts")]
 pub enum ValueSource {
     DefaultRegistry,
     ProviderMetadata,
@@ -18,7 +20,8 @@ pub enum ValueSource {
 }
 
 /// Token pricing per 1,000,000 tokens in USD.
-#[derive(Debug, Clone, PartialEq, Default, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Default, Serialize, Deserialize, TS)]
+#[ts(export, export_to = "../../src/lib/bindings/ModelPricing.ts")]
 pub struct ModelPricing {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub input_per_million: Option<f64>,
@@ -29,7 +32,8 @@ pub struct ModelPricing {
 }
 
 /// Entry representing a specific model within the registry.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export, export_to = "../../src/lib/bindings/ModelEntry.ts")]
 pub struct ModelEntry {
     pub provider: String,
     pub model_id: String,

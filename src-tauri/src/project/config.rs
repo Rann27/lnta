@@ -1,11 +1,13 @@
 use serde::{Deserialize, Serialize};
 use std::fs;
 use std::path::Path;
+use ts_rs::TS;
 
 use crate::error::AppError;
 
 /// Project configuration stored in `.lnta/project.toml`.
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, TS)]
+#[ts(export, export_to = "../../src/lib/bindings/ProjectConfig.ts")]
 pub struct ProjectConfig {
     pub profile: String,
     pub target_language: String,

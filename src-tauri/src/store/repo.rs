@@ -1,5 +1,6 @@
 use rusqlite::{params, Connection, Row};
 use serde::{Deserialize, Serialize};
+use ts_rs::TS;
 
 use crate::error::AppError;
 
@@ -7,7 +8,8 @@ use crate::error::AppError;
 // Model structs
 // ---------------------------------------------------------------------------
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, TS)]
+#[ts(export, export_to = "../../src/lib/bindings/Chapter.ts")]
 pub struct Chapter {
     pub id: String,
     pub ordinal: i32,
@@ -24,7 +26,8 @@ pub struct Chapter {
     pub updated_at: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, TS)]
+#[ts(export, export_to = "../../src/lib/bindings/Segment.ts")]
 pub struct Segment {
     pub id: String,
     pub chapter_id: String,
@@ -37,7 +40,8 @@ pub struct Segment {
     pub part_index: Option<i32>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, TS)]
+#[ts(export, export_to = "../../src/lib/bindings/Translation.ts")]
 pub struct Translation {
     pub id: String,
     pub chapter_id: String,
@@ -51,7 +55,8 @@ pub struct Translation {
     pub created_at: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, TS)]
+#[ts(export, export_to = "../../src/lib/bindings/ChunkPlan.ts")]
 pub struct ChunkPlan {
     pub id: String,
     pub chapter_id: String,
@@ -65,7 +70,8 @@ pub struct ChunkPlan {
     pub status: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, TS)]
+#[ts(export, export_to = "../../src/lib/bindings/Run.ts")]
 pub struct Run {
     pub id: String,
     pub kind: String,
@@ -75,7 +81,8 @@ pub struct Run {
     pub settings_snapshot: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, TS)]
+#[ts(export, export_to = "../../src/lib/bindings/Call.ts")]
 pub struct Call {
     pub id: String,
     pub run_id: Option<String>,
@@ -100,7 +107,8 @@ pub struct Call {
     pub raw_response: Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, TS)]
+#[ts(export, export_to = "../../src/lib/bindings/GlossaryEntry.ts")]
 pub struct GlossaryEntry {
     pub id: String,
     pub source: String,

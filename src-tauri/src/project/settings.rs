@@ -8,14 +8,16 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 use serde::{Deserialize, Serialize};
+use ts_rs::TS;
 
 use crate::error::AppError;
 use crate::project::config::ProjectConfig;
 use crate::provider::registry::ModelEntry;
 
 /// The four roles in the LNTA translation and QA pipeline per PRD §4.4.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, TS)]
 #[serde(rename_all = "snake_case")]
+#[ts(export, export_to = "../../src/lib/bindings/Role.ts")]
 pub enum Role {
     Translator,
     Repair,
@@ -33,7 +35,8 @@ impl Role {
 }
 
 /// A reference to a provider and model pair.
-#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize, TS)]
+#[ts(export, export_to = "../../src/lib/bindings/ModelReference.ts")]
 pub struct ModelReference {
     pub provider: String,
     pub model_id: String,
@@ -49,7 +52,8 @@ impl ModelReference {
 }
 
 /// Configuration for a specific pipeline role per FR-PRV-11 and Story G3.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export, export_to = "../../src/lib/bindings/RoleConfig.ts")]
 pub struct RoleConfig {
     pub primary: ModelReference,
     pub fallbacks: Vec<ModelReference>,
@@ -79,7 +83,8 @@ impl RoleConfig {
 }
 
 /// Role configurations for all four pipeline roles.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export, export_to = "../../src/lib/bindings/RolesConfig.ts")]
 pub struct RolesConfig {
     pub translator: RoleConfig,
     pub repair: RoleConfig,
@@ -132,7 +137,8 @@ impl RolesConfig {
 }
 
 /// Provider configuration entry in global settings.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export, export_to = "../../src/lib/bindings/ProviderConfigEntry.ts")]
 pub struct ProviderConfigEntry {
     pub id: String,
     pub name: String,
@@ -142,7 +148,8 @@ pub struct ProviderConfigEntry {
 }
 
 /// Global settings stored in the OS app-data directory per FR-SET-01.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export, export_to = "../../src/lib/bindings/GlobalSettings.ts")]
 pub struct GlobalSettings {
     pub theme: String,
     pub ui_language: String,
@@ -150,6 +157,8 @@ pub struct GlobalSettings {
     pub roles: RolesConfig,
     pub providers: Vec<ProviderConfigEntry>,
     pub custom_models: Vec<ModelEntry>,
+    #[serde(default)]
+    pub recent_projects: Vec<String>,
 }
 
 impl Default for GlobalSettings {
@@ -159,6 +168,7 @@ impl Default for GlobalSettings {
             ui_language: "id".to_string(),
             notifications_enabled: true,
             roles: RolesConfig::default(),
+            recent_projects: Vec::new(),
             providers: vec![
                 ProviderConfigEntry {
                     id: "anthropic".to_string(),
@@ -285,7 +295,8 @@ pub struct ProjectSettingsOverrides {
 
 /// Computed effective settings for an active project run, combining global settings
 /// with project-level configuration and overrides.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export, export_to = "../../src/lib/bindings/EffectiveSettings.ts")]
 pub struct EffectiveSettings {
     pub profile: String,
     pub target_language: String,
@@ -425,6 +436,7 @@ mod tests {
             roles: RolesConfig::default(),
             providers: Vec::new(),
             custom_models: Vec::new(),
+            recent_projects: Vec::new(),
         };
 
         let mut project = ProjectConfig::for_profile("ja-id");

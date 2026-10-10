@@ -1,0 +1,249 @@
+import { invoke } from "@tauri-apps/api/core";
+import { listen, type UnlistenFn } from "@tauri-apps/api/event";
+import type {
+  AppInfo,
+  Chapter,
+  ChapterDetail,
+  EngineEvent,
+  GlobalSettings,
+  GlossaryEntry,
+  GlossaryEntryInput,
+  ModelEntry,
+  PreflightReport,
+  ProjectConfig,
+  ProjectOpenResult,
+  ProviderConfigEntry,
+  ProviderTestResult,
+  RecentProjectEntry,
+  RunStateResponse,
+  Segment,
+  Translation,
+} from "./bindings";
+
+export interface IpcTransport {
+  // App
+  getAppInfo(): Promise<AppInfo>;
+
+  // Project
+  openProject(path: string): Promise<ProjectOpenResult>;
+  listRecentProjects(): Promise<RecentProjectEntry[]>;
+  resetProject(path: string): Promise<void>;
+  createProject(path: string, profile: string): Promise<ProjectOpenResult>;
+
+  // Preflight
+  runPreflight(path: string): Promise<PreflightReport>;
+
+  // Settings
+  getGlobalSettings(): Promise<GlobalSettings>;
+  saveGlobalSettings(settings: GlobalSettings): Promise<void>;
+  getProjectConfig(path: string): Promise<ProjectConfig>;
+  saveProjectConfig(path: string, config: ProjectConfig): Promise<void>;
+
+  // Providers & Keys
+  listProviders(): Promise<ProviderConfigEntry[]>;
+  saveProvider(entry: ProviderConfigEntry): Promise<void>;
+  deleteProvider(id: string): Promise<void>;
+  setApiKey(providerId: string, key: string): Promise<void>;
+  hasApiKey(providerId: string): Promise<boolean>;
+  testProvider(providerId: string): Promise<ProviderTestResult>;
+
+  // Models
+  listModels(): Promise<ModelEntry[]>;
+  registerModel(entry: ModelEntry): Promise<void>;
+  fetchProviderModels(
+    providerType: string,
+    baseUrl: string,
+    apiKey?: string
+  ): Promise<ModelEntry[]>;
+
+  // Run
+  startRun(path: string): Promise<string>;
+  pauseRun(path: string): Promise<void>;
+  resumeRun(path: string): Promise<void>;
+  stopRun(path: string): Promise<void>;
+  getRunState(path: string): Promise<RunStateResponse>;
+
+  // Chapters & Segments
+  listChapters(path: string): Promise<Chapter[]>;
+  getChapter(path: string, chapterId: string): Promise<ChapterDetail>;
+  listSegments(path: string, chapterId: string): Promise<Segment[]>;
+  listTranslations(path: string, chapterId: string): Promise<Translation[]>;
+
+  // Glossary
+  listGlossary(path: string): Promise<GlossaryEntry[]>;
+  addGlossaryEntry(path: string, entry: GlossaryEntryInput): Promise<GlossaryEntry>;
+  updateGlossaryEntry(path: string, entry: GlossaryEntryInput): Promise<void>;
+  deleteGlossaryEntry(path: string, source: string): Promise<void>;
+
+  // Events
+  onEngineEvent(handler: (event: EngineEvent) => void): Promise<UnlistenFn>;
+}
+
+export class TauriTransport implements IpcTransport {
+  getAppInfo(): Promise<AppInfo> {
+    return invoke<AppInfo>("get_app_info");
+  }
+
+  openProject(path: string): Promise<ProjectOpenResult> {
+    return invoke<ProjectOpenResult>("open_project", { path });
+  }
+
+  listRecentProjects(): Promise<RecentProjectEntry[]> {
+    return invoke<RecentProjectEntry[]>("list_recent_projects");
+  }
+
+  resetProject(path: string): Promise<void> {
+    return invoke<void>("reset_project", { path });
+  }
+
+  createProject(path: string, profile: string): Promise<ProjectOpenResult> {
+    return invoke<ProjectOpenResult>("create_project", { path, profile });
+  }
+
+  runPreflight(path: string): Promise<PreflightReport> {
+    return invoke<PreflightReport>("run_preflight", { path });
+  }
+
+  getGlobalSettings(): Promise<GlobalSettings> {
+    return invoke<GlobalSettings>("get_global_settings");
+  }
+
+  saveGlobalSettings(settings: GlobalSettings): Promise<void> {
+    return invoke<void>("save_global_settings", { settings });
+  }
+
+  getProjectConfig(path: string): Promise<ProjectConfig> {
+    return invoke<ProjectConfig>("get_project_config", { path });
+  }
+
+  saveProjectConfig(path: string, config: ProjectConfig): Promise<void> {
+    return invoke<void>("save_project_config", { path, config });
+  }
+
+  listProviders(): Promise<ProviderConfigEntry[]> {
+    return invoke<ProviderConfigEntry[]>("list_providers");
+  }
+
+  saveProvider(entry: ProviderConfigEntry): Promise<void> {
+    return invoke<void>("save_provider", { entry });
+  }
+
+  deleteProvider(id: string): Promise<void> {
+    return invoke<void>("delete_provider", { id });
+  }
+
+  setApiKey(providerId: string, key: string): Promise<void> {
+    return invoke<void>("set_api_key", { providerId, key });
+  }
+
+  hasApiKey(providerId: string): Promise<boolean> {
+    return invoke<boolean>("has_api_key", { providerId });
+  }
+
+  testProvider(providerId: string): Promise<ProviderTestResult> {
+    return invoke<ProviderTestResult>("test_provider", { providerId });
+  }
+
+  listModels(): Promise<ModelEntry[]> {
+    return invoke<ModelEntry[]>("list_models");
+  }
+
+  registerModel(entry: ModelEntry): Promise<void> {
+    return invoke<void>("register_model", { entry });
+  }
+
+  fetchProviderModels(
+    providerType: string,
+    baseUrl: string,
+    apiKey?: string
+  ): Promise<ModelEntry[]> {
+    return invoke<ModelEntry[]>("fetch_provider_models", {
+      providerType,
+      baseUrl,
+      apiKey: apiKey ?? null,
+    });
+  }
+
+  startRun(path: string): Promise<string> {
+    return invoke<string>("start_run", { path });
+  }
+
+  pauseRun(path: string): Promise<void> {
+    return invoke<void>("pause_run", { path });
+  }
+
+  resumeRun(path: string): Promise<void> {
+    return invoke<void>("resume_run", { path });
+  }
+
+  stopRun(path: string): Promise<void> {
+    return invoke<void>("stop_run", { path });
+  }
+
+  getRunState(path: string): Promise<RunStateResponse> {
+    return invoke<RunStateResponse>("get_run_state", { path });
+  }
+
+  listChapters(path: string): Promise<Chapter[]> {
+    return invoke<Chapter[]>("list_chapters", { path });
+  }
+
+  getChapter(path: string, chapterId: string): Promise<ChapterDetail> {
+    return invoke<ChapterDetail>("get_chapter", { path, chapterId });
+  }
+
+  listSegments(path: string, chapterId: string): Promise<Segment[]> {
+    return invoke<Segment[]>("list_segments", { path, chapterId });
+  }
+
+  listTranslations(path: string, chapterId: string): Promise<Translation[]> {
+    return invoke<Translation[]>("list_translations", { path, chapterId });
+  }
+
+  listGlossary(path: string): Promise<GlossaryEntry[]> {
+    return invoke<GlossaryEntry[]>("list_glossary", { path });
+  }
+
+  addGlossaryEntry(path: string, entry: GlossaryEntryInput): Promise<GlossaryEntry> {
+    return invoke<GlossaryEntry>("add_glossary_entry", { path, entry });
+  }
+
+  updateGlossaryEntry(path: string, entry: GlossaryEntryInput): Promise<void> {
+    return invoke<void>("update_glossary_entry", { path, entry });
+  }
+
+  deleteGlossaryEntry(path: string, source: string): Promise<void> {
+    return invoke<void>("delete_glossary_entry", { path, source });
+  }
+
+  onEngineEvent(handler: (event: EngineEvent) => void): Promise<UnlistenFn> {
+    return listen<EngineEvent>("lnta:event", (ev) => {
+      handler(ev.payload);
+    });
+  }
+}
+
+let activeTransport: IpcTransport | null = null;
+
+export function setIpcTransport(transport: IpcTransport | null) {
+  activeTransport = transport;
+}
+
+export function getIpc(): IpcTransport {
+  if (activeTransport) {
+    return activeTransport;
+  }
+  activeTransport = new TauriTransport();
+  return activeTransport;
+}
+
+export const ipc = new Proxy({} as IpcTransport, {
+  get(_target, prop) {
+    const transport = getIpc();
+    const val = transport[prop as keyof IpcTransport];
+    if (typeof val === "function") {
+      return val.bind(transport);
+    }
+    return val;
+  },
+});
