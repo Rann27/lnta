@@ -4,13 +4,20 @@
 //! PRD §5.5, FR-QA-01..02, and Appendix B.
 
 pub mod common;
+pub mod fix_ai;
 pub mod fix_mechanical;
 pub mod fixlog;
 pub mod frequency;
+pub mod hotspots;
 pub mod ja_en;
 pub mod ja_id;
+pub mod review;
 
 pub use common::{QaFinding, SegmentForQa};
+pub use fix_ai::{
+    apply_ai_fixes_to_db, build_qa_fix_prompt, parse_qa_fix_response, validate_fix_replacement,
+    QaFixItem, QaFixPromptArgs, QaFixResponseItem,
+};
 pub use fix_mechanical::{
     apply_mechanical_fixes_to_text, AppliedMechanicalFix, MechanicalFixOptions,
 };
@@ -19,7 +26,18 @@ pub use fixlog::{
     undo_fix_and_rerender, undo_run, undo_run_and_rerender, ApplyMechanicalResult,
 };
 pub use frequency::{analyze_phrase_frequency, FrequencyItem, FrequencyReport};
+pub use hotspots::{
+    select_all_hotspots, select_boundary_hotspots, select_frequency_hotspots,
+    select_homophone_hotspots, select_late_volume_hotspots, select_long_run_hotspots,
+    select_names_hotspots, select_seam_hotspots, select_single_character_hotspots,
+    select_wordplay_hotspots, Hotspot, HotspotPair,
+};
 pub use ja_en::CharacterGender;
+pub use review::{
+    apply_rename_to_volume, apply_review_fix, build_qa_review_prompt, build_qa_summary_log,
+    load_volume_segments_for_qa, parse_qa_review_response, parse_ref_str, QaLoopResult,
+    QaReviewArgs, QaReviewResponseItem,
+};
 
 /// Runs a full QA scan for the `ja-id` profile over all chapters and segments in a volume.
 ///
