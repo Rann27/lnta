@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">
+  <w:body>
+    
+    <w:p><w:pPr><w:pStyle w:val="Heading1"/></w:pPr><w:r><w:t xml:space="preserve">Bab 1: Pagi yang Cerah</w:t></w:r></w:p><w:p><w:r><w:t xml:space="preserve">Matahari mulai terbit menyinari ruangan.</w:t></w:r></w:p><w:p><w:r><w:t xml:space="preserve">Dia bergumam, </w:t></w:r><w:r><w:rPr><w:i/></w:rPr><w:t xml:space="preserve">hari ini akan menyenangkan</w:t></w:r><w:r><w:t xml:space="preserve">, lalu tersenyum.</w:t></w:r></w:p><w:p><w:pPr><w:pStyle w:val="Heading1"/><w:pageBreakBefore/></w:pPr><w:r><w:t xml:space="preserve">Bab 2: Pertemuan</w:t></w:r></w:p><w:p><w:r><w:t xml:space="preserve">Langkah kaki terdengar dari kejauhan.</w:t></w:r></w:p><w:sectPr>
+      <w:pgSz w:w="12240" w:h="15840"/>
+      <w:pgMar w:top="1440" w:right="1800" w:bottom="1440" w:left="1800"/>
+    </w:sectPr>
+  </w:body>
+</w:document>

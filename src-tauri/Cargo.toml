@@ -26,6 +26,8 @@ toml = "0.8"
 encoding_rs = "0.8"
 chardetng = "0.1"
 strsim = "0.11"
+zip = { version = "2.2", default-features = false, features = ["deflate"] }
+quick-xml = "0.37"
 
 [lints.clippy]
 unwrap_used = "deny"
