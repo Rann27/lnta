@@ -10,6 +10,7 @@ use crate::error::AppError;
 use super::body::{inject_chapters_into_body, RenderChapter};
 use super::styles::find_heading1_style_id;
 use super::template::DocxPackage;
+use super::template_content::TemplateTreatment;
 
 /// Checks whether a target file is currently locked by Word or another process.
 /// On Windows, Word opens documents with exclusive sharing modes, yielding ERROR_SHARING_VIOLATION (32)
@@ -61,14 +62,13 @@ pub fn backup_docx_file(file_path: &Path, backup_dir: &Path) -> Result<Option<Pa
     Ok(Some(backup_path))
 }
 
-/// Renders chapters into a docx package and writes it atomically to `target_path`.
-///
-/// If `target_path` is locked, returns `AppError::DocxLocked` without modifying anything.
-pub fn render_and_write_docx(
+/// Renders chapters into a docx package with a specific `TemplateTreatment` and writes it atomically to `target_path`.
+pub fn render_and_write_docx_with_treatment(
     template_bytes: &[u8],
     chapters: &[RenderChapter],
     target_path: &Path,
     backup_dir: Option<&Path>,
+    treatment: TemplateTreatment,
 ) -> Result<String, AppError> {
     // 1. Check if locked
     check_file_locked(target_path)?;
@@ -86,7 +86,7 @@ pub fn render_and_write_docx(
     let doc_xml = package
         .get_text_entry("word/document.xml")
         .unwrap_or_default();
-    let new_doc_xml = inject_chapters_into_body(&doc_xml, chapters, &heading_style_id);
+    let new_doc_xml = inject_chapters_into_body(&doc_xml, chapters, &heading_style_id, treatment);
     package.set_text_entry("word/document.xml", &new_doc_xml);
 
     // 5. Serialize package to bytes
@@ -121,4 +121,22 @@ pub fn render_and_write_docx(
     })?;
 
     Ok(new_doc_xml)
+}
+
+/// Renders chapters into a docx package with default `TemplateTreatment::KeepFrontMatter` and writes it atomically to `target_path`.
+///
+/// If `target_path` is locked, returns `AppError::DocxLocked` without modifying anything.
+pub fn render_and_write_docx(
+    template_bytes: &[u8],
+    chapters: &[RenderChapter],
+    target_path: &Path,
+    backup_dir: Option<&Path>,
+) -> Result<String, AppError> {
+    render_and_write_docx_with_treatment(
+        template_bytes,
+        chapters,
+        target_path,
+        backup_dir,
+        TemplateTreatment::KeepFrontMatter,
+    )
 }
