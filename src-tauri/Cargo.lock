@@ -2024,6 +2024,7 @@ name = "lnta"
 version = "0.1.0"
 dependencies = [
  "chrono",
+ "regex",
  "rusqlite",
  "serde",
  "serde_json",
@@ -2031,6 +2032,7 @@ dependencies = [
  "tauri-build",
  "tauri-plugin-opener",
  "thiserror 2.0.21",
+ "toml 0.8.2",
  "uuid",
 ]
 
