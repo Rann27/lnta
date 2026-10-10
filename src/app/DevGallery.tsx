@@ -30,11 +30,11 @@ import { setTheme, type Theme } from "./theme";
 
 export const DevGallery: React.FC = () => {
   const [currentTheme, setCurrentTheme] = useState<Theme>("system");
-  const [textVal, setTextVal] = useState("Karamawari no Hibi");
+  const [textVal, setTextVal] = useState("Synthetic Novel Volume 1");
   const [secretVal, setSecretVal] = useState("");
   const [isKeyStored, setIsKeyStored] = useState(true);
   const [numVal, setNumVal] = useState<number | undefined>(64000);
-  const [pathVal, setPathVal] = useState("D:/LN/Karamawari 1");
+  const [pathVal, setPathVal] = useState("D:/LN/Synthetic-Volume-1");
   const [selectVal, setSelectVal] = useState("id");
   const [checkVal, setCheckVal] = useState(true);
   const [switchVal, setSwitchVal] = useState(false);

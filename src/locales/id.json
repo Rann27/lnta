@@ -47,6 +47,17 @@
     "minutes_unit": "m",
     "hours_unit": "j"
   },
+  "preview": {
+    "scenarios": {
+      "no_projects": "Proyek kosong",
+      "project_idle_blocker": "Proyek idle dengan blocker",
+      "run_in_progress": "Run berjalan dengan token streaming",
+      "chapter_needs_attention": "Bab perlu perhatian",
+      "run_paused_blocker": "Run dijeda oleh blocker",
+      "qa_finished": "QA selesai"
+    },
+    "switch_scenario": "Ganti skenario"
+  },
   "errors": {
     "file_not_found": "File tidak ditemukan.",
     "instruction_missing": "File instruction tidak ditemukan.",

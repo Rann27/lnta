@@ -1,8 +1,14 @@
 import { DevGallery } from "./DevGallery";
+import { PreviewBanner } from "./PreviewBanner";
 
 export function App() {
   if (import.meta.env.DEV) {
-    return <DevGallery />;
+    return (
+      <>
+        <PreviewBanner />
+        <DevGallery />
+      </>
+    );
   }
   return (
     <div id="app">

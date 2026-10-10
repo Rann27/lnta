@@ -47,6 +47,17 @@
     "minutes_unit": "m",
     "hours_unit": "h"
   },
+  "preview": {
+    "scenarios": {
+      "no_projects": "No projects",
+      "project_idle_blocker": "Project idle with blockers",
+      "run_in_progress": "Run in progress with streaming tokens",
+      "chapter_needs_attention": "Chapter needs attention",
+      "run_paused_blocker": "Run paused by blocker",
+      "qa_finished": "QA finished"
+    },
+    "switch_scenario": "Switch scenario"
+  },
   "errors": {
     "file_not_found": "File not found.",
     "instruction_missing": "Instruction file not found.",

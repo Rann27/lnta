@@ -1,4 +1,5 @@
-import { invoke } from "@tauri-apps/api/core";
+import { invoke, isTauri } from "@tauri-apps/api/core";
+import { PreviewTransport } from "./preview/transport";
 import { listen, type UnlistenFn } from "@tauri-apps/api/event";
 import type {
   AppInfo,
@@ -233,7 +234,11 @@ export function getIpc(): IpcTransport {
   if (activeTransport) {
     return activeTransport;
   }
-  activeTransport = new TauriTransport();
+  if (import.meta.env.DEV && !isTauri()) {
+    activeTransport = new PreviewTransport();
+  } else {
+    activeTransport = new TauriTransport();
+  }
   return activeTransport;
 }
 
