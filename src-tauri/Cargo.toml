@@ -4,6 +4,7 @@ version = "0.1.0"
 description = "LNTA (LN Translation Agents)"
 authors = ["Rann27"]
 edition = "2021"
+default-run = "lnta"
 
 [lib]
 name = "lnta_lib"
