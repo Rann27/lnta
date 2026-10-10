@@ -1,0 +1,116 @@
+.card {
+  background: var(--color-surface);
+  border: var(--hairline) solid var(--color-border);
+  border-radius: var(--radius-2);
+  padding: var(--space-6);
+  display: grid;
+  gap: var(--space-5);
+  box-sizing: border-box;
+  width: 100%;
+}
+
+.head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: var(--space-6);
+  flex-wrap: wrap;
+}
+
+.title {
+  margin: 0;
+  font: var(--text-title);
+  color: var(--color-text);
+}
+
+.planMeta {
+  color: var(--color-text-3);
+  font: var(--text-mono);
+  font-size: var(--text-small);
+}
+
+.parts {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.partRow {
+  display: grid;
+  grid-template-columns: 10ch minmax(0, 1fr) 14ch;
+  gap: var(--space-5);
+  align-items: center;
+}
+
+.partLabel {
+  font: var(--text-label);
+  color: var(--color-text);
+}
+
+.partLines {
+  color: var(--color-text-3);
+  font: var(--text-mono);
+  font-size: var(--text-small);
+  text-align: right;
+}
+
+.callRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-6);
+  align-items: center;
+  padding-top: var(--space-3);
+  border-top: var(--hairline) solid var(--color-border);
+  font: var(--text-small);
+  color: var(--color-text-2);
+}
+
+.callItem {
+  display: inline-flex;
+  gap: var(--space-2);
+  align-items: center;
+}
+
+.callItemBold {
+  color: var(--color-text);
+  font-weight: 600;
+}
+
+.stateTag {
+  display: inline-flex;
+  padding: 0 var(--space-2);
+  border-radius: var(--radius-1);
+  font: var(--text-label);
+  font-size: var(--text-small);
+}
+
+.stateTagLive {
+  background: var(--color-tally-subtle);
+  color: var(--color-tally-on-subtle);
+}
+
+.stateTagPaused {
+  background: var(--color-sunken);
+  color: var(--color-text-3);
+}
+
+.stateTagWarning {
+  background: var(--color-warn-subtle);
+  color: var(--color-warn);
+}
+
+.emptyState {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.emptyTitle {
+  margin: 0;
+  font: var(--text-title);
+  color: var(--color-text);
+}
+
+.emptyDesc {
+  margin: 0;
+  color: var(--color-text-2);
+  font: var(--text-body);
+}

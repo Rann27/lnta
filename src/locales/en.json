@@ -179,6 +179,37 @@
       "log": "Log panel"
     },
     "segment_single": "Segment {{num}}: {{status}}",
-    "segment_range": "Segment {{from}}-{{to}}: {{status}}"
+    "segment_range": "Segment {{from}}-{{to}}: {{status}}",
+    "run_tab": {
+      "no_run_yet": "No runs yet. Next chapter: {{ordinal}} · {{title}} ({{parts}} parts).",
+      "start_helper": "Press Run volume in the top right to start.",
+      "planning_for": "Planning parts for {{ordinal}} · {{title}}",
+      "all_completed": "All chapters completed. QA in progress.",
+      "all_completed_done": "All chapters completed.",
+      "qa_summary": "QA Phase: {{findings}} findings detected.",
+      "plan_summary": "{{parts}} parts · {{lines}} lines",
+      "part_label": "Part {{part}}",
+      "line_range": "lines {{from}}-{{to}}",
+      "paused_label": "Paused",
+      "validating_label": "Validating output",
+      "repairing_label": "Repairing {{count}} segments",
+      "translator_role": "Translator",
+      "waiting_response": "Waiting for response, {{seconds}} s",
+      "received_tokens": "Received {{tokens}} tokens · {{seconds}} s",
+      "blocker_preflight_title": "Run blocked by preflight",
+      "blocker_preflight_desc": "Resolve folder or config blockers before starting the run.",
+      "action_check_preflight": "Check preflight",
+      "attention_docx_title": "Docx file locked",
+      "attention_docx_desc": "Translations.docx is open in another application. Close it and retry.",
+      "action_retry_docx": "Retry render",
+      "attention_chapter_title": "Chapter needs attention",
+      "attention_chapter_desc": "Chapter {{ordinal}} has segments requiring manual review.",
+      "action_view_chapter": "View chapter",
+      "and_more_banners": "and {{count}} others",
+      "state_announcement_running": "Run is running.",
+      "state_announcement_paused": "Run is paused.",
+      "state_announcement_completed": "Run completed.",
+      "state_announcement_idle": "Run is in idle state."
+    }
   }
 }

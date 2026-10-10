@@ -4,6 +4,7 @@ import { RunBar } from "./RunBar";
 import { ChapterRail } from "./Rail";
 import { StatusBar } from "./StatusBar";
 import { LogDrawer } from "./LogDrawer";
+import { RunTab } from "./RunTab";
 import { useWorkspaceStore, type WorkspaceTab } from "./store";
 import { useProjectsStore } from "../projects/store";
 import styles from "./Workspace.module.css";
@@ -183,16 +184,7 @@ export const Workspace: React.FC = () => {
             id={`panel-${activeTab}`}
             tabIndex={0}
           >
-            {activeTab === "run" && (
-              <div className={styles.placeholderCard}>
-                <h3 style={{ margin: 0, font: "var(--text-title)" }}>
-                  {t("workspace.tabs.run")}
-                </h3>
-                <p style={{ margin: 0, color: "var(--color-text-2)" }}>
-                  Tab Run menampilkan kartu bab aktif, ringkasan rencana, dan panggilan streaming.
-                </p>
-              </div>
-            )}
+            {activeTab === "run" && <RunTab />}
             {activeTab === "chapters" && (
               <div className={styles.placeholderCard}>
                 <h3 style={{ margin: 0, font: "var(--text-title)" }}>

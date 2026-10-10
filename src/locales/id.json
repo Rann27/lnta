@@ -179,6 +179,37 @@
       "log": "Panel log"
     },
     "segment_single": "Segmen {{num}}: {{status}}",
-    "segment_range": "Segmen {{from}}-{{to}}: {{status}}"
+    "segment_range": "Segmen {{from}}-{{to}}: {{status}}",
+    "run_tab": {
+      "no_run_yet": "Belum ada run. Bab berikutnya: {{ordinal}} · {{title}} ({{parts}} bagian).",
+      "start_helper": "Tekan Jalankan volume di kanan atas untuk memulai.",
+      "planning_for": "Merencanakan bagian untuk {{ordinal}} · {{title}}",
+      "all_completed": "Semua bab selesai. QA berjalan.",
+      "all_completed_done": "Semua bab selesai.",
+      "qa_summary": "Fase QA: {{findings}} temuan terdeteksi.",
+      "plan_summary": "{{parts}} bagian · {{lines}} baris",
+      "part_label": "Bagian {{part}}",
+      "line_range": "baris {{from}}-{{to}}",
+      "paused_label": "Dijeda",
+      "validating_label": "Memvalidasi output",
+      "repairing_label": "Memperbaiki {{count}} segmen",
+      "translator_role": "Penerjemah",
+      "waiting_response": "Menunggu respons, {{seconds}} d",
+      "received_tokens": "Diterima {{tokens}} token · {{seconds}} d",
+      "blocker_preflight_title": "Run terblokir oleh preflight",
+      "blocker_preflight_desc": "Selesaikan blocker pada folder atau konfigurasi sebelum memulai run.",
+      "action_check_preflight": "Periksa preflight",
+      "attention_docx_title": "File docx terkunci",
+      "attention_docx_desc": "Translations.docx sedang dibuka di aplikasi lain. Tutup file itu lalu coba lagi.",
+      "action_retry_docx": "Coba render lagi",
+      "attention_chapter_title": "Bab perlu perhatian",
+      "attention_chapter_desc": "Bab {{ordinal}} memiliki segmen yang membutuhkan peninjauan manual.",
+      "action_view_chapter": "Lihat bab",
+      "and_more_banners": "dan {{count}} lainnya",
+      "state_announcement_running": "Run sedang berjalan.",
+      "state_announcement_paused": "Run dijeda.",
+      "state_announcement_completed": "Run selesai.",
+      "state_announcement_idle": "Run berada dalam keadaan idle."
+    }
   }
 }
