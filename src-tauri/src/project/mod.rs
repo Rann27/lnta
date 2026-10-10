@@ -4,6 +4,7 @@ pub mod config;
 pub mod discover;
 pub mod instruction;
 pub mod layout;
+pub mod preflight;
 
 use std::path::{Path, PathBuf};
 
@@ -11,6 +12,10 @@ pub use config::ProjectConfig;
 pub use discover::{discover_chapters, DiscoveredChapter};
 pub use instruction::{resolve_instruction, resolve_instruction_candidates};
 pub use layout::ProjectLayout;
+pub use preflight::{
+    detect_instruction_language, run_preflight, PreflightAction, PreflightEnvironment,
+    PreflightItem, PreflightReport, PreflightStatus,
+};
 
 use crate::error::AppError;
 
