@@ -1,0 +1,54 @@
+{
+  "app": {
+    "title": "LNTA",
+    "by": "LNTA oleh Rann27"
+  },
+  "actions": {
+    "run_volume": "Jalankan volume",
+    "resume_run": "Lanjutkan run",
+    "pause": "Jeda",
+    "stop_now": "Hentikan sekarang",
+    "open_folder": "Buka folder proyek",
+    "run_preflight": "Jalankan preflight",
+    "render_again": "Coba render lagi",
+    "test_connection": "Tes koneksi",
+    "change_model": "Ganti model",
+    "retranslate_segment": "Terjemahkan ulang segmen",
+    "undo_fix": "Batalkan perbaikan"
+  },
+  "status": {
+    "queued": "antri",
+    "running": "berjalan",
+    "paused": "dijeda",
+    "done": "selesai",
+    "needs_attention": "perlu perhatian",
+    "blocked": "terblokir",
+    "failed": "gagal",
+    "frozen": "beku",
+    "source_changed": "sumber berubah"
+  },
+  "common": {
+    "save": "Simpan",
+    "cancel": "Batal",
+    "delete": "Hapus",
+    "close": "Tutup",
+    "estimate": "estimasi",
+    "image_pages": "halaman gambar",
+    "mock_data_banner": "Pratinjau browser: data tiruan",
+    "seconds_unit": "d",
+    "minutes_unit": "m",
+    "hours_unit": "j"
+  },
+  "errors": {
+    "file_not_found": "File tidak ditemukan.",
+    "instruction_missing": "File instruction tidak ditemukan.",
+    "duplicate_prefix": "Prefix nomor bab duplikat ditemukan.",
+    "invalid_template": "Template docx tidak valid.",
+    "docx_locked": "Translations.docx sedang dibuka di aplikasi lain. Tutup file itu, lalu render lagi.",
+    "provider_failed": "Provider gagal berulang kali.",
+    "parse_failed": "Gagal mengurai respons model.",
+    "validation_failed": "Validasi segmen gagal.",
+    "permission_denied": "Akses folder ditolak.",
+    "unknown": "Terjadi kesalahan yang tidak diketahui."
+  }
+}

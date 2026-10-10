@@ -1,0 +1,54 @@
+{
+  "app": {
+    "title": "LNTA",
+    "by": "LNTA by Rann27"
+  },
+  "actions": {
+    "run_volume": "Run volume",
+    "resume_run": "Resume run",
+    "pause": "Pause",
+    "stop_now": "Stop now",
+    "open_folder": "Open project folder",
+    "run_preflight": "Run preflight",
+    "render_again": "Render again",
+    "test_connection": "Test connection",
+    "change_model": "Change model",
+    "retranslate_segment": "Retranslate segment",
+    "undo_fix": "Undo fix"
+  },
+  "status": {
+    "queued": "queued",
+    "running": "running",
+    "paused": "paused",
+    "done": "done",
+    "needs_attention": "needs attention",
+    "blocked": "blocked",
+    "failed": "failed",
+    "frozen": "frozen",
+    "source_changed": "source changed"
+  },
+  "common": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "close": "Close",
+    "estimate": "estimate",
+    "image_pages": "image pages",
+    "mock_data_banner": "Browser preview: mock data",
+    "seconds_unit": "s",
+    "minutes_unit": "m",
+    "hours_unit": "h"
+  },
+  "errors": {
+    "file_not_found": "File not found.",
+    "instruction_missing": "Instruction file not found.",
+    "duplicate_prefix": "Duplicate chapter prefix found.",
+    "invalid_template": "Invalid docx template.",
+    "docx_locked": "Translations.docx is open in another app. Close it, then render again.",
+    "provider_failed": "Provider failed repeatedly.",
+    "parse_failed": "Failed to parse model response.",
+    "validation_failed": "Segment validation failed.",
+    "permission_denied": "Folder access denied.",
+    "unknown": "An unknown error occurred."
+  }
+}
