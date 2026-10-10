@@ -18,7 +18,8 @@
     "browse": "Pilih",
     "clear_key": "Hapus kunci",
     "change_key": "Ganti kunci",
-    "clear_search": "Hapus pencarian"
+    "clear_search": "Hapus pencarian",
+    "create_default_template": "Buat template bawaan"
   },
   "fields": {
     "stored_in_keyring": "Tersimpan di Credential Manager",
@@ -110,7 +111,8 @@
     "frozen_th_paragraphs": "Paragraf",
     "frozen_th_freeze": "Bekukan",
     "frozen_loading": "Menganalisis dokumen...",
-    "frozen_empty": "Tidak ditemukan heading atau teks yang cocok di Translations.docx."
+    "frozen_empty": "Tidak ditemukan heading atau teks yang cocok di Translations.docx.",
+    "create_default_template_btn": "Buat Translations.docx bawaan"
   },
   "errors": {
     "file_not_found": "File tidak ditemukan.",
@@ -370,11 +372,35 @@
       "use_proposal": "Pakai usulan",
       "ignore": "Abaikan"
     },
+    "import_button": "Impor glosarium",
+    "import_dialog_title": "Impor Glosarium Antar-Volume",
+    "import_dialog_desc": "Bawa entri glosarium dari volume lain atau file glosarium eksternal.",
+    "import_source_path": "Folder proyek sumber atau file glossary.md",
+    "import_path_placeholder": "mis. D:/LN/Volume-Sebelumnya atau D:/LN/glossary.md",
+    "import_browse_title": "Pilih folder proyek sumber",
+    "import_inspect_btn": "Periksa glosarium",
+    "import_inspecting": "Memeriksa...",
+    "import_apply_btn": "Terapkan impor",
+    "import_applying": "Menerapkan...",
+    "import_failed_inspect": "Gagal membaca glosarium sumber.",
+    "import_failed_apply": "Gagal menerapkan impor glosarium.",
+    "import_total_incoming": "Total entri yang dibaca",
+    "import_new_added": "Entri baru yang akan ditambahkan",
+    "import_identical_ignored": "Entri identik (dilewati)",
+    "import_conflicts_count": "Entri bentrok yang perlu dipilih",
+    "import_conflicts_title": "Pilih resolusi untuk entri bentrok:",
+    "import_conflict_badge": "Bentrok",
+    "import_choice_current": "Gunakan saat ini",
+    "import_choice_incoming": "Gunakan yang diimpor",
+    "no_note": "(tanpa catatan)",
     "dialog": {
       "add_title": "Tambah Entri Glosarium",
       "source_label": "Teks Sumber (Jepang)",
       "translation_label": "Terjemahan",
-      "note_label": "Catatan (Gender / Peran)"
+      "note_label": "Catatan (Gender / Peran)",
+      "source_placeholder": "misal: 健太",
+      "translation_placeholder": "misal: Kenta",
+      "note_placeholder": "misal: Tokoh utama laki-laki"
     }
   },
   "chapters": {
@@ -544,6 +570,16 @@
     "error_loading": "Gagal memuat data pemakaian.",
     "empty_title": "Belum ada panggilan di proyek ini",
     "empty_desc": "Data pemakaian token dan estimasi biaya akan muncul saat terjemahan atau QA berjalan."
+  },
+  "notifications": {
+    "run_completed_title": "Run selesai",
+    "run_completed_body": "Penerjemahan volume telah selesai seluruhnya.",
+    "run_paused_title": "Run dijeda",
+    "run_paused_body": "Run sedang dijeda karena blocker atau aksi pengguna.",
+    "blocker_title": "Blocker terdeteksi",
+    "blocker_body": "Bab {{chapterId}} mengalami kendala atau membutuhkan perhatian.",
+    "qa_done_title": "Pemindaian QA selesai",
+    "qa_done_body": "QA selesai dengan {{count}} temuan."
   }
 }
 

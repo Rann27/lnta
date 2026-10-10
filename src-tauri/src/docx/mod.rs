@@ -49,7 +49,7 @@ pub use template_content::{
 };
 pub use write::{
     backup_docx_file, check_file_locked, render_and_write_docx,
-    render_and_write_docx_with_treatment,
+    render_and_write_docx_with_treatment, write_docx_package_atomically,
 };
 
 #[cfg(test)]

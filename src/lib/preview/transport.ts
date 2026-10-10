@@ -23,6 +23,7 @@ import type {
   Translation,
   ProjectUsageResponse,
   ProjectPlanPreview,
+  GlossaryImportPreview,
 } from "../bindings";
 import type { IpcTransport } from "../ipc";
 import {
@@ -233,6 +234,10 @@ export class PreviewTransport implements IpcTransport {
       chars_per_output_token: 1.9,
       chapters,
     };
+  }
+
+  async createDefaultTemplate(path: string): Promise<void> {
+    void path;
   }
 
   // Preflight
@@ -525,6 +530,45 @@ export class PreviewTransport implements IpcTransport {
     this.activeScenario.glossary = this.activeScenario.glossary.filter(
       (g) => g.source !== source
     );
+  }
+
+  async inspectGlossaryImport(targetPath: string, sourcePath: string): Promise<GlossaryImportPreview> {
+    void targetPath;
+    void sourcePath;
+    return {
+      total_incoming: 3,
+      added_count: 2,
+      identical_count: 0,
+      conflicts: [
+        {
+          source: "美咲",
+          current_translation: "Misaki",
+          current_note: "perempuan; adik",
+          incoming_translation: "Misaki",
+          incoming_note: "perempuan; saudari",
+        },
+      ],
+      new_entries: [
+        {
+          source: "健太",
+          translation: "Kenta",
+          note: "laki-laki; protagonis",
+        },
+        {
+          source: "鈴木",
+          translation: "Suzuki",
+          note: null,
+        },
+      ],
+    };
+  }
+
+  async applyGlossaryImport(targetPath: string, entries: GlossaryEntryInput[]): Promise<number> {
+    void targetPath;
+    for (const e of entries) {
+      await this.addGlossaryEntry(targetPath, e);
+    }
+    return entries.length;
   }
 
   // QA

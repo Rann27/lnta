@@ -18,7 +18,8 @@
     "browse": "Browse",
     "clear_key": "Clear key",
     "change_key": "Change key",
-    "clear_search": "Clear search"
+    "clear_search": "Clear search",
+    "create_default_template": "Generate default template"
   },
   "fields": {
     "stored_in_keyring": "Saved in Credential Manager",
@@ -110,7 +111,8 @@
     "frozen_th_paragraphs": "Paragraphs",
     "frozen_th_freeze": "Freeze",
     "frozen_loading": "Analyzing document...",
-    "frozen_empty": "No matching headings or text found in Translations.docx."
+    "frozen_empty": "No matching headings or text found in Translations.docx.",
+    "create_default_template_btn": "Generate default Translations.docx"
   },
   "errors": {
     "file_not_found": "File not found.",
@@ -370,11 +372,35 @@
       "use_proposal": "Use proposal",
       "ignore": "Ignore"
     },
+    "import_button": "Import glossary",
+    "import_dialog_title": "Import Cross-Volume Glossary",
+    "import_dialog_desc": "Bring glossary entries from another volume or external glossary file.",
+    "import_source_path": "Source project folder or glossary.md file",
+    "import_path_placeholder": "e.g. D:/LN/Previous-Volume or D:/LN/glossary.md",
+    "import_browse_title": "Select source project folder",
+    "import_inspect_btn": "Inspect glossary",
+    "import_inspecting": "Inspecting...",
+    "import_apply_btn": "Apply import",
+    "import_applying": "Applying...",
+    "import_failed_inspect": "Failed to read source glossary.",
+    "import_failed_apply": "Failed to apply glossary import.",
+    "import_total_incoming": "Total entries read",
+    "import_new_added": "New entries to be added",
+    "import_identical_ignored": "Identical entries (skipped)",
+    "import_conflicts_count": "Conflicting entries to resolve",
+    "import_conflicts_title": "Select resolution for conflicting entries:",
+    "import_conflict_badge": "Conflict",
+    "import_choice_current": "Keep current",
+    "import_choice_incoming": "Use imported",
+    "no_note": "(no note)",
     "dialog": {
       "add_title": "Add Glossary Entry",
       "source_label": "Source Text (Japanese)",
       "translation_label": "Translation",
-      "note_label": "Note (Gender / Role)"
+      "note_label": "Note (Gender / Role)",
+      "source_placeholder": "e.g. 健太",
+      "translation_placeholder": "e.g. Kenta",
+      "note_placeholder": "e.g. Male protagonist"
     }
   },
   "chapters": {
@@ -544,6 +570,16 @@
     "error_loading": "Failed to load usage data.",
     "empty_title": "No calls recorded in this project",
     "empty_desc": "Token usage and cost estimates will appear once translation or QA runs."
+  },
+  "notifications": {
+    "run_completed_title": "Run completed",
+    "run_completed_body": "Volume translation run has finished successfully.",
+    "run_paused_title": "Run paused",
+    "run_paused_body": "Run is paused due to a blocker or user action.",
+    "blocker_title": "Blocker encountered",
+    "blocker_body": "Chapter {{chapterId}} encountered a blocker or needs attention.",
+    "qa_done_title": "QA scan completed",
+    "qa_done_body": "QA scan finished with {{count}} findings."
   }
 }
 

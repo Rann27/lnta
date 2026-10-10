@@ -43,3 +43,5 @@ export * from "./ProjectUsageResponse";
 export * from "./PlannedPartPreview";
 export * from "./ChapterPlanPreview";
 export * from "./ProjectPlanPreview";
+export * from "./GlossaryConflictItem";
+export * from "./GlossaryImportPreview";

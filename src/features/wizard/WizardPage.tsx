@@ -9,6 +9,7 @@ import { PathField } from "../../components/ui/PathField";
 import { WizardStepper } from "./WizardStepper";
 import { PreflightChecklist } from "./PreflightChecklist";
 import { useWizardStore } from "./store";
+import { ipc } from "../../lib/ipc";
 import styles from "./WizardPage.module.css";
 
 export const WizardPage: React.FC = () => {
@@ -205,6 +206,21 @@ export const WizardPage: React.FC = () => {
                 onChange={(e) => setSendFullGlossary(e.target.checked)}
               />
             </div>
+
+            <div style={{ marginTop: "var(--space-4)" }}>
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={async () => {
+                  if (folderPath) {
+                    await ipc.createDefaultTemplate(folderPath);
+                    await runPreflightCheck();
+                  }
+                }}
+              >
+                {t("wizard.create_default_template_btn")}
+              </Button>
+            </div>
           </div>
         );
 
@@ -237,6 +253,16 @@ export const WizardPage: React.FC = () => {
               report={preflight}
               isLoading={isPreflightRunning}
               onRerun={runPreflightCheck}
+              onAction={async (actionId) => {
+                if (actionId === "create_default_template" && folderPath) {
+                  try {
+                    await ipc.createDefaultTemplate(folderPath);
+                    await runPreflightCheck();
+                  } catch (e) {
+                    console.error("Failed to create default template:", e);
+                  }
+                }
+              }}
             />
           </div>
         );

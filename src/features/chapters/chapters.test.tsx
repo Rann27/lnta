@@ -11,6 +11,7 @@ import type { Segment, Translation, Chapter } from "../../lib/bindings";
 
 // Mock i18next
 vi.mock("react-i18next", () => ({
+  initReactI18next: { type: "3rdParty", init: () => {} },
   useTranslation: () => ({
     t: (key: string, params?: Record<string, unknown>) => {
       if (params) {

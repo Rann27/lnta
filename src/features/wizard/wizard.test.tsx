@@ -158,4 +158,28 @@ describe("Project Wizard and Preflight UI", () => {
     expect(screen.getByText(/Abaikan isi dokumen|Ignore document content/i)).toBeInTheDocument();
     expect(screen.getByText(/Impor bab sebagai bab beku|Import chapters as frozen/i)).toBeInTheDocument();
   });
+
+  it("allows user to trigger create default template action", async () => {
+    const transport = new PreviewTransport("project-idle-blocker");
+    const createTplSpy = vi.fn().mockResolvedValue(undefined);
+    transport.createDefaultTemplate = createTplSpy;
+    setIpcTransport(transport);
+
+    await useWizardStore.getState().initWizard("D:/LN/Synthetic-Volume-1");
+    useWizardStore.setState({ currentStep: 2 });
+
+    render(
+      <MemoryRouter>
+        <WizardPage />
+      </MemoryRouter>
+    );
+
+    const createBtn = screen.getByText(/Buat Translations\.docx bawaan|Generate default Translations\.docx/i);
+    expect(createBtn).toBeInTheDocument();
+    fireEvent.click(createBtn);
+
+    await vi.waitFor(() => {
+      expect(createTplSpy).toHaveBeenCalledWith("D:/LN/Synthetic-Volume-1");
+    });
+  });
 });

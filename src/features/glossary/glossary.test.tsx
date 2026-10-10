@@ -5,8 +5,11 @@ import "../../lib/i18n";
 import { useGlossaryStore } from "./store";
 import { GlossaryTab } from "./GlossaryTab";
 import { GlossaryRow } from "./GlossaryRow";
+import { GlossaryImportDialog } from "./GlossaryImportDialog";
 import { lintGlossaryEntry, isNearVariant } from "./lint";
 import { useWorkspaceStore } from "../workspace/store";
+import { setIpcTransport } from "../../lib/ipc";
+import { PreviewTransport } from "../../lib/preview/transport";
 import type { GlossaryEntry } from "../../lib/bindings";
 
 const SAMPLE_ENTRIES: GlossaryEntry[] = [
@@ -206,6 +209,10 @@ describe("GlossaryRow", () => {
 
 describe("GlossaryTab", () => {
   beforeEach(() => {
+    const transport = new PreviewTransport();
+    transport.listGlossary = vi.fn().mockResolvedValue(SAMPLE_ENTRIES);
+    setIpcTransport(transport);
+
     useWorkspaceStore.setState({ projectPath: "/dummy/path" });
     useGlossaryStore.setState({
       entries: SAMPLE_ENTRIES,
@@ -220,6 +227,7 @@ describe("GlossaryTab", () => {
 
   afterEach(() => {
     cleanup();
+    setIpcTransport(null);
   });
 
   it("renders table header and rows, filterable via search input", async () => {
@@ -247,5 +255,92 @@ describe("GlossaryTab", () => {
         /Entri glosarium akan muncul secara otomatis saat bab selesai diterjemahkan/i
       )
     ).toBeInTheDocument();
+  });
+
+  it("renders import button and opens GlossaryImportDialog", async () => {
+    render(<GlossaryTab />);
+    const importBtn = screen.getByText("Impor glosarium");
+    expect(importBtn).toBeInTheDocument();
+
+    await waitFor(() => {
+      expect(importBtn.closest("button")).not.toBeDisabled();
+    });
+
+    fireEvent.click(importBtn);
+
+    expect(screen.getByText("Impor Glosarium Antar-Volume")).toBeInTheDocument();
+  });
+});
+
+describe("GlossaryImportDialog", () => {
+  afterEach(() => {
+    cleanup();
+    setIpcTransport(null);
+  });
+
+  it("inspects source glossary and allows conflict resolution before applying", async () => {
+    const transport = new PreviewTransport();
+    const inspectSpy = vi.fn().mockResolvedValue({
+      total_incoming: 3,
+      added_count: 2,
+      identical_count: 0,
+      conflicts: [
+        {
+          source: "美咲",
+          current_translation: "Misaki",
+          current_note: "perempuan; adik",
+          incoming_translation: "Misaki",
+          incoming_note: "perempuan; saudari",
+        },
+      ],
+      new_entries: [
+        {
+          source: "健太",
+          translation: "Kenta",
+          note: "laki-laki; protagonis",
+        },
+      ],
+    });
+
+    const applySpy = vi.fn().mockResolvedValue(2);
+    transport.inspectGlossaryImport = inspectSpy;
+    transport.applyGlossaryImport = applySpy;
+    setIpcTransport(transport);
+
+    const onImported = vi.fn();
+    const onClose = vi.fn();
+
+    render(
+      <GlossaryImportDialog
+        isOpen={true}
+        onClose={onClose}
+        projectPath="/dummy/target"
+        onImported={onImported}
+      />
+    );
+
+    const pathInput = screen.getByPlaceholderText(/mis\. D:\/LN\/Volume-Sebelumnya/i);
+    fireEvent.change(pathInput, { target: { value: "/dummy/source" } });
+
+    const inspectBtn = screen.getByText("Periksa glosarium");
+    fireEvent.click(inspectBtn);
+
+    await waitFor(() => {
+      expect(inspectSpy).toHaveBeenCalledWith("/dummy/target", "/dummy/source");
+      expect(screen.getByText("Pilih resolusi untuk entri bentrok:")).toBeInTheDocument();
+      expect(screen.getByText("Bentrok")).toBeInTheDocument();
+    });
+
+    const applyBtn = screen.getByText("Terapkan impor");
+    fireEvent.click(applyBtn);
+
+    await waitFor(() => {
+      expect(applySpy).toHaveBeenCalledWith("/dummy/target", expect.arrayContaining([
+        expect.objectContaining({ source: "健太" }),
+        expect.objectContaining({ source: "美咲", note: "perempuan; saudari" }),
+      ]));
+      expect(onImported).toHaveBeenCalled();
+      expect(onClose).toHaveBeenCalled();
+    });
   });
 });

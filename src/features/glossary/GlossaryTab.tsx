@@ -5,6 +5,7 @@ import {
   Plus,
   ArrowClockwise,
   BookOpenText,
+  DownloadSimple,
 } from "@phosphor-icons/react";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { useTranslation } from "react-i18next";
@@ -14,6 +15,7 @@ import { StateBlock } from "../../components/ui/StateBlock";
 import { Dialog } from "../../components/ui/Dialog";
 import { TextField } from "../../components/ui/TextField";
 import { GlossaryRow } from "./GlossaryRow";
+import { GlossaryImportDialog } from "./GlossaryImportDialog";
 import { useGlossaryStore, type GlossarySortColumn } from "./store";
 import { useWorkspaceStore } from "../workspace/store";
 import { ipc } from "../../lib/ipc";
@@ -39,6 +41,7 @@ export const GlossaryTab: React.FC = () => {
   } = useGlossaryStore();
 
   const [isAddOpen, setIsAddOpen] = useState(false);
+  const [isImportOpen, setIsImportOpen] = useState(false);
   const [newSource, setNewSource] = useState("");
   const [newTranslation, setNewTranslation] = useState("");
   const [newNote, setNewNote] = useState("");
@@ -196,6 +199,16 @@ export const GlossaryTab: React.FC = () => {
             onClick={() => projectPath && void loadGlossary(projectPath)}
           >
             {t("glossary.reload")}
+          </Button>
+
+          <Button
+            size="sm"
+            variant="secondary"
+            icon={<DownloadSimple size={14} />}
+            disabled={isLoading || !projectPath}
+            onClick={() => setIsImportOpen(true)}
+          >
+            {t("glossary.import_button")}
           </Button>
 
           <Button
@@ -375,7 +388,7 @@ export const GlossaryTab: React.FC = () => {
             label={t("glossary.dialog.source_label")}
             value={newSource}
             onChange={(e) => setNewSource(e.target.value)}
-            placeholder="misal: 健太"
+            placeholder={t("glossary.dialog.source_placeholder")}
             lang="ja"
           />
 
@@ -383,17 +396,28 @@ export const GlossaryTab: React.FC = () => {
             label={t("glossary.dialog.translation_label")}
             value={newTranslation}
             onChange={(e) => setNewTranslation(e.target.value)}
-            placeholder="misal: Kenta"
+            placeholder={t("glossary.dialog.translation_placeholder")}
           />
 
           <TextField
             label={t("glossary.dialog.note_label")}
             value={newNote}
             onChange={(e) => setNewNote(e.target.value)}
-            placeholder="misal: Tokoh utama laki-laki"
+            placeholder={t("glossary.dialog.note_placeholder")}
           />
         </div>
       </Dialog>
+
+      {projectPath && (
+        <GlossaryImportDialog
+          isOpen={isImportOpen}
+          onClose={() => setIsImportOpen(false)}
+          projectPath={projectPath}
+          onImported={() => {
+            void loadGlossary(projectPath);
+          }}
+        />
+      )}
     </div>
   );
 };

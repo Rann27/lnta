@@ -25,6 +25,7 @@ import type {
   Translation,
   ProjectUsageResponse,
   ProjectPlanPreview,
+  GlossaryImportPreview,
 } from "./bindings";
 
 export interface IpcTransport {
@@ -39,6 +40,7 @@ export interface IpcTransport {
   proposeFrozenChapters(projectPath: string): Promise<FrozenChapterMapping[]>;
   confirmFrozenChapters(projectPath: string, mappings: FrozenChapterMapping[]): Promise<void>;
   getPlanPreview(path: string, model?: ModelReference | null): Promise<ProjectPlanPreview>;
+  createDefaultTemplate(path: string): Promise<void>;
 
   // Preflight
   runPreflight(path: string): Promise<PreflightReport>;
@@ -114,6 +116,8 @@ export interface IpcTransport {
   addGlossaryEntry(path: string, entry: GlossaryEntryInput): Promise<GlossaryEntry>;
   updateGlossaryEntry(path: string, entry: GlossaryEntryInput): Promise<void>;
   deleteGlossaryEntry(path: string, source: string): Promise<void>;
+  inspectGlossaryImport(targetPath: string, sourcePath: string): Promise<GlossaryImportPreview>;
+  applyGlossaryImport(targetPath: string, entries: GlossaryEntryInput[]): Promise<number>;
 
   // QA
   getQaSummary(path: string): Promise<QaFindingsSummary>;
@@ -160,6 +164,10 @@ export class TauriTransport implements IpcTransport {
 
   getPlanPreview(path: string, model?: ModelReference | null): Promise<ProjectPlanPreview> {
     return invoke<ProjectPlanPreview>("get_plan_preview", { path, model: model ?? null });
+  }
+
+  createDefaultTemplate(path: string): Promise<void> {
+    return invoke<void>("create_default_template", { path });
   }
 
   runPreflight(path: string): Promise<PreflightReport> {
@@ -342,6 +350,14 @@ export class TauriTransport implements IpcTransport {
 
   deleteGlossaryEntry(path: string, source: string): Promise<void> {
     return invoke<void>("delete_glossary_entry", { path, source });
+  }
+
+  inspectGlossaryImport(targetPath: string, sourcePath: string): Promise<GlossaryImportPreview> {
+    return invoke<GlossaryImportPreview>("inspect_glossary_import", { targetPath, sourcePath });
+  }
+
+  applyGlossaryImport(targetPath: string, entries: GlossaryEntryInput[]): Promise<number> {
+    return invoke<number>("apply_glossary_import", { targetPath, entriesToApply: entries });
   }
 
   getQaSummary(path: string): Promise<QaFindingsSummary> {

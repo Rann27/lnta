@@ -79,6 +79,8 @@ mod tests {
         crate::store::repo::GlossaryEntry::export(&cfg).unwrap();
         chapters::ChapterDetail::export(&cfg).unwrap();
         glossary::GlossaryEntryInput::export(&cfg).unwrap();
+        glossary::GlossaryConflictItem::export(&cfg).unwrap();
+        glossary::GlossaryImportPreview::export(&cfg).unwrap();
         crate::engine::events::EngineEvent::export(&cfg).unwrap();
         qa::QaFindingItem::export(&cfg).unwrap();
         qa::QaCheckGroup::export(&cfg).unwrap();

@@ -1,5 +1,7 @@
 import { create } from "zustand";
 import { ipc } from "../../lib/ipc";
+import { notifyOS } from "../../lib/notifications";
+import i18n from "../../lib/i18n";
 import type {
   Chapter,
   EngineEvent,
@@ -336,6 +338,7 @@ export const useWorkspaceStore = create<WorkspaceState>((set, get) => ({
 
   handleEngineEvent: (event: EngineEvent) => {
     if (event.event === "run:state") {
+      const priorState = get().runState.state;
       set((state) => ({
         runState: {
           ...state.runState,
@@ -343,12 +346,26 @@ export const useWorkspaceStore = create<WorkspaceState>((set, get) => ({
           active: event.data.state === "running" || event.data.state === "qa_running",
         },
       }));
+
+      if (event.data.state === "completed" && priorState !== "completed") {
+        void notifyOS({
+          title: i18n.t("notifications.run_completed_title"),
+          body: i18n.t("notifications.run_completed_body"),
+        });
+      }
     } else if (event.event === "chapter:status") {
       set((state) => ({
         chapters: state.chapters.map((ch) =>
           ch.id === event.data.chapter_id ? { ...ch, status: event.data.status } : ch
         ),
       }));
+
+      if (event.data.status === "blocked" || event.data.status === "needs_attention") {
+        void notifyOS({
+          title: i18n.t("notifications.blocker_title"),
+          body: i18n.t("notifications.blocker_body", { chapterId: event.data.chapter_id }),
+        });
+      }
     } else if (event.event === "log:line") {
       const level =
         event.data.level === "error"
@@ -376,6 +393,13 @@ export const useWorkspaceStore = create<WorkspaceState>((set, get) => ({
       set({
         qaFindingsCount: event.data.findings_count,
       });
+
+      if (event.data.phase === "done" || event.data.phase === "completed") {
+        void notifyOS({
+          title: i18n.t("notifications.qa_done_title"),
+          body: i18n.t("notifications.qa_done_body", { count: event.data.findings_count }),
+        });
+      }
     }
   },
 }));

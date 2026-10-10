@@ -555,3 +555,50 @@ fn md5_or_simple(text: &str) -> u64 {
     text.hash(&mut hasher);
     hasher.finish()
 }
+
+/// Creates a clean default docx template per FR-DOC-13 on explicit user action.
+#[tauri::command]
+pub fn create_default_template(path: String) -> Result<(), AppError> {
+    let p = Path::new(&path);
+    let layout = ProjectLayout::new(p);
+    let pkg = crate::docx::generate_default_template("Heading1");
+
+    // Write to root Translations.docx
+    let backup_dir = if layout.lnta_dir.exists() {
+        Some(layout.backups_dir.as_path())
+    } else {
+        None
+    };
+    crate::docx::write_docx_package_atomically(&pkg, &layout.docx_output, backup_dir)?;
+
+    // Also sync to .lnta/template.docx if .lnta layout exists
+    if layout.lnta_dir.exists() {
+        let _ = crate::docx::write_docx_package_atomically(&pkg, &layout.template_file, None);
+    }
+
+    Ok(())
+}
+
+#[cfg(test)]
+#[allow(clippy::unwrap_used, clippy::panic)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_create_default_template() {
+        let temp_dir = std::env::temp_dir().join(format!("lnta_test_tpl_{}", uuid::Uuid::new_v4()));
+        std::fs::create_dir_all(&temp_dir).unwrap();
+        let project_path = temp_dir.to_str().unwrap().to_string();
+
+        create_default_template(project_path).unwrap();
+
+        let target_docx = temp_dir.join("Translations.docx");
+        assert!(target_docx.exists());
+
+        let bytes = std::fs::read(&target_docx).unwrap();
+        let pkg = crate::docx::template::DocxPackage::from_bytes(&bytes).unwrap();
+        assert!(pkg.files.contains_key("word/document.xml"));
+
+        let _ = std::fs::remove_dir_all(&temp_dir);
+    }
+}

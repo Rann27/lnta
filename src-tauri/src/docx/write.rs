@@ -140,3 +140,41 @@ pub fn render_and_write_docx(
         TemplateTreatment::KeepFrontMatter,
     )
 }
+
+/// Atomically writes a raw DocxPackage to `target_path`.
+pub fn write_docx_package_atomically(
+    package: &DocxPackage,
+    target_path: &Path,
+    backup_dir: Option<&Path>,
+) -> Result<(), AppError> {
+    check_file_locked(target_path)?;
+    let output_bytes = package.to_bytes()?;
+
+    if let Some(b_dir) = backup_dir {
+        backup_docx_file(target_path, b_dir)?;
+    }
+
+    let parent_dir = target_path.parent().unwrap_or_else(|| Path::new("."));
+    std::fs::create_dir_all(parent_dir).map_err(|e| AppError::Internal {
+        message: format!("Failed to create directory {}: {e}", parent_dir.display()),
+    })?;
+
+    let temp_name = format!("docx_{}.tmp", Uuid::new_v4().simple());
+    let temp_path = parent_dir.join(temp_name);
+
+    std::fs::write(&temp_path, &output_bytes).map_err(|e| AppError::Internal {
+        message: format!("Failed to write temp docx {}: {e}", temp_path.display()),
+    })?;
+
+    std::fs::rename(&temp_path, target_path).map_err(|e| {
+        let _ = std::fs::remove_file(&temp_path);
+        AppError::Internal {
+            message: format!(
+                "Failed to replace {} with temp docx: {e}",
+                target_path.display()
+            ),
+        }
+    })?;
+
+    Ok(())
+}

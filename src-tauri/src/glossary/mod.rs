@@ -8,6 +8,7 @@
 //! - Comprehensive linting (macron, missing gender, duplicates, near-variants with Levenshtein <= 2 or long-vowels)
 
 pub mod lint;
+pub mod merge;
 pub mod parse;
 pub mod write;
 
@@ -15,6 +16,7 @@ pub use lint::{
     is_long_vowel_variant, lint_glossary, normalize_long_vowels, GlossaryLintFinding,
     GlossaryLintKind,
 };
+pub use merge::{apply_glossary_merge, compare_glossaries, GlossaryComparison, GlossaryConflict};
 pub use parse::{
     convert_macrons, infer_tier, parse_glossary, GlossaryEntryItem, GlossaryFile, GlossaryLine,
 };

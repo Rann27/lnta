@@ -1,0 +1,119 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  max-height: 70vh;
+  overflow-y: auto;
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.summaryBox {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.summaryRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+}
+
+.summaryValue {
+  font-weight: 600;
+  color: var(--color-text-primary);
+  font-variant-numeric: tabular-nums;
+}
+
+.conflictsList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin-top: var(--space-2);
+}
+
+.conflictCard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background-color: var(--color-surface);
+}
+
+.conflictHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.conflictSource {
+  font-family: var(--font-family-japanese);
+  font-size: var(--font-size-md);
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.conflictBadge {
+  font-size: var(--font-size-xs);
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-sm);
+  background-color: var(--color-surface-hover);
+  color: var(--color-warn);
+}
+
+.optionsGroup {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.optionLabel {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  padding: var(--space-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  background-color: var(--color-background);
+}
+
+.optionLabelActive {
+  border-color: var(--color-tally);
+  background-color: var(--color-surface-hover);
+}
+
+.optionDetails {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  font-size: var(--font-size-sm);
+}
+
+.optionTitle {
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.optionSub {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+}
+
+.error {
+  color: var(--color-danger);
+  font-size: var(--font-size-sm);
+}
