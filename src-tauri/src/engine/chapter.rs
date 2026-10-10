@@ -435,7 +435,6 @@ async fn translate_part_with_truncation_depth(
     let call_repo = CallRepo::new(conn);
     let glossary_repo = GlossaryRepo::new(conn);
     let role_cfg = settings.roles.for_role(Role::Translator);
-    let provider = provider_resolver.resolve(&role_cfg.primary)?;
 
     let keywords: Vec<String> = vec!["laki-laki".to_string(), "perempuan".to_string()];
     let parsed_gloss = parse_glossary(glossary_content, &keywords);
@@ -454,68 +453,133 @@ async fn translate_part_with_truncation_depth(
     let system_prompt = assemble_system_prompt(contract_text, instruction_text);
     let user_prompt = assemble_user_prompt(&args);
 
-    let req = ProviderRequest {
-        system_prompt,
-        user_prompt,
-        model: role_cfg.primary.model_id.clone(),
-        temperature: role_cfg.temperature,
-        max_output_tokens: role_cfg.max_output_tokens,
-        reasoning_effort: role_cfg.reasoning_effort.clone(),
-    };
+    let mut models_to_try = vec![role_cfg.primary.clone()];
+    models_to_try.extend(role_cfg.fallbacks.clone());
 
-    let start_time = std::time::Instant::now();
-    let call_id = format!("call_{}", uuid::Uuid::new_v4().simple());
+    let mut successful_outcome = None;
+    let mut call_records = Vec::new();
 
-    let mut cb = |token: &str| {
-        event_emitter.emit(EngineEvent::CallProgress {
-            call_id: call_id.clone(),
-            delta: token.to_string(),
+    for model_ref in &models_to_try {
+        let provider = match provider_resolver.resolve(model_ref) {
+            Ok(p) => p,
+            Err(_) => continue,
+        };
+
+        let req = ProviderRequest {
+            system_prompt: system_prompt.clone(),
+            user_prompt: user_prompt.clone(),
+            model: model_ref.model_id.clone(),
+            temperature: role_cfg.temperature,
+            max_output_tokens: role_cfg.max_output_tokens,
+            reasoning_effort: role_cfg.reasoning_effort.clone(),
+        };
+
+        let start_time = std::time::Instant::now();
+        let call_id = format!("call_{}", uuid::Uuid::new_v4().simple());
+
+        let mut cb = |token: &str| {
+            event_emitter.emit(EngineEvent::CallProgress {
+                call_id: call_id.clone(),
+                delta: token.to_string(),
+                chapter_id: Some(chapter.id.clone()),
+                part_index: Some(part_index),
+            });
+        };
+
+        let outcome_res = provider.send_request(&req, Some(&mut cb)).await;
+        let latency_ms = start_time.elapsed().as_millis() as i64;
+
+        let outcome = match outcome_res {
+            Ok(o) => o,
+            Err(e) => {
+                let call_rec = Call {
+                    id: call_id,
+                    run_id: run_id.map(|s| s.to_string()),
+                    role: "translator".to_string(),
+                    provider: model_ref.provider.clone(),
+                    model: model_ref.model_id.clone(),
+                    chapter_id: Some(chapter.id.clone()),
+                    part_index: Some(part_index as i32),
+                    kind: "part".to_string(),
+                    status: "failed".to_string(),
+                    finish_reason: None,
+                    in_tokens: 0,
+                    cached_in: 0,
+                    cache_write: 0,
+                    out_tokens: 0,
+                    reasoning_tokens: 0,
+                    cost: None,
+                    latency_ms,
+                    contract_version: Some("1.0".to_string()),
+                    manifest_json: None,
+                    error: Some(e.to_string()),
+                    raw_response: None,
+                };
+                call_repo.insert(&call_rec)?;
+                call_records.push(call_rec);
+                continue;
+            }
+        };
+
+        let finish_reason = match &outcome {
+            ProviderOutcome::Success(r) => r.finish_reason,
+            ProviderOutcome::LengthTruncated(r) => r.finish_reason,
+            ProviderOutcome::Refused { .. } => FinishReason::Refusal,
+            ProviderOutcome::ContentFiltered { .. } => FinishReason::ContentFilter,
+        };
+
+        let usage = outcome.usage().cloned().unwrap_or(TokenUsage::default());
+        let raw_text = outcome.text().unwrap_or("").to_string();
+
+        let call_record = Call {
+            id: call_id,
+            run_id: run_id.map(|s| s.to_string()),
+            role: "translator".to_string(),
+            provider: model_ref.provider.clone(),
+            model: model_ref.model_id.clone(),
             chapter_id: Some(chapter.id.clone()),
-            part_index: Some(part_index),
-        });
+            part_index: Some(part_index as i32),
+            kind: "part".to_string(),
+            status: if outcome.is_success() {
+                "success".to_string()
+            } else {
+                "failed".to_string()
+            },
+            finish_reason: Some(format!("{:?}", finish_reason)),
+            in_tokens: usage.input_tokens,
+            cached_in: usage.cached_input_tokens,
+            cache_write: usage.cache_write_tokens,
+            out_tokens: usage.output_tokens,
+            reasoning_tokens: usage.reasoning_tokens,
+            cost: None,
+            latency_ms,
+            contract_version: Some("1.0".to_string()),
+            manifest_json: None,
+            error: None,
+            raw_response: Some(raw_text.clone()),
+        };
+        call_repo.insert(&call_record)?;
+        call_records.push(call_record);
+
+        if matches!(
+            finish_reason,
+            FinishReason::Refusal | FinishReason::ContentFilter
+        ) {
+            continue;
+        }
+
+        successful_outcome = Some((outcome, finish_reason, raw_text));
+        break;
+    }
+
+    let (_outcome, finish_reason, raw_text) = match successful_outcome {
+        Some(o) => o,
+        None => {
+            return Err(AppError::Internal {
+                message: "All models failed or refused translation request".to_string(),
+            });
+        }
     };
-
-    let outcome = provider.send_request(&req, Some(&mut cb)).await?;
-    let latency_ms = start_time.elapsed().as_millis() as i64;
-
-    let finish_reason = match &outcome {
-        ProviderOutcome::Success(r) => r.finish_reason,
-        ProviderOutcome::LengthTruncated(r) => r.finish_reason,
-        ProviderOutcome::Refused { .. } => FinishReason::Refusal,
-        ProviderOutcome::ContentFiltered { .. } => FinishReason::ContentFilter,
-    };
-
-    let usage = outcome.usage().cloned().unwrap_or(TokenUsage::default());
-    let raw_text = outcome.text().unwrap_or("").to_string();
-
-    let call_record = Call {
-        id: call_id,
-        run_id: run_id.map(|s| s.to_string()),
-        role: "translator".to_string(),
-        provider: role_cfg.primary.provider.clone(),
-        model: role_cfg.primary.model_id.clone(),
-        chapter_id: Some(chapter.id.clone()),
-        part_index: Some(part_index as i32),
-        kind: "part".to_string(),
-        status: if outcome.is_success() {
-            "success".to_string()
-        } else {
-            "failed".to_string()
-        },
-        finish_reason: Some(format!("{:?}", finish_reason)),
-        in_tokens: usage.input_tokens,
-        cached_in: usage.cached_input_tokens,
-        cache_write: usage.cache_write_tokens,
-        out_tokens: usage.output_tokens,
-        reasoning_tokens: usage.reasoning_tokens,
-        cost: None,
-        latency_ms,
-        contract_version: Some("1.0".to_string()),
-        manifest_json: None,
-        error: None,
-        raw_response: Some(raw_text.clone()),
-    };
-    call_repo.insert(&call_record)?;
 
     // FR-PLN-06: Check if truncated and depth < 3
     if matches!(finish_reason, FinishReason::Length) && depth < 3 && raw_segments.len() > 2 {
@@ -658,7 +722,7 @@ async fn translate_part_with_truncation_depth(
     Ok((
         parsed.title,
         fixed_segments,
-        vec![call_record],
+        call_records,
         new_glossary_count,
     ))
 }

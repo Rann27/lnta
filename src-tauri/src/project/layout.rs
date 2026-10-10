@@ -79,9 +79,19 @@ impl ProjectLayout {
             default_cfg
         };
 
-        // Ensure template.docx exists (stub if not present)
-        if !self.template_file.exists() {
-            let _ = fs::write(&self.template_file, b"");
+        // Ensure template.docx exists (copied from Translations.docx per PRD Story E1 / line 405, or minimal default)
+        let needs_template = !self.template_file.exists()
+            || fs::metadata(&self.template_file)
+                .map(|m| m.len() == 0)
+                .unwrap_or(true);
+        if needs_template {
+            if self.docx_output.exists() {
+                let _ = fs::copy(&self.docx_output, &self.template_file);
+            } else if let Ok(default_bytes) =
+                crate::docx::generate_default_template("Heading1").to_bytes()
+            {
+                let _ = fs::write(&self.template_file, default_bytes);
+            }
         }
 
         Ok(config)

@@ -115,21 +115,13 @@ pub async fn run_engine(
     // 5. Process chapters sequentially (FR-RUN-03, FR-RUN-06)
     let all_chapters = chapter_repo.list_all()?;
 
+    let mut consecutive_failures = 0usize;
     for ch in &all_chapters {
         if ch.status == "done" || ch.frozen {
             continue;
         }
 
-        if run_control.should_stop_now() {
-            run_repo.update_status(&run_id, "paused")?;
-            event_emitter.emit(EngineEvent::RunState {
-                state: "paused".to_string(),
-                run_id: Some(run_id),
-            });
-            return Ok(RunState::Paused);
-        }
-
-        if run_control.should_pause() {
+        if run_control.should_stop_now() || run_control.should_pause() {
             run_repo.update_status(&run_id, "paused")?;
             event_emitter.emit(EngineEvent::RunState {
                 state: "paused".to_string(),
@@ -150,20 +142,52 @@ pub async fn run_engine(
             run_control,
             Some(&run_id),
         )
-        .await?;
+        .await;
 
         match result {
-            ChapterExecutionResult::Done { .. } => {}
-            ChapterExecutionResult::NeedsAttention { .. } => {
-                // Per FR-RUN-08: Chapter marked needs_attention and skipped; run continues
+            Ok(ChapterExecutionResult::Done { .. }) => {
+                consecutive_failures = 0;
             }
-            ChapterExecutionResult::Paused => {
+            Ok(ChapterExecutionResult::NeedsAttention { .. }) => {
+                consecutive_failures += 1;
+                if consecutive_failures >= 5 {
+                    run_repo.update_status(&run_id, "paused")?;
+                    event_emitter.emit(EngineEvent::RunState {
+                        state: "paused".to_string(),
+                        run_id: Some(run_id),
+                    });
+                    event_emitter.emit(EngineEvent::LogLine {
+                        level: "error".to_string(),
+                        message: "Run dijeda: provider gagal 5 kali berturut-turut".to_string(),
+                        timestamp: chrono::Utc::now().to_rfc3339(),
+                    });
+                    return Ok(RunState::Paused);
+                }
+            }
+            Ok(ChapterExecutionResult::Paused) => {
                 run_repo.update_status(&run_id, "paused")?;
                 event_emitter.emit(EngineEvent::RunState {
                     state: "paused".to_string(),
                     run_id: Some(run_id),
                 });
                 return Ok(RunState::Paused);
+            }
+            Err(e) => {
+                consecutive_failures += 1;
+                let _ = chapter_repo.update_status(&ch.id, "needs_attention");
+                if consecutive_failures >= 5 {
+                    run_repo.update_status(&run_id, "paused")?;
+                    event_emitter.emit(EngineEvent::RunState {
+                        state: "paused".to_string(),
+                        run_id: Some(run_id),
+                    });
+                    event_emitter.emit(EngineEvent::LogLine {
+                        level: "error".to_string(),
+                        message: format!("Run dijeda: provider gagal 5 kali berturut-turut: {e}"),
+                        timestamp: chrono::Utc::now().to_rfc3339(),
+                    });
+                    return Ok(RunState::Paused);
+                }
             }
         }
     }

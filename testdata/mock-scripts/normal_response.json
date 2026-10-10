@@ -1,0 +1,15 @@
+{
+  "title": "Bab 1: Perjalanan Dimulai",
+  "segments": [
+    { "id": 1, "text": "Kenta berdiri dalam keheningan malam." },
+    { "id": 2, "text": "\"Misaki, apakah persiapanmu sudah selesai?\"" },
+    { "id": 3, "text": "\"Tentu saja, kapan pun kita bisa berangkat.\"" },
+    { "id": 5, "text": "Keduanya melangkah maju menyusuri jalan setapak di tengah hutan." },
+    { "id": 7, "text": "Cahaya mentari pagi mulai menembus celah dedaunan." }
+  ],
+  "glossary": [
+    { "source": "健太", "translation": "Kenta", "note": "laki-laki; protagonis" },
+    { "source": "美咲", "translation": "Misaki", "note": "perempuan; rekan" }
+  ],
+  "raw_xml": "<t>Bab 1: Perjalanan Dimulai</t>\n<s id=\"1\">Kenta berdiri dalam keheningan malam.</s>\n<s id=\"2\">\"Misaki, apakah persiapanmu sudah selesai?\"</s>\n<s id=\"3\">\"Tentu saja, kapan pun kita bisa berangkat.\"</s>\n<s id=\"5\">Keduanya melangkah maju menyusuri jalan setapak di tengah hutan.</s>\n<s id=\"7\">Cahaya mentari pagi mulai menembus celah dedaunan.</s>\n<glossary>\n健太 === Kenta === laki-laki; protagonis\n美咲 === Misaki === perempuan; rekan\n</glossary>"
+}
