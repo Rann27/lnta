@@ -56,6 +56,11 @@ pub fn run() {
             commands::glossary::add_glossary_entry,
             commands::glossary::update_glossary_entry,
             commands::glossary::delete_glossary_entry,
+            commands::qa::get_qa_summary,
+            commands::qa::get_qa_fix_log,
+            commands::qa::undo_qa_fix,
+            commands::qa::undo_qa_batch,
+            commands::qa::undo_qa_run,
         ])
         .run(tauri::generate_context!())
     {

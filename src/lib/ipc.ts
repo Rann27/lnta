@@ -15,6 +15,8 @@ import type {
   ProjectOpenResult,
   ProviderConfigEntry,
   ProviderTestResult,
+  QaFindingsSummary,
+  QaFixLogItem,
   RecentProjectEntry,
   RunStateResponse,
   Segment,
@@ -75,6 +77,13 @@ export interface IpcTransport {
   addGlossaryEntry(path: string, entry: GlossaryEntryInput): Promise<GlossaryEntry>;
   updateGlossaryEntry(path: string, entry: GlossaryEntryInput): Promise<void>;
   deleteGlossaryEntry(path: string, source: string): Promise<void>;
+
+  // QA
+  getQaSummary(path: string): Promise<QaFindingsSummary>;
+  getQaFixLog(path: string): Promise<QaFixLogItem[]>;
+  undoQaFix(path: string, fixId: string): Promise<void>;
+  undoQaBatch(path: string, fixIds: string[]): Promise<void>;
+  undoQaRun(path: string, runId: string): Promise<void>;
 
   // Events
   onEngineEvent(handler: (event: EngineEvent) => void): Promise<UnlistenFn>;
@@ -215,6 +224,26 @@ export class TauriTransport implements IpcTransport {
 
   deleteGlossaryEntry(path: string, source: string): Promise<void> {
     return invoke<void>("delete_glossary_entry", { path, source });
+  }
+
+  getQaSummary(path: string): Promise<QaFindingsSummary> {
+    return invoke<QaFindingsSummary>("get_qa_summary", { path });
+  }
+
+  getQaFixLog(path: string): Promise<QaFixLogItem[]> {
+    return invoke<QaFixLogItem[]>("get_qa_fix_log", { path });
+  }
+
+  undoQaFix(path: string, fixId: string): Promise<void> {
+    return invoke<void>("undo_qa_fix", { path, fixId });
+  }
+
+  undoQaBatch(path: string, fixIds: string[]): Promise<void> {
+    return invoke<void>("undo_qa_batch", { path, fixIds });
+  }
+
+  undoQaRun(path: string, runId: string): Promise<void> {
+    return invoke<void>("undo_qa_run", { path, runId });
   }
 
   onEngineEvent(handler: (event: EngineEvent) => void): Promise<UnlistenFn> {

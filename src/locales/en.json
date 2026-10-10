@@ -378,5 +378,68 @@
       "failed": "failed",
       "missing": "image missing"
     }
+  },
+  "qa": {
+    "title": "Quality Assurance (QA)",
+    "description": "Targeted detection and repair after volume translation completes.",
+    "empty": {
+      "title": "No QA scans yet",
+      "description": "The QA phase runs automatically once all chapters finish translation.",
+      "action": "Run QA Now"
+    },
+    "tabs": {
+      "findings": "Findings ({{count}})",
+      "fixLog": "Fix Log ({{count}})"
+    },
+    "summary": {
+      "total": "{{count}} total findings",
+      "remaining": "{{count}} remaining findings",
+      "fixed": "{{count}} fixed"
+    },
+    "groups": {
+      "title": "Inspection Categories",
+      "all": "All findings",
+      "count": "{{count}} findings"
+    },
+    "findingsList": {
+      "title": "Findings List",
+      "empty": "No findings in this category.",
+      "jumpToSegment": "Open Segment",
+      "location": "Chapter {{chapter}} : Segment {{segment}}",
+      "volumeWide": "Volume-Wide",
+      "status": {
+        "open": "Open",
+        "fixed": "Fixed",
+        "ignored": "Ignored"
+      }
+    },
+    "fixLog": {
+      "title": "Fix Log",
+      "empty": "No fixes recorded yet.",
+      "undoBatch": "Undo Selected Fixes",
+      "undoAll": "Undo All Fixes"
+    },
+    "fixDiff": {
+      "label": "Fix {{code}}",
+      "before": "Before",
+      "after": "After",
+      "deleted": "deleted",
+      "added": "added",
+      "undo": "Undo"
+    },
+    "origin": {
+      "system": "Automatic (System)",
+      "ai": "AI Fix (Model)",
+      "rename": "Rename"
+    },
+    "status": {
+      "reverted": "Reverted"
+    },
+    "action": {
+      "undoFix": "Undo",
+      "undoBatch": "Undo Selected",
+      "undoRun": "Undo QA Run"
+    }
   }
 }
+

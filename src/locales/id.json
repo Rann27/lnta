@@ -378,5 +378,68 @@
       "failed": "gagal",
       "missing": "gambar hilang"
     }
+  },
+  "qa": {
+    "title": "Jaminan Kualitas (QA)",
+    "description": "Deteksi dan perbaikan terarah setelah volume selesai diterjemahkan.",
+    "empty": {
+      "title": "Belum ada pemindaian QA",
+      "description": "Fase QA akan berjalan otomatis setelah seluruh bab selesai diterjemahkan.",
+      "action": "Jalankan QA Sekarang"
+    },
+    "tabs": {
+      "findings": "Temuan ({{count}})",
+      "fixLog": "Log Perbaikan ({{count}})"
+    },
+    "summary": {
+      "total": "Total {{count}} temuan",
+      "remaining": "{{count}} temuan tersisa",
+      "fixed": "{{count}} berhasil diperbaiki"
+    },
+    "groups": {
+      "title": "Kategori Pemeriksaan",
+      "all": "Semua temuan",
+      "count": "{{count}} temuan"
+    },
+    "findingsList": {
+      "title": "Daftar Temuan",
+      "empty": "Tidak ada temuan pada kategori ini.",
+      "jumpToSegment": "Buka Segmen",
+      "location": "Bab {{chapter}} : Segmen {{segment}}",
+      "volumeWide": "Lintas Volume",
+      "status": {
+        "open": "Terbuka",
+        "fixed": "Diperbaiki",
+        "ignored": "Diabaikan"
+      }
+    },
+    "fixLog": {
+      "title": "Log Perbaikan",
+      "empty": "Belum ada perbaikan yang dicatat.",
+      "undoBatch": "Batalkan Perbaikan Terpilih",
+      "undoAll": "Batalkan Semua Perbaikan"
+    },
+    "fixDiff": {
+      "label": "Perbaikan {{code}}",
+      "before": "Sebelum",
+      "after": "Sesudah",
+      "deleted": "dihapus",
+      "added": "ditambah",
+      "undo": "Batalkan"
+    },
+    "origin": {
+      "system": "Otomatis (Sistem)",
+      "ai": "Perbaikan AI (Model)",
+      "rename": "Penggantian Nama"
+    },
+    "status": {
+      "reverted": "Dibatalkan"
+    },
+    "action": {
+      "undoFix": "Batalkan",
+      "undoBatch": "Batalkan Terpilih",
+      "undoRun": "Batalkan Run QA"
+    }
   }
 }
+

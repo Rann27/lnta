@@ -1,0 +1,231 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  width: 100%;
+  height: 100%;
+  padding: var(--space-4);
+  box-sizing: border-box;
+  overflow-y: auto;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+  padding-bottom: var(--space-3);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.titleArea {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.title {
+  margin: 0;
+  font: var(--text-title);
+  color: var(--color-text);
+}
+
+.description {
+  margin: 0;
+  font: var(--text-body);
+  color: var(--color-text-2);
+}
+
+.statsBar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+}
+
+.statItem {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font: var(--text-body);
+  color: var(--color-text-2);
+}
+
+.statValue {
+  font: var(--text-body-strong);
+  color: var(--color-text);
+}
+
+.navBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+}
+
+.subTabs {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.subTabBtn {
+  font: var(--text-body-strong);
+  padding: var(--space-2) var(--space-4);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-2);
+  color: var(--color-text-2);
+  cursor: pointer;
+  transition: all var(--dur-fast);
+}
+
+.subTabBtn:hover {
+  background: var(--color-raised);
+  color: var(--color-text);
+}
+
+.subTabBtnActive {
+  background: var(--color-raised);
+  border-color: var(--color-border-strong);
+  color: var(--color-text);
+}
+
+.groupsBar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.groupChip {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-1) var(--space-3);
+  background: var(--color-sunken);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-1);
+  font: var(--text-small);
+  color: var(--color-text-2);
+  cursor: pointer;
+  transition: all var(--dur-fast);
+}
+
+.groupChip:hover {
+  background: var(--color-raised);
+  color: var(--color-text);
+}
+
+.groupChipActive {
+  background: var(--color-raised);
+  border-color: var(--color-border-strong);
+  color: var(--color-text);
+}
+
+.groupCount {
+  font: var(--text-mono);
+  font-size: var(--text-small);
+  background: var(--color-surface);
+  padding: 0 var(--space-1);
+  border-radius: var(--radius-1);
+}
+
+.contentArea {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.findingsList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.findingCard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-2);
+}
+
+.findingHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+.findingMeta {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+.codeBadge {
+  font: var(--text-mono);
+  font-size: var(--text-small);
+  padding: 0 var(--space-2);
+  background: var(--color-raised);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-1);
+  color: var(--color-text);
+}
+
+.locationLabel {
+  font: var(--text-body-strong);
+  color: var(--color-text);
+}
+
+.findingBody {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.findingMessage {
+  margin: 0;
+  font: var(--text-body);
+  color: var(--color-text);
+}
+
+.matchedText {
+  margin: 0;
+  font: var(--text-mono);
+  font-size: var(--text-small);
+  background: var(--color-sunken);
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-1);
+  color: var(--color-danger);
+  word-break: break-all;
+}
+
+.actionBar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-bottom: var(--space-2);
+}
+
+.fixList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.fixRow {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+}
+
+.fixCheckbox {
+  margin-top: var(--space-4);
+}

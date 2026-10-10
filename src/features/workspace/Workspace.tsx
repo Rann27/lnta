@@ -7,6 +7,7 @@ import { LogDrawer } from "./LogDrawer";
 import { RunTab } from "./RunTab";
 import { ChapterTab } from "../chapters";
 import { GlossaryTab } from "../glossary";
+import { QaTab } from "../qa";
 import { useWorkspaceStore, type WorkspaceTab } from "./store";
 import { useProjectsStore } from "../projects/store";
 import styles from "./Workspace.module.css";
@@ -189,16 +190,7 @@ export const Workspace: React.FC = () => {
             {activeTab === "run" && <RunTab />}
             {activeTab === "chapters" && <ChapterTab />}
             {activeTab === "glossary" && <GlossaryTab />}
-            {activeTab === "qa" && (
-              <div className={styles.placeholderCard}>
-                <h3 style={{ margin: 0, font: "var(--text-title)" }}>
-                  {t("workspace.tabs.qa")}
-                </h3>
-                <p style={{ margin: 0, color: "var(--color-text-2)" }}>
-                  Tab QA menampilkan pemindaian otomatis, temuan hotspot, dan perbaikan diff.
-                </p>
-              </div>
-            )}
+            {activeTab === "qa" && <QaTab />}
             {activeTab === "usage" && (
               <div className={styles.placeholderCard}>
                 <h3 style={{ margin: 0, font: "var(--text-title)" }}>

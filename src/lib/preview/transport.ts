@@ -13,6 +13,8 @@ import type {
   ProjectOpenResult,
   ProviderConfigEntry,
   ProviderTestResult,
+  QaFindingsSummary,
+  QaFixLogItem,
   RecentProjectEntry,
   RunStateResponse,
   Segment,
@@ -458,6 +460,164 @@ export class PreviewTransport implements IpcTransport {
     this.activeScenario.glossary = this.activeScenario.glossary.filter(
       (g) => g.source !== source
     );
+  }
+
+  // QA
+  async getQaSummary(path: string): Promise<QaFindingsSummary> {
+    void path;
+    if (this.activeScenario.name === "qa-completed" || this.activeScenario.name === "volume-completed") {
+      return {
+        total_findings: 12,
+        remaining_findings: 3,
+        groups: [
+          {
+            check_code: "Q01",
+            name: "Q01",
+            count: 2,
+            findings: [
+              {
+                id: "f1",
+                check_code: "Q01",
+                chapter_id: "c1",
+                chapter_ordinal: 1,
+                segment_id: "s1",
+                seg_idx: 4,
+                severity: "warning",
+                message: "Aksara Jepang tersisa",
+                matched_text: "はい",
+                status: "open",
+              },
+              {
+                id: "f2",
+                check_code: "Q01",
+                chapter_id: "c2",
+                chapter_ordinal: 2,
+                segment_id: "s2",
+                seg_idx: 12,
+                severity: "warning",
+                message: "Aksara Jepang tersisa",
+                matched_text: "ええ",
+                status: "fixed",
+              },
+            ],
+          },
+          {
+            check_code: "Q04",
+            name: "Q04",
+            count: 1,
+            findings: [
+              {
+                id: "f3",
+                check_code: "Q04",
+                chapter_id: "c2",
+                chapter_ordinal: 2,
+                segment_id: "s3",
+                seg_idx: 18,
+                severity: "info",
+                message: "Atribusi dialog redundan",
+                matched_text: "Kenta berkata begitu.",
+                status: "open",
+              },
+            ],
+          },
+        ],
+        findings: [
+          {
+            id: "f1",
+            check_code: "Q01",
+            chapter_id: "c1",
+            chapter_ordinal: 1,
+            segment_id: "s1",
+            seg_idx: 4,
+            severity: "warning",
+            message: "Aksara Jepang tersisa",
+            matched_text: "はい",
+            status: "open",
+          },
+          {
+            id: "f2",
+            check_code: "Q01",
+            chapter_id: "c2",
+            chapter_ordinal: 2,
+            segment_id: "s2",
+            seg_idx: 12,
+            severity: "warning",
+            message: "Aksara Jepang tersisa",
+            matched_text: "ええ",
+            status: "fixed",
+          },
+          {
+            id: "f3",
+            check_code: "Q04",
+            chapter_id: "c2",
+            chapter_ordinal: 2,
+            segment_id: "s3",
+            seg_idx: 18,
+            severity: "info",
+            message: "Atribusi dialog redundan",
+            matched_text: "Kenta berkata begitu.",
+            status: "open",
+          },
+        ],
+      };
+    }
+
+    return {
+      total_findings: 0,
+      remaining_findings: 0,
+      groups: [],
+      findings: [],
+    };
+  }
+
+  async getQaFixLog(path: string): Promise<QaFixLogItem[]> {
+    void path;
+    if (this.activeScenario.name === "qa-completed" || this.activeScenario.name === "volume-completed") {
+      return [
+        {
+          id: "fix_1",
+          finding_id: "f2",
+          check_code: "Q01",
+          chapter_id: "c2",
+          chapter_ordinal: 2,
+          seg_idx: 12,
+          origin: "mechanical",
+          applied_at: new Date(Date.now() - 3600000).toISOString(),
+          reverted_at: null,
+          text_before: "\"Ya, saya mengerti, はい,\" jawab Kenta.",
+          text_after: "\"Ya, saya mengerti,\" jawab Kenta.",
+        },
+        {
+          id: "fix_2",
+          finding_id: null,
+          check_code: "Q17",
+          chapter_id: "c1",
+          chapter_ordinal: 1,
+          seg_idx: 5,
+          origin: "mechanical",
+          applied_at: new Date(Date.now() - 1800000).toISOString(),
+          reverted_at: null,
+          text_before: "Ada resiko besar di depan mereka.",
+          text_after: "Ada risiko besar di depan mereka.",
+        },
+      ];
+    }
+    return [];
+  }
+
+  async undoQaFix(path: string, fixId: string): Promise<void> {
+    void path;
+    void fixId;
+  }
+
+  async undoQaBatch(path: string, fixIds: string[]): Promise<void> {
+    void path;
+    void fixIds;
+  }
+
+  async undoQaRun(path: string, runId: string): Promise<void> {
+    void path;
+    void runId;
   }
 
   // Events

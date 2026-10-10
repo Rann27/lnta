@@ -9,6 +9,7 @@ pub mod models;
 pub mod preflight;
 pub mod project;
 pub mod providers;
+pub mod qa;
 pub mod run;
 pub mod settings;
 
@@ -19,6 +20,7 @@ pub use models::*;
 pub use preflight::*;
 pub use project::*;
 pub use providers::*;
+pub use qa::*;
 pub use run::*;
 pub use settings::*;
 
@@ -73,6 +75,10 @@ mod tests {
         chapters::ChapterDetail::export(&cfg).unwrap();
         glossary::GlossaryEntryInput::export(&cfg).unwrap();
         crate::engine::events::EngineEvent::export(&cfg).unwrap();
+        qa::QaFindingItem::export(&cfg).unwrap();
+        qa::QaCheckGroup::export(&cfg).unwrap();
+        qa::QaFindingsSummary::export(&cfg).unwrap();
+        qa::QaFixLogItem::export(&cfg).unwrap();
         AppErrorPayload::export(&cfg).unwrap();
     }
 }
