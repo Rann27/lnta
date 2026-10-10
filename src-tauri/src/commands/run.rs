@@ -134,6 +134,15 @@ impl ProviderResolver for DynamicProviderResolver {
                     None,
                 )))
             }
+            "cli_claude" => {
+                AnyProvider::CliClaude(Arc::new(crate::provider::CliClaudeProvider::new()))
+            }
+            "cli_gemini" => {
+                AnyProvider::CliGemini(Arc::new(crate::provider::CliGeminiProvider::new()))
+            }
+            "cli_codex" => {
+                AnyProvider::CliCodex(Arc::new(crate::provider::CliCodexProvider::new()))
+            }
             "mock" => AnyProvider::Mock(Arc::new(crate::provider::mock::MockProvider::default())),
             _ => {
                 // Default to OpenAI-compatible provider

@@ -214,6 +214,36 @@ pub fn default_known_models() -> Vec<ModelEntry> {
             value_source: ValueSource::DefaultRegistry,
             supports_reasoning: false,
         },
+        ModelEntry {
+            provider: "cli_gemini".to_string(),
+            model_id: "default".to_string(),
+            display_name: "Gemini CLI (Experimental)".to_string(),
+            context_window: 1_000_000,
+            max_output_tokens: 8192,
+            pricing: ModelPricing::default(),
+            value_source: ValueSource::DefaultRegistry,
+            supports_reasoning: false,
+        },
+        ModelEntry {
+            provider: "cli_codex".to_string(),
+            model_id: "default".to_string(),
+            display_name: "Codex CLI (Experimental)".to_string(),
+            context_window: 128_000,
+            max_output_tokens: 4096,
+            pricing: ModelPricing::default(),
+            value_source: ValueSource::DefaultRegistry,
+            supports_reasoning: true,
+        },
+        ModelEntry {
+            provider: "cli_claude".to_string(),
+            model_id: "default".to_string(),
+            display_name: "Claude Code CLI (Experimental)".to_string(),
+            context_window: 200_000,
+            max_output_tokens: 8192,
+            pricing: ModelPricing::default(),
+            value_source: ValueSource::DefaultRegistry,
+            supports_reasoning: true,
+        },
     ]
 }
 
@@ -372,6 +402,45 @@ pub async fn fetch_models_from_provider(
                 reason: format!("Failed to read Gemini models response: {e}"),
             })?;
             parse_gemini_models_response(&text)
+        }
+        "cli_gemini" => {
+            let ver = crate::provider::cli_common::detect_cli_version("gemini").await?;
+            Ok(vec![ModelEntry {
+                provider: "cli_gemini".to_string(),
+                model_id: "default".to_string(),
+                display_name: format!("Gemini CLI ({ver}) (Experimental)"),
+                context_window: 1_000_000,
+                max_output_tokens: 8192,
+                pricing: ModelPricing::default(),
+                value_source: ValueSource::ProviderMetadata,
+                supports_reasoning: false,
+            }])
+        }
+        "cli_codex" => {
+            let ver = crate::provider::cli_common::detect_cli_version("codex").await?;
+            Ok(vec![ModelEntry {
+                provider: "cli_codex".to_string(),
+                model_id: "default".to_string(),
+                display_name: format!("Codex CLI ({ver}) (Experimental)"),
+                context_window: 128_000,
+                max_output_tokens: 4096,
+                pricing: ModelPricing::default(),
+                value_source: ValueSource::ProviderMetadata,
+                supports_reasoning: true,
+            }])
+        }
+        "cli_claude" => {
+            let ver = crate::provider::cli_common::detect_cli_version("claude").await?;
+            Ok(vec![ModelEntry {
+                provider: "cli_claude".to_string(),
+                model_id: "default".to_string(),
+                display_name: format!("Claude Code CLI ({ver}) (Experimental)"),
+                context_window: 200_000,
+                max_output_tokens: 8192,
+                pricing: ModelPricing::default(),
+                value_source: ValueSource::ProviderMetadata,
+                supports_reasoning: true,
+            }])
         }
         _ => {
             // Default to OpenAI-compatible `/models`

@@ -1,6 +1,10 @@
 //! LNTA provider abstraction, adapters, retry mechanism, and mock provider per PRD §7.1 and FR-PRV-01..09.
 
 pub mod anthropic;
+pub mod cli_claude;
+pub mod cli_codex;
+pub mod cli_common;
+pub mod cli_gemini;
 pub mod gemini;
 pub mod mock;
 pub mod openai_compat;
@@ -13,6 +17,10 @@ pub use anthropic::{
     parse_recorded_anthropic_sse, AnthropicCacheControl, AnthropicConfig, AnthropicProvider,
     AnthropicSystemBlock,
 };
+pub use cli_claude::CliClaudeProvider;
+pub use cli_codex::CliCodexProvider;
+pub use cli_common::{detect_cli_version, resolve_cli_path, TempDirGuard};
+pub use cli_gemini::CliGeminiProvider;
 pub use gemini::{
     parse_recorded_gemini_sse, permissive_safety_settings, GeminiConfig, GeminiProvider,
     GeminiSafetySetting,
@@ -36,6 +44,9 @@ pub enum AnyProvider {
     OpenAiCompat(std::sync::Arc<OpenAiCompatProvider>),
     Anthropic(std::sync::Arc<AnthropicProvider>),
     Gemini(std::sync::Arc<GeminiProvider>),
+    CliClaude(std::sync::Arc<CliClaudeProvider>),
+    CliGemini(std::sync::Arc<CliGeminiProvider>),
+    CliCodex(std::sync::Arc<CliCodexProvider>),
     Mock(std::sync::Arc<MockProvider>),
 }
 
@@ -45,6 +56,9 @@ impl Provider for AnyProvider {
             Self::OpenAiCompat(p) => p.name(),
             Self::Anthropic(p) => p.name(),
             Self::Gemini(p) => p.name(),
+            Self::CliClaude(p) => p.name(),
+            Self::CliGemini(p) => p.name(),
+            Self::CliCodex(p) => p.name(),
             Self::Mock(p) => p.name(),
         }
     }
@@ -58,6 +72,9 @@ impl Provider for AnyProvider {
             Self::OpenAiCompat(p) => p.send_request(req, token_cb).await,
             Self::Anthropic(p) => p.send_request(req, token_cb).await,
             Self::Gemini(p) => p.send_request(req, token_cb).await,
+            Self::CliClaude(p) => p.send_request(req, token_cb).await,
+            Self::CliGemini(p) => p.send_request(req, token_cb).await,
+            Self::CliCodex(p) => p.send_request(req, token_cb).await,
             Self::Mock(p) => p.send_request(req, token_cb).await,
         }
     }

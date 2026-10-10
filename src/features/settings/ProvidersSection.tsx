@@ -21,6 +21,9 @@ const DEFAULT_URLS: Record<string, string> = {
   openai_compat: "https://api.openai.com/v1",
   anthropic: "https://api.anthropic.com",
   gemini: "https://generativelanguage.googleapis.com",
+  cli_claude: "local://claude",
+  cli_gemini: "local://gemini",
+  cli_codex: "local://codex",
 };
 
 export const ProvidersSection: React.FC = () => {
@@ -41,15 +44,21 @@ export const ProvidersSection: React.FC = () => {
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [newId, setNewId] = useState("");
   const [newName, setNewName] = useState("");
-  const [newType, setNewType] = useState<"openai_compat" | "anthropic" | "gemini">(
-    "openai_compat"
-  );
+  const [newType, setNewType] = useState<
+    "openai_compat" | "anthropic" | "gemini" | "cli_claude" | "cli_gemini" | "cli_codex"
+  >("openai_compat");
   const [newBaseUrl, setNewBaseUrl] = useState(DEFAULT_URLS.openai_compat);
   const [newKey, setNewKey] = useState("");
   const [isFetchingModels, setIsFetchingModels] = useState<Record<string, boolean>>({});
 
   const handleTypeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const val = e.target.value as "openai_compat" | "anthropic" | "gemini";
+    const val = e.target.value as
+      | "openai_compat"
+      | "anthropic"
+      | "gemini"
+      | "cli_claude"
+      | "cli_gemini"
+      | "cli_codex";
     setNewType(val);
     if (!newBaseUrl || Object.values(DEFAULT_URLS).includes(newBaseUrl)) {
       setNewBaseUrl(DEFAULT_URLS[val] ?? "");
@@ -242,6 +251,9 @@ export const ProvidersSection: React.FC = () => {
               { value: "openai_compat", label: "OpenAI-compatible" },
               { value: "anthropic", label: "Anthropic" },
               { value: "gemini", label: "Google Gemini" },
+              { value: "cli_claude", label: "Claude Code CLI (Experimental)" },
+              { value: "cli_gemini", label: "Gemini CLI (Experimental)" },
+              { value: "cli_codex", label: "Codex CLI (Experimental)" },
             ]}
           />
 
