@@ -5,6 +5,7 @@
 
 pub mod chapter;
 pub mod events;
+pub mod qa_phase;
 pub mod repair;
 pub mod state;
 
@@ -54,13 +55,20 @@ pub async fn run_engine(
     // 2. Load profile contracts and instruction text
     let profile = load_profile(&settings.profile)?;
     let contract_text = &profile.contract_text;
-    let instruction_path = layout.root.join(
-        settings
-            .instruction_file
-            .as_deref()
-            .unwrap_or("instruction.md"),
-    );
-    let instruction_text = std::fs::read_to_string(&instruction_path).unwrap_or_default();
+    let instruction_text = match crate::project::instruction::load_instruction_text(
+        &layout.root,
+        &settings.profile,
+        settings.instruction_file.as_deref(),
+    ) {
+        Ok(text) => text,
+        Err(e) => {
+            event_emitter.emit(EngineEvent::RunState {
+                state: "failed".to_string(),
+                run_id: None,
+            });
+            return Err(e);
+        }
+    };
 
     // 3. Initialize or resume Run in SQLite
     let run_id = format!("run_{}", uuid::Uuid::new_v4().simple());
@@ -228,8 +236,23 @@ pub async fn run_engine(
         }
     }
 
-    // 6. Complete Run
+    // 6. QA phase runs automatically once the chapter loop ends (PRD §5.4).
     run_repo.update_status(&run_id, "completed")?;
+    let any_done = chapter_repo
+        .list_all()?
+        .iter()
+        .any(|c| c.status == "done" && !c.frozen);
+    if any_done {
+        if let Err(e) =
+            qa_phase::run_qa_phase(conn, layout, settings, provider_resolver, event_emitter).await
+        {
+            event_emitter.emit(EngineEvent::LogLine {
+                level: "error".to_string(),
+                message: format!("QA: {e}"),
+                timestamp: chrono::Utc::now().to_rfc3339(),
+            });
+        }
+    }
     event_emitter.emit(EngineEvent::RunState {
         state: "completed".to_string(),
         run_id: Some(run_id),

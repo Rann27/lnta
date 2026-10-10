@@ -71,21 +71,9 @@ mod tests {
         let judul_styles = judul_pkg.get_text_entry("word/styles.xml").unwrap();
         assert_eq!(find_heading1_style_id(&judul_styles), "Judul1");
 
-        // Write synthetic template files to testdata/templates/
+        // The committed fixtures in testdata/templates/ are read, never rewritten: a test
+        // that regenerates tracked files leaves the working tree dirty after every run.
         let templates_dir = Path::new("../testdata/templates");
-        std::fs::create_dir_all(templates_dir).unwrap();
-        std::fs::write(
-            templates_dir.join("template_standard.docx"),
-            std_pkg.to_bytes().unwrap(),
-        )
-        .unwrap();
-        std::fs::write(
-            templates_dir.join("template_localized_judul1.docx"),
-            judul_pkg.to_bytes().unwrap(),
-        )
-        .unwrap();
-
-        // Verify reading them back from disk
         let disk_std_bytes = std::fs::read(templates_dir.join("template_standard.docx")).unwrap();
         let loaded_std = DocxPackage::from_bytes(&disk_std_bytes).unwrap();
         assert_eq!(

@@ -4,6 +4,7 @@
 //! streaming tokens, truncation splitting, validation, repair loop, glossary proposals,
 //! and docx rendering.
 
+use std::collections::HashMap;
 use std::fs;
 
 use rusqlite::Connection;
@@ -16,7 +17,7 @@ use crate::docx::template::DocxPackage;
 use crate::docx::template_content::TemplateTreatment;
 use crate::docx::write::{backup_docx_file, check_file_locked};
 use crate::error::AppError;
-use crate::glossary::parse::{parse_glossary, GlossaryEntryItem, GlossaryLine};
+use crate::glossary::parse::{infer_tier, parse_glossary, GlossaryEntryItem, GlossaryLine};
 use crate::glossary::write::write_glossary_file;
 use crate::plan::split::is_forbidden_split;
 use crate::plan::{plan_chapter_chunks, EstimationWeights, ModelLimits};
@@ -25,6 +26,7 @@ use crate::project::settings::{EffectiveSettings, Role};
 use crate::prompt::assemble::{
     assemble_system_prompt, assemble_user_prompt, ContextPair, UserPromptArgs,
 };
+use crate::prompt::glossary_select::select_reference_glossary;
 use crate::prompt::parse::parse_model_output;
 use crate::prompt::{ParsedModelOutput, ParsedSegment};
 use crate::provider::types::{
@@ -35,13 +37,14 @@ use crate::raw::encoding::read_raw_file;
 use crate::raw::segment::{parse_chapter, ParseOptions, RawSegment, SegmentKind};
 use crate::store::repo::{
     Call, CallRepo, Chapter, ChapterRepo, ChunkPlan, ChunkPlanRepo, GlossaryEntry, GlossaryRepo,
-    TranslationRepo,
+    Segment, SegmentRepo, TranslationRepo,
 };
 use crate::validate::content::ContentValidationConfig;
+use crate::validate::fixers::{apply_mechanical_fixes, fix_macrons};
 use crate::validate::validate_chunk;
 
 use super::events::{EngineEvent, EventEmitter};
-use super::repair::{execute_repair_loop, ProviderResolver};
+use super::repair::{execute_repair_loop, ProviderResolver, RepairCall};
 use super::state::RunControl;
 
 /// Result of executing a chapter translation.
@@ -84,6 +87,134 @@ fn find_split_point(segments: &[RawSegment], target: usize) -> Option<usize> {
     Some(target.clamp(1, segments.len() - 1))
 }
 
+/// Stores the parsed segments of a chapter under stable ids (`<chapter>_s<idx>`), replacing
+/// the previous parse. The review table, QA scan, and segment editor all read from here.
+pub fn persist_chapter_segments(
+    conn: &Connection,
+    chapter_id: &str,
+    segments: &[RawSegment],
+) -> Result<(), AppError> {
+    let rows: Vec<Segment> = segments
+        .iter()
+        .map(|s| Segment {
+            id: format!("{chapter_id}_s{}", s.idx),
+            chapter_id: chapter_id.to_string(),
+            idx: s.idx,
+            kind: s.kind.as_str().to_string(),
+            src_text: s.src_text.clone(),
+            line_start: s.line_start,
+            line_end: s.line_end,
+            image_file: s.image_file.clone(),
+            part_index: None,
+        })
+        .collect();
+    SegmentRepo::new(conn).replace_for_chapter(chapter_id, &rows)
+}
+
+/// Source text for a translated range, so read-only context pairs carry both sides.
+fn source_for_range(src_by_idx: &HashMap<i32, String>, from: i32, to: i32) -> String {
+    (from..=to)
+        .filter_map(|idx| src_by_idx.get(&idx).cloned())
+        .collect::<Vec<_>>()
+        .join("\n")
+}
+
+/// The last `k` translated segments of the previous chapter, used as context for the first
+/// part of this chapter (FR-PRM-04). Any problem just yields no context.
+fn previous_chapter_tail(
+    conn: &Connection,
+    layout: &ProjectLayout,
+    illustrations: &IllustrationSet,
+    options: &ParseOptions,
+    chapter: &Chapter,
+    k: usize,
+) -> Vec<ContextPair> {
+    let chapters = ChapterRepo::new(conn).list_all().unwrap_or_default();
+    let Some(prev) = chapters
+        .iter()
+        .filter(|c| c.ordinal < chapter.ordinal && c.status == "done" && !c.frozen)
+        .max_by_key(|c| c.ordinal)
+    else {
+        return Vec::new();
+    };
+    let mut translations = TranslationRepo::new(conn)
+        .get_current_by_chapter(&prev.id)
+        .unwrap_or_default();
+    if translations.is_empty() {
+        return Vec::new();
+    }
+    translations.sort_by_key(|t| t.seg_from);
+    let Ok(content) = read_raw_file(&layout.root.join(&prev.file_name)) else {
+        return Vec::new();
+    };
+    let parsed = parse_chapter(&prev.file_name, &content, illustrations, options);
+    let src_by_idx: HashMap<i32, String> = parsed
+        .segments
+        .iter()
+        .map(|s| (s.idx, s.src_text.clone()))
+        .collect();
+    let start = translations.len().saturating_sub(k);
+    translations[start..]
+        .iter()
+        .map(|t| ContextPair {
+            id: t.seg_from,
+            source: source_for_range(&src_by_idx, t.seg_from, t.seg_to),
+            target: t.text.clone(),
+        })
+        .collect()
+}
+
+/// Records repair calls in the call table so usage and cost include them.
+fn record_repair_calls(
+    conn: &Connection,
+    calls: &[RepairCall],
+    chapter: &Chapter,
+    part_index: usize,
+    run_id: Option<&str>,
+) -> Result<(), AppError> {
+    let call_repo = CallRepo::new(conn);
+    for rc in calls {
+        let pricing = crate::provider::registry::ModelRegistry::default()
+            .get(&rc.model.provider, &rc.model.model_id)
+            .map(|m| m.pricing.clone());
+        let cost = crate::usage::calculate_call_cost(
+            pricing.as_ref(),
+            rc.usage.input_tokens,
+            rc.usage.cached_input_tokens,
+            rc.usage.output_tokens,
+        );
+        call_repo.insert(&Call {
+            id: format!("call_{}", uuid::Uuid::new_v4().simple()),
+            run_id: run_id.map(str::to_string),
+            role: "repair".to_string(),
+            provider: rc.model.provider.clone(),
+            model: rc.model.model_id.clone(),
+            chapter_id: Some(chapter.id.clone()),
+            part_index: Some(part_index as i32),
+            kind: "repair".to_string(),
+            status: if rc.error.is_none() {
+                "success"
+            } else {
+                "failed"
+            }
+            .to_string(),
+            finish_reason: rc.finish_reason.map(|f| format!("{f:?}")),
+            in_tokens: rc.usage.input_tokens,
+            cached_in: rc.usage.cached_input_tokens,
+            cache_write: rc.usage.cache_write_tokens,
+            out_tokens: rc.usage.output_tokens,
+            reasoning_tokens: rc.usage.reasoning_tokens,
+            cost,
+            latency_ms: rc.latency_ms,
+            contract_version: None,
+            manifest_json: None,
+            error: rc.error.clone(),
+            raw_response: rc.raw_response.clone(),
+        })?;
+    }
+    Ok(())
+}
+
 /// Executes translation of a single chapter.
 #[allow(clippy::too_many_arguments)]
 pub async fn execute_single_chapter(
@@ -111,6 +242,20 @@ pub async fn execute_single_chapter(
         ..Default::default()
     };
     let parsed_raw = parse_chapter(&chapter.file_name, &content, &illustrations, &options);
+
+    let profile = crate::profiles::load_profile(&settings.profile)?;
+    let gender_keywords = profile.config.gender_keywords.clone();
+    let val_cfg = ContentValidationConfig {
+        min_length_ratio: profile.config.ratio_band_min,
+        max_length_ratio: profile.config.ratio_band_max,
+        ..ContentValidationConfig::default()
+    };
+    let src_by_idx: HashMap<i32, String> = parsed_raw
+        .segments
+        .iter()
+        .map(|s| (s.idx, s.src_text.clone()))
+        .collect();
+    persist_chapter_segments(conn, &chapter.id, &parsed_raw.segments)?;
 
     // 1. Check for image-page chapter (FR-RAW-08): no heading and no text segments
     if parsed_raw.is_image_page {
@@ -179,6 +324,7 @@ pub async fn execute_single_chapter(
         };
         chunk_plans.push(cp);
     }
+    chunk_repo.delete_by_chapter(&chapter.id)?;
     chunk_repo.insert_batch(&chunk_plans)?;
 
     let mut chapter_new_glossary_count = 0;
@@ -226,19 +372,34 @@ pub async fn execute_single_chapter(
             String::new()
         };
 
-        // Context from previous part (K segments)
+        // Read-only context: tail of the previous part, or of the previous chapter for part 1.
         let mut context_pairs = Vec::new();
         let k = settings.context_k_segments;
-        if !last_part_translations.is_empty() {
-            let start_idx = last_part_translations.len().saturating_sub(k);
-            for t in &last_part_translations[start_idx..] {
-                context_pairs.push(ContextPair {
-                    id: t.id_start,
-                    source: String::new(),
-                    target: t.text.clone(),
-                });
+        if k > 0 {
+            if !last_part_translations.is_empty() {
+                let start_idx = last_part_translations.len().saturating_sub(k);
+                for t in &last_part_translations[start_idx..] {
+                    context_pairs.push(ContextPair {
+                        id: t.id_start,
+                        source: source_for_range(&src_by_idx, t.id_start, t.id_end),
+                        target: t.text.clone(),
+                    });
+                }
+            } else if part_idx_0 == 0 {
+                context_pairs =
+                    previous_chapter_tail(conn, layout, &illustrations, &options, chapter, k);
             }
         }
+
+        // Tier 1 always, Tier 2 only when its source appears here (FR-PRM-03).
+        let parsed_gloss = parse_glossary(&glossary_disk_content, &gender_keywords);
+        let context_sources: Vec<&str> = context_pairs.iter().map(|c| c.source.as_str()).collect();
+        let selected_glossary = select_reference_glossary(
+            parsed_gloss.entries(),
+            &part_raw_segments,
+            &context_sources,
+            settings.send_full_glossary,
+        );
 
         // Translate the part (with truncation-split support up to depth 3)
         let (translated_part_title, translated_part_segments, calls_made, new_glossary) =
@@ -249,7 +410,8 @@ pub async fn execute_single_chapter(
                 part_count,
                 contract_text,
                 instruction_text,
-                &glossary_disk_content,
+                &selected_glossary,
+                &gender_keywords,
                 &context_pairs,
                 settings,
                 layout,
@@ -280,11 +442,10 @@ pub async fn execute_single_chapter(
             auto_closed_final_tag: false,
         };
 
-        let val_cfg = ContentValidationConfig::default();
         let validation = validate_chunk(
             &model_output,
             &part_raw_segments,
-            &[],
+            &selected_glossary,
             part_index as i32,
             &val_cfg,
         );
@@ -292,6 +453,7 @@ pub async fn execute_single_chapter(
         let (final_part_title, final_part_segments) = if !validation.is_valid {
             chapter_repo.update_status(&chapter.id, "repairing")?;
             let repair_role_cfg = settings.roles.for_role(Role::Repair);
+            let mut repair_calls = Vec::new();
             let repair_outcome = execute_repair_loop(
                 &part_raw_segments,
                 translated_part_title,
@@ -300,13 +462,16 @@ pub async fn execute_single_chapter(
                 provider_resolver,
                 contract_text,
                 instruction_text,
-                &glossary_disk_content,
+                &selected_glossary,
+                &val_cfg,
                 &context_pairs,
                 &chapter.file_name,
                 part_index,
                 part_count,
+                &mut repair_calls,
             )
             .await?;
+            record_repair_calls(conn, &repair_calls, chapter, part_index, run_id)?;
 
             match repair_outcome {
                 super::repair::RepairLoopOutcome::Success {
@@ -330,6 +495,19 @@ pub async fn execute_single_chapter(
         } else {
             (translated_part_title, translated_part_segments)
         };
+
+        // Mechanical fixes (「」 to quotes, macrons, bold, marker-only lines) are applied on
+        // every path; validation only reports them, it does not hand the fixed text back.
+        let final_part_title = final_part_title
+            .map(|t| apply_mechanical_fixes(&t, &selected_glossary, &val_cfg.scene_markers).0);
+        let final_part_segments: Vec<ParsedSegment> = final_part_segments
+            .into_iter()
+            .map(|mut seg| {
+                seg.text =
+                    apply_mechanical_fixes(&seg.text, &selected_glossary, &val_cfg.scene_markers).0;
+                seg
+            })
+            .collect();
 
         if let Some(ref t) = final_part_title {
             accumulated_title = Some(t.clone());
@@ -455,7 +633,8 @@ async fn translate_part_with_truncation_depth(
     part_count: usize,
     contract_text: &str,
     instruction_text: &str,
-    glossary_content: &str,
+    selected_glossary: &[&GlossaryEntryItem],
+    keywords: &[String],
     context_pairs: &[ContextPair],
     settings: &EffectiveSettings,
     layout: &ProjectLayout,
@@ -470,15 +649,11 @@ async fn translate_part_with_truncation_depth(
     let glossary_repo = GlossaryRepo::new(conn);
     let role_cfg = settings.roles.for_role(Role::Translator);
 
-    let keywords: Vec<String> = vec!["laki-laki".to_string(), "perempuan".to_string()];
-    let parsed_gloss = parse_glossary(glossary_content, &keywords);
-    let selected_entries = parsed_gloss.entries();
-
     let args = UserPromptArgs {
         chapter_file: &chapter.file_name,
         part_index: part_index as i32,
         total_parts: part_count as i32,
-        selected_glossary: &selected_entries,
+        selected_glossary,
         context_pairs,
         repair_issues: None,
         chunk_segments: raw_segments,
@@ -638,7 +813,8 @@ async fn translate_part_with_truncation_depth(
                     part_count,
                     contract_text,
                     instruction_text,
-                    glossary_content,
+                    selected_glossary,
+                    keywords,
                     context_pairs,
                     settings,
                     layout,
@@ -659,7 +835,8 @@ async fn translate_part_with_truncation_depth(
                     part_count,
                     contract_text,
                     instruction_text,
-                    glossary_content,
+                    selected_glossary,
+                    keywords,
                     context_pairs,
                     settings,
                     layout,
@@ -689,13 +866,16 @@ async fn translate_part_with_truncation_depth(
 
     // Process glossary proposals (FR-GLO-03, 04)
     let mut new_glossary_count = 0;
-    for proposal in parsed.glossary_proposals {
+    for mut proposal in parsed.glossary_proposals {
         let appears_in_raw = raw_segments
             .iter()
             .any(|s| s.src_text.contains(&proposal.source));
         if !appears_in_raw {
             continue;
         }
+        // FR-GLO-06: a macron spelling never enters the glossary.
+        proposal.translation = fix_macrons(&proposal.translation, &[]).0;
+        let tier = infer_tier(&proposal.note, keywords);
 
         if let Some(existing) = glossary_repo.get_by_source(&proposal.source)? {
             if existing.translation != proposal.translation {
@@ -704,7 +884,7 @@ async fn translate_part_with_truncation_depth(
                     source: proposal.source.clone(),
                     translation: proposal.translation.clone(),
                     note: Some(proposal.note.clone()),
-                    tier: 2,
+                    tier,
                     origin: "model".to_string(),
                     first_chapter_id: Some(chapter.id.clone()),
                     occurrences: 1,
@@ -720,14 +900,14 @@ async fn translate_part_with_truncation_depth(
                 String::new()
             };
 
-            let mut parsed_gloss = parse_glossary(&existing_disk, &keywords);
+            let mut parsed_gloss = parse_glossary(&existing_disk, keywords);
             parsed_gloss
                 .lines
                 .push(GlossaryLine::Entry(GlossaryEntryItem {
                     source: proposal.source.clone(),
                     translation: proposal.translation.clone(),
                     note: proposal.note.clone(),
-                    tier: 2,
+                    tier,
                     line_index: parsed_gloss.lines.len(),
                     has_list_prefix: false,
                     list_prefix_char: None,
@@ -744,7 +924,7 @@ async fn translate_part_with_truncation_depth(
                 source: proposal.source.clone(),
                 translation: proposal.translation.clone(),
                 note: Some(proposal.note),
-                tier: 2,
+                tier,
                 origin: "model".to_string(),
                 first_chapter_id: Some(chapter.id.clone()),
                 occurrences: 1,

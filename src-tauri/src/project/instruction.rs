@@ -108,3 +108,72 @@ pub fn resolve_instruction<P: AsRef<Path>>(root: P, profile: &str) -> Result<Pat
         .next()
         .ok_or(AppError::InstructionMissing)
 }
+
+/// Loads the instruction text every model call must carry.
+///
+/// Uses the file chosen in project settings when there is one, otherwise the profile's
+/// candidate order, the same rule preflight applies. A missing or empty file is an error:
+/// translating without the owner's rules is the one thing the pipeline must refuse.
+pub fn load_instruction_text<P: AsRef<Path>>(
+    root: P,
+    profile: &str,
+    configured_file: Option<&str>,
+) -> Result<String, AppError> {
+    let root = root.as_ref();
+    let path = match configured_file.map(str::trim).filter(|f| !f.is_empty()) {
+        Some(file) => root.join(file),
+        None => resolve_instruction(root, profile)?,
+    };
+    let text = fs::read_to_string(&path).map_err(|_| AppError::InstructionMissing)?;
+    if text.trim().is_empty() {
+        return Err(AppError::InstructionMissing);
+    }
+    Ok(text)
+}
+
+#[cfg(test)]
+#[allow(clippy::unwrap_used)]
+mod load_tests {
+    use super::*;
+
+    fn temp_root(tag: &str) -> PathBuf {
+        let dir = std::env::temp_dir().join(format!("lnta_instr_{tag}_{}", uuid::Uuid::new_v4()));
+        fs::create_dir_all(&dir).unwrap();
+        dir
+    }
+
+    #[test]
+    fn ja_en_prefers_instruction_en_without_configuration() {
+        let root = temp_root("en");
+        fs::write(root.join("instruction-en.md"), "EN rules").unwrap();
+        assert_eq!(
+            load_instruction_text(&root, "ja-en", None).unwrap(),
+            "EN rules"
+        );
+    }
+
+    #[test]
+    fn configured_file_wins_over_candidates() {
+        let root = temp_root("cfg");
+        fs::write(root.join("instruction.md"), "default").unwrap();
+        fs::write(root.join("my-rules.md"), "chosen").unwrap();
+        assert_eq!(
+            load_instruction_text(&root, "ja-id", Some("my-rules.md")).unwrap(),
+            "chosen"
+        );
+    }
+
+    #[test]
+    fn missing_or_empty_instruction_is_an_error() {
+        let root = temp_root("empty");
+        assert!(matches!(
+            load_instruction_text(&root, "ja-id", None),
+            Err(AppError::InstructionMissing)
+        ));
+        fs::write(root.join("instruction.md"), "   \n").unwrap();
+        assert!(matches!(
+            load_instruction_text(&root, "ja-id", None),
+            Err(AppError::InstructionMissing)
+        ));
+    }
+}

@@ -305,6 +305,20 @@ impl<'a> SegmentRepo<'a> {
         Self { conn }
     }
 
+    /// Replaces every segment of a chapter, used whenever the raw file is (re)parsed so the
+    /// review table, QA, and segment editing always see the current source.
+    pub fn replace_for_chapter(
+        &self,
+        chapter_id: &str,
+        segments: &[Segment],
+    ) -> Result<(), AppError> {
+        self.conn.execute(
+            "DELETE FROM segment WHERE chapter_id = ?1",
+            params![chapter_id],
+        )?;
+        self.insert_batch(segments)
+    }
+
     pub fn insert_batch(&self, segments: &[Segment]) -> Result<(), AppError> {
         let tx = self.conn.unchecked_transaction()?;
         {
@@ -418,10 +432,12 @@ impl<'a> TranslationRepo<'a> {
 
         let next_version = prev_version + 1;
 
-        // Invalidate current versions
+        // Invalidate every current version that overlaps this range, not only an identical
+        // range: a retranslation may merge segments differently (12-14 vs 12 and 13-14), and
+        // a stale overlapping row would render the same text twice in the docx.
         tx.execute(
             "UPDATE translation SET is_current = 0
-             WHERE chapter_id = ?1 AND seg_from = ?2 AND seg_to = ?3 AND is_current = 1",
+             WHERE chapter_id = ?1 AND is_current = 1 AND seg_from <= ?3 AND seg_to >= ?2",
             params![chapter_id, seg_from, seg_to],
         )?;
 
@@ -537,6 +553,15 @@ pub struct ChunkPlanRepo<'a> {
 impl<'a> ChunkPlanRepo<'a> {
     pub fn new(conn: &'a Connection) -> Self {
         Self { conn }
+    }
+
+    /// Drops the previous plan of a chapter so it can be planned again on retranslate or resume.
+    pub fn delete_by_chapter(&self, chapter_id: &str) -> Result<(), AppError> {
+        self.conn.execute(
+            "DELETE FROM chunk_plan WHERE chapter_id = ?1",
+            params![chapter_id],
+        )?;
+        Ok(())
     }
 
     pub fn insert_batch(&self, plans: &[ChunkPlan]) -> Result<(), AppError> {

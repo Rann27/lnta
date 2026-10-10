@@ -191,6 +191,14 @@ pub fn detect_instruction_language(content: &str) -> Option<&'static str> {
 }
 
 /// Helper running preflight on a project folder using its project.toml and global settings.
+/// True for endpoints on this machine, which never need an API key.
+fn is_local_url(url: &str) -> bool {
+    let lower = url.to_ascii_lowercase();
+    ["://localhost", "://127.0.0.1", "://[::1]", "://0.0.0.0"]
+        .iter()
+        .any(|host| lower.contains(host))
+}
+
 pub fn run_preflight_on_folder(
     project_root: &Path,
     settings: &crate::project::settings::GlobalSettings,
@@ -207,10 +215,26 @@ pub fn run_preflight_on_folder(
     let trans_role = settings
         .roles
         .for_role(crate::project::settings::Role::Translator);
-    let has_key = crate::secrets::get_api_key(&trans_role.primary.provider)
-        .ok()
-        .flatten()
-        .is_some();
+    // Only hosted APIs need a key. Local OpenAI-compatible servers (Ollama, LM Studio) and the
+    // subscription CLIs authenticate on their own, so demanding a key would block them forever.
+    let provider_cfg = settings
+        .providers
+        .iter()
+        .find(|p| p.id == trans_role.primary.provider);
+    let provider_kind = provider_cfg
+        .map(|p| p.provider_type.as_str())
+        .unwrap_or(trans_role.primary.provider.as_str());
+    let has_key = match provider_kind {
+        "cli_claude" => crate::provider::cli_common::resolve_cli_path("claude").is_some(),
+        "cli_gemini" => crate::provider::cli_common::resolve_cli_path("gemini").is_some(),
+        "cli_codex" => crate::provider::cli_common::resolve_cli_path("codex").is_some(),
+        "mock" => true,
+        "openai_compat" if provider_cfg.is_some_and(|p| is_local_url(&p.base_url)) => true,
+        _ => crate::secrets::get_api_key(&trans_role.primary.provider)
+            .ok()
+            .flatten()
+            .is_some(),
+    };
 
     let env = PreflightEnvironment {
         translator_model_configured: !trans_role.primary.model_id.is_empty(),

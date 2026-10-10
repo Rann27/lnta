@@ -3,7 +3,6 @@
 //! Implements pure-core scan checks per PRD Appendix B and start.md.
 
 use super::common::{QaFinding, SegmentForQa};
-use regex::Regex;
 
 /// Fixed list of non-standard Indonesian spellings per start.md and PRD Appendix B (Q17).
 /// Format: (correct_standard, wrong_non_standard)
@@ -165,7 +164,7 @@ pub fn check_non_standard_spelling(seg: &SegmentForQa) -> Vec<QaFinding> {
 
     for &(standard, non_standard) in NON_STANDARD_SPELLINGS {
         let pattern = format!(r"\b{}\b", non_standard);
-        if let Ok(re) = Regex::new(&pattern) {
+        if let Some(re) = crate::qa::re::cached(&pattern) {
             if re.is_match(&text_lower) {
                 findings.push(QaFinding::new(
                     "Q17",
@@ -188,7 +187,7 @@ pub fn check_non_standard_spelling(seg: &SegmentForQa) -> Vec<QaFinding> {
 /// Q19a: Misplaced hyphen pattern `se-<kata Indonesia>` (e.g. `se-mustahil`).
 pub fn check_misplaced_hyphen(seg: &SegmentForQa) -> Vec<QaFinding> {
     let mut findings = Vec::new();
-    if let Ok(re) = Regex::new(r"\bse-[a-z]+") {
+    if let Some(re) = crate::qa::re::cached(r"\bse-[a-z]+") {
         for m in re.find_iter(&seg.tgt_text) {
             findings.push(QaFinding::new(
                 "Q19a",
@@ -206,7 +205,7 @@ pub fn check_misplaced_hyphen(seg: &SegmentForQa) -> Vec<QaFinding> {
 /// Q20: Lowercase acronyms mid-sentence (sks, tv, cd, dvd, sim, ktp, kk, npwp).
 pub fn check_lowercase_acronyms(seg: &SegmentForQa) -> Vec<QaFinding> {
     let mut findings = Vec::new();
-    if let Ok(re) = Regex::new(r"\b(sks|tv|cd|dvd|sim|ktp|kk|npwp)\b") {
+    if let Some(re) = crate::qa::re::cached(r"\b(sks|tv|cd|dvd|sim|ktp|kk|npwp)\b") {
         for m in re.find_iter(&seg.tgt_text) {
             findings.push(QaFinding::new(
                 "Q20",

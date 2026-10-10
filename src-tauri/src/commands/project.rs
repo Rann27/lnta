@@ -62,29 +62,68 @@ pub fn open_project(path: String) -> Result<ProjectOpenResult, AppError> {
     let chapter_repo = ChapterRepo::new(&conn);
     let existing_chapters = chapter_repo.list_all()?;
 
+    // Same parser and options as the run engine, so titles, image-page chapters, and segment
+    // counts shown before a run match what the run will actually do.
+    let illustrations = crate::raw::classify::IllustrationSet::from_dir(&layout.illustrations_dir);
+    let parse_opts = crate::raw::segment::ParseOptions {
+        strip_brackets: config.strip_title_brackets,
+        ruby_normalize: config.normalize_ruby,
+        ..Default::default()
+    };
+
     if existing_chapters.is_empty() {
         if let Ok(discovered) = discover_chapters(p) {
             for disc in discovered {
                 let content = read_raw_file(&disc.path).unwrap_or_default();
-                let line_count = content.lines().count() as i32;
-                let char_count = content.chars().count() as i32;
+                let parsed = crate::raw::segment::parse_chapter(
+                    &disc.file_name,
+                    &content,
+                    &illustrations,
+                    &parse_opts,
+                );
 
                 let ch = Chapter {
-                    id: format!("chap_{:02}", disc.ordinal),
+                    id: format!("chap_{}", disc.prefix),
                     ordinal: disc.ordinal,
                     file_name: disc.file_name.clone(),
                     prefix: disc.prefix.clone(),
-                    title_src: disc.title_candidate.clone(),
+                    title_src: parsed
+                        .title_clean
+                        .clone()
+                        .or(parsed.title_raw.clone())
+                        .unwrap_or_default(),
                     title_tgt: None,
                     src_hash: format!("{:x}", md5_or_simple(&content)),
-                    line_count,
-                    char_count,
+                    line_count: parsed.line_count,
+                    char_count: parsed.char_count,
                     status: "pending".to_string(),
                     frozen: false,
                     parts_planned: 0,
                     updated_at: chrono::Utc::now().to_rfc3339(),
                 };
-                let _ = chapter_repo.insert(&ch);
+                if chapter_repo.insert(&ch).is_ok() {
+                    crate::engine::chapter::persist_chapter_segments(
+                        &conn,
+                        &ch.id,
+                        &parsed.segments,
+                    )?;
+                }
+            }
+        }
+    }
+
+    // Projects opened before segments were persisted have empty segment tables; fill them in.
+    let segment_repo = crate::store::repo::SegmentRepo::new(&conn);
+    for ch in chapter_repo.list_all()? {
+        if segment_repo.list_by_chapter(&ch.id)?.is_empty() {
+            if let Ok(content) = read_raw_file(&layout.root.join(&ch.file_name)) {
+                let parsed = crate::raw::segment::parse_chapter(
+                    &ch.file_name,
+                    &content,
+                    &illustrations,
+                    &parse_opts,
+                );
+                crate::engine::chapter::persist_chapter_segments(&conn, &ch.id, &parsed.segments)?;
             }
         }
     }

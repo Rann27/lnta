@@ -33,6 +33,9 @@ pub enum MockStep {
         finish: FinishReason,
         usage: TokenUsage,
     },
+    /// Answers every segment id found in the request's `<chapter>` block, so a whole
+    /// volume can run offline. Dialogue lines keep 「」 to exercise the mechanical fixer.
+    Echo,
 }
 
 impl MockStep {
@@ -54,6 +57,7 @@ impl MockStep {
 pub struct MockProvider {
     queue: Mutex<VecDeque<MockStep>>,
     calls: Mutex<Vec<ProviderRequest>>,
+    echo_when_empty: bool,
 }
 
 impl Default for MockProvider {
@@ -67,6 +71,15 @@ impl MockProvider {
         Self {
             queue: Mutex::new(VecDeque::new()),
             calls: Mutex::new(Vec::new()),
+            echo_when_empty: false,
+        }
+    }
+
+    /// A mock that answers with `MockStep::Echo` whenever its queue is empty.
+    pub fn new_echo() -> Self {
+        Self {
+            echo_when_empty: true,
+            ..Self::new()
         }
     }
 
@@ -119,8 +132,11 @@ impl Provider for MockProvider {
                 message: format!("Mock mutex poisoned: {e}"),
             })?;
             q.pop_front().unwrap_or_else(|| {
-                // Default fallback if queue is empty
-                MockStep::simple_success("<s id=\"1\">Default mock response</s>")
+                if self.echo_when_empty {
+                    MockStep::Echo
+                } else {
+                    MockStep::simple_success("<s id=\"1\">Default mock response</s>")
+                }
             })
         };
 
@@ -156,6 +172,23 @@ impl Provider for MockProvider {
                 }))
             }
             MockStep::Error(err) => Err(err),
+            MockStep::Echo => {
+                let text = echo_response(&req.user_prompt);
+                if let Some(ref mut cb) = token_cb {
+                    cb(&text);
+                }
+                Ok(ProviderOutcome::Success(ProviderResponse {
+                    text,
+                    finish_reason: FinishReason::Stop,
+                    usage: TokenUsage {
+                        input_tokens: (req.system_prompt.len() + req.user_prompt.len()) as i64 / 3,
+                        output_tokens: 40,
+                        ..Default::default()
+                    },
+                    provider_request_id: Some("mock-echo-id".to_string()),
+                    model: req.model.clone(),
+                }))
+            }
             MockStep::StreamChunks {
                 chunks,
                 finish,
@@ -183,6 +216,53 @@ impl Provider for MockProvider {
             }
         }
     }
+}
+
+/// Builds a contract-shaped answer for every `<t>` and `<s id>` inside `<chapter>`.
+fn echo_response(user_prompt: &str) -> String {
+    let chapter = user_prompt
+        .find("<chapter")
+        .map(|i| &user_prompt[i..])
+        .unwrap_or("");
+    let mut out = String::new();
+    for line in chapter.lines() {
+        let line = line.trim();
+        if line.starts_with("<t>") {
+            out.push_str(
+                "<t>Judul Bab</t>
+",
+            );
+        } else if let Some(rest) = line.strip_prefix("<s id=\"") {
+            let Some((id, body)) = rest.split_once("\">") else {
+                continue;
+            };
+            let src = body.trim_end_matches("</s>");
+            // Real translations run longer than the Japanese source; keep the length ratio
+            // validator satisfied by padding to roughly 1.5x the source character count.
+            let target_len = src.chars().count() * 3 / 2;
+            let mut filler = String::new();
+            while filler.chars().count() < target_len {
+                filler.push_str(" kata");
+            }
+            if src.starts_with('「') || src.starts_with('『') {
+                out.push_str(&format!(
+                    "<s id=\"{id}\">「Dialog {id}{filler}.」</s>
+"
+                ));
+            } else {
+                out.push_str(&format!(
+                    "<s id=\"{id}\">Narasi segmen {id}{filler}.</s>
+"
+                ));
+            }
+        }
+    }
+    out.push_str(
+        "<glossary>
+</glossary>
+",
+    );
+    out
 }
 
 #[cfg(test)]

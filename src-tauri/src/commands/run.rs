@@ -107,7 +107,14 @@ impl ProviderResolver for DynamicProviderResolver {
             Some(api_key)
         };
 
-        let any_provider = match reference.provider.as_str() {
+        // Providers added from Settings get generated ids (e.g. `anthropic_lx3k`), so the
+        // adapter must follow the configured type; the id only names the entry.
+        let provider_kind = provider_config
+            .as_ref()
+            .map(|p| p.provider_type.clone())
+            .unwrap_or_else(|| reference.provider.clone());
+
+        let any_provider = match provider_kind.as_str() {
             "anthropic" => {
                 let base_url = provider_config
                     .map(|p| p.base_url)
@@ -203,6 +210,13 @@ pub async fn start_run(app: tauri::AppHandle, path: String) -> Result<String, Ap
         ProjectConfig::for_profile("ja-id")
     };
     layout.ensure_layout(&config.profile)?;
+
+    // Refuse up front so the UI gets the error instead of a run that silently fails later.
+    crate::project::instruction::load_instruction_text(
+        p,
+        &config.profile,
+        config.instruction_file.as_deref(),
+    )?;
 
     let global = GlobalSettings::load_from_app_data().unwrap_or_default();
     let effective = EffectiveSettings::merge(&global, &config, None);
@@ -352,6 +366,12 @@ pub async fn retranslate_chapter(
     };
     layout.ensure_layout(&config.profile)?;
 
+    crate::project::instruction::load_instruction_text(
+        p,
+        &config.profile,
+        config.instruction_file.as_deref(),
+    )?;
+
     let global = GlobalSettings::load_from_app_data().unwrap_or_default();
     let mut effective = EffectiveSettings::merge(&global, &config, None);
     if let Some(m) = model {
@@ -403,14 +423,21 @@ pub async fn retranslate_chapter(
                 if let Ok(Some(ch)) = chap_repo.get_by_id(&chap_id_clone) {
                     if let Ok(profile) = crate::profiles::load_profile(&effective.profile) {
                         let contract_text = &profile.contract_text;
-                        let instruction_path = layout.root.join(
-                            effective
-                                .instruction_file
-                                .as_deref()
-                                .unwrap_or("instruction.md"),
-                        );
-                        let instruction_text =
-                            std::fs::read_to_string(&instruction_path).unwrap_or_default();
+                        let Ok(instruction_text) =
+                            crate::project::instruction::load_instruction_text(
+                                &layout.root,
+                                &effective.profile,
+                                effective.instruction_file.as_deref(),
+                            )
+                        else {
+                            emitter.emit(crate::engine::events::EngineEvent::LogLine {
+                                level: "error".to_string(),
+                                message: "Instruction file missing or empty".to_string(),
+                                timestamp: chrono::Utc::now().to_rfc3339(),
+                            });
+                            RunManager::global().remove(&path_clone);
+                            return;
+                        };
 
                         let _ = crate::engine::chapter::execute_single_chapter(
                             &conn,

@@ -325,13 +325,11 @@ pub async fn retranslate_segment_core(
 
     let profile = crate::profiles::load_profile(&settings.profile)?;
     let contract_text = &profile.contract_text;
-    let instruction_path = layout.root.join(
-        settings
-            .instruction_file
-            .as_deref()
-            .unwrap_or("instruction.md"),
-    );
-    let instruction_text = std::fs::read_to_string(&instruction_path).unwrap_or_default();
+    let instruction_text = crate::project::instruction::load_instruction_text(
+        &layout.root,
+        &settings.profile,
+        settings.instruction_file.as_deref(),
+    )?;
 
     let args = crate::prompt::assemble::UserPromptArgs {
         chapter_file: &file_name,
@@ -547,6 +545,8 @@ mod tests {
         // Create temporary chapter raw file
         let raw_file = temp_dir.join("01_test.md");
         std::fs::write(&raw_file, "健太は走った。").unwrap();
+        // Retranslation refuses to run without the owner's rules, as every model call does.
+        std::fs::write(temp_dir.join("instruction.md"), "# Aturan uji").unwrap();
 
         let settings = crate::project::settings::EffectiveSettings::merge(
             &crate::project::settings::GlobalSettings::default(),

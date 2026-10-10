@@ -352,22 +352,39 @@ pub fn load_volume_segments_for_qa(
         let segs = seg_repo.list_by_chapter(&chap.id)?;
         let current_trans = trans_repo.get_current_by_chapter(&chap.id)?;
 
+        // One QA unit per translation: a merged range `12-14` becomes a single unit carrying
+        // all three sources. Copying its text onto every covered segment would make the
+        // duplicate-paragraph check fire on every merge.
         let mut segs_for_qa = Vec::new();
-        for s in segs {
-            // Find translation matching s.idx
-            let tgt_text = current_trans
+        for s in &segs {
+            match current_trans
                 .iter()
                 .find(|t| t.seg_from <= s.idx && s.idx <= t.seg_to)
-                .map(|t| t.text.clone())
-                .unwrap_or_default();
-
-            segs_for_qa.push(SegmentForQa {
-                segment_id: s.id,
-                chapter_id: chap.id.clone(),
-                idx: s.idx,
-                src_text: s.src_text,
-                tgt_text,
-            });
+            {
+                Some(t) if t.seg_from == s.idx => {
+                    let src_text = segs
+                        .iter()
+                        .filter(|o| o.idx >= t.seg_from && o.idx <= t.seg_to)
+                        .map(|o| o.src_text.as_str())
+                        .collect::<Vec<_>>()
+                        .join("\n");
+                    segs_for_qa.push(SegmentForQa {
+                        segment_id: s.id.clone(),
+                        chapter_id: chap.id.clone(),
+                        idx: s.idx,
+                        src_text,
+                        tgt_text: t.text.clone(),
+                    });
+                }
+                Some(_) => {}
+                None => segs_for_qa.push(SegmentForQa {
+                    segment_id: s.id.clone(),
+                    chapter_id: chap.id.clone(),
+                    idx: s.idx,
+                    src_text: s.src_text.clone(),
+                    tgt_text: String::new(),
+                }),
+            }
         }
         chapter_segments.push(segs_for_qa);
     }

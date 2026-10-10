@@ -9,7 +9,8 @@
 //! - HTTP 429 retry
 //! - Five consecutive failures pausing the run
 //! - Crash-resume with no duplicate chapters in docx
-//! - Fixture smoke with mock provider (#[ignore])
+//!
+//! The real-volume run lives in `fixture_e2e.rs`.
 
 #![allow(clippy::unwrap_used, clippy::panic)]
 
@@ -228,8 +229,14 @@ async fn test_missing_segment_repair() {
         .any(|t| t.seg_from == 5 && t.text.contains("hutan"));
     assert!(has_seg_5, "Segment 5 should be present after repair");
 
-    // Exactly 2 calls made (1 translator call, 1 repair call)
-    assert_eq!(mock.calls().len(), 2);
+    // Exactly 2 translation calls (1 translator call, 1 repair call); the QA phase that
+    // follows the run sends its own `<qa_fix>` / `<qa_review>` calls, which are not counted.
+    let translation_calls = mock
+        .calls()
+        .iter()
+        .filter(|c| c.user_prompt.contains("<chapter"))
+        .count();
+    assert_eq!(translation_calls, 2);
 
     let _ = fs::remove_dir_all(&temp_dir);
 }
@@ -543,71 +550,6 @@ async fn test_crash_resume_no_duplicate_chapters() {
         count2, 1,
         "Resumed docx must not duplicate chapter headings"
     );
-
-    let _ = fs::remove_dir_all(&temp_dir);
-}
-
-#[tokio::test]
-#[ignore]
-async fn test_fixture_smoke_mock_provider() {
-    let fixture_env = std::env::var("LNTA_FIXTURE_DIR").ok();
-    if fixture_env.is_none() {
-        eprintln!("LNTA_FIXTURE_DIR not set; skipping fixture smoke test");
-        return;
-    }
-    let fixture_path = Path::new(&fixture_env.unwrap()).join("Karamawari 1 ID");
-    if !fixture_path.exists() {
-        eprintln!(
-            "Fixture directory {} not found; skipping",
-            fixture_path.display()
-        );
-        return;
-    }
-
-    // 1. Copy to temp directory (never mutate Fixture/)
-    let temp_dir = std::env::temp_dir().join(format!("lnta_test_fix_eng_{}", uuid::Uuid::new_v4()));
-    fs::create_dir_all(&temp_dir).unwrap();
-    copy_dir_all(&fixture_path, &temp_dir).unwrap();
-
-    let layout = ProjectLayout::new(&temp_dir);
-    layout.ensure_layout("ja-id").unwrap();
-
-    let mut conn = open_path(&layout.db_file).unwrap();
-    migrate(&mut conn).unwrap();
-
-    let settings = EffectiveSettings::merge(
-        &GlobalSettings::default(),
-        &ProjectConfig::for_profile("ja-id"),
-        None,
-    );
-
-    // Provide dynamic mock echoing placeholder text per segment
-    // With large number of pre-queued steps
-    let mock = Arc::new(MockProvider::new());
-    for i in 1..=100 {
-        let resp = format!(
-            "<t>Bab Terjemahan {}</t>\n<s id=\"1\">Teks terjemahan 1</s>\n<s id=\"2\">Teks terjemahan 2</s>",
-            i
-        );
-        mock.push_step(MockStep::simple_success(&resp));
-    }
-
-    let resolver = MultiModelResolver::new(AnyProvider::Mock(mock.clone()));
-    let emitter = RecordingEventEmitter::new();
-    let run_control = RunControl::new();
-
-    let state = run_engine(&conn, &layout, &settings, &resolver, &emitter, &run_control)
-        .await
-        .unwrap();
-
-    assert_eq!(state, RunState::Completed);
-
-    // Assert all 9 chapters reach done
-    let chapters = ChapterRepo::new(&conn).list_all().unwrap();
-    assert_eq!(chapters.len(), 9);
-    for ch in chapters {
-        assert_eq!(ch.status, "done", "Chapter {} should be done", ch.file_name);
-    }
 
     let _ = fs::remove_dir_all(&temp_dir);
 }

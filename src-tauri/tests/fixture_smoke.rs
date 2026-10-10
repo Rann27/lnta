@@ -39,14 +39,13 @@ fn copy_dir_recursive(src: &Path, dst: &Path) -> std::io::Result<()> {
 }
 
 fn run_smoke_for_volume(fixture_vol_dir: &Path, profile: &str) {
-    if !fixture_vol_dir.exists() {
-        eprintln!(
-            "Fixture volume dir {} does not exist, skipping profile {}",
-            fixture_vol_dir.display(),
-            profile
-        );
-        return;
-    }
+    // The env var was set on purpose, so a wrong path must fail loudly instead of passing
+    // as a silent skip (which hid real failures during the sprint).
+    assert!(
+        fixture_vol_dir.exists(),
+        "LNTA_FIXTURE_DIR is set but {} does not exist (profile {profile})",
+        fixture_vol_dir.display()
+    );
 
     // 1. Copy to temp dir (NEVER write into Fixture/)
     let temp_dir = std::env::temp_dir().join(format!(
@@ -288,13 +287,17 @@ fn run_smoke_for_volume(fixture_vol_dir: &Path, profile: &str) {
 #[test]
 #[ignore]
 fn test_fixture_smoke() {
-    let fixture_dir = match std::env::var("LNTA_FIXTURE_DIR") {
+    let mut fixture_dir = match std::env::var("LNTA_FIXTURE_DIR") {
         Ok(v) if !v.trim().is_empty() => PathBuf::from(v),
         _ => {
             eprintln!("LNTA_FIXTURE_DIR not set; skipping fixture smoke test.");
             return;
         }
     };
+    // cargo runs integration tests from src-tauri/, while the env var is usually repo-relative.
+    if fixture_dir.is_relative() && !fixture_dir.exists() {
+        fixture_dir = Path::new("..").join(fixture_dir);
+    }
 
     // Test both Karamawari 1 ID and Karamawari 1 EN volumes
     let id_vol = fixture_dir.join("Karamawari 1 ID");

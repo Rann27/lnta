@@ -15,7 +15,6 @@
 //! - Q19b: English inconsistent ellipsis normalized to volume majority
 //! - Q20: Lowercase acronyms capitalization (sks, tv, cd, dvd, ktp, npwp, am/pm)
 
-use regex::Regex;
 use strsim::levenshtein;
 
 use crate::glossary::convert_macrons;
@@ -141,7 +140,7 @@ pub fn fix_name_variants(text: &str, glossary_terms: &[&str]) -> (String, bool) 
         return (text.to_string(), false);
     }
 
-    let Ok(word_re) = Regex::new(r"\b[A-Z][a-z]{2,}\b") else {
+    let Some(word_re) = crate::qa::re::cached(r"\b[A-Z][a-z]{2,}\b") else {
         return (text.to_string(), false);
     };
 
@@ -170,7 +169,7 @@ pub fn fix_name_variants(text: &str, glossary_terms: &[&str]) -> (String, bool) 
         if candidates.len() == 1 {
             let target = candidates[0];
             let pattern = format!(r"\b{}\b", word);
-            if let Ok(target_re) = Regex::new(&pattern) {
+            if let Some(target_re) = crate::qa::re::cached(&pattern) {
                 result = target_re.replace_all(&result, target).to_string();
                 modified = true;
             }
@@ -248,7 +247,7 @@ pub fn fix_non_standard_spelling(
         }
 
         let pattern = format!(r"(?i)\b{}\b", non_standard);
-        if let Ok(re) = Regex::new(&pattern) {
+        if let Some(re) = crate::qa::re::cached(&pattern) {
             if re.is_match(&result) {
                 result = re
                     .replace_all(&result, |caps: &regex::Captures| {
@@ -287,7 +286,7 @@ pub fn fix_punctuation_spacing(text: &str) -> (String, bool) {
     }
 
     // Space before punctuation: e.g. " ," -> ","
-    if let Ok(punct_re) = Regex::new(r"\s+([,.;:!?])") {
+    if let Some(punct_re) = crate::qa::re::cached(r"\s+([,.;:!?])") {
         if punct_re.is_match(&result) {
             result = punct_re.replace_all(&result, "$1").to_string();
             modified = true;
@@ -295,7 +294,7 @@ pub fn fix_punctuation_spacing(text: &str) -> (String, bool) {
     }
 
     // Double/multiple spaces -> single space
-    if let Ok(space_re) = Regex::new(r" {2,}") {
+    if let Some(space_re) = crate::qa::re::cached(r" {2,}") {
         if space_re.is_match(&result) {
             result = space_re.replace_all(&result, " ").to_string();
             modified = true;
@@ -343,7 +342,7 @@ pub fn fix_lowercase_acronyms(text: &str, profile: &str) -> (String, bool) {
     let mut modified = false;
 
     if profile == "ja-id" {
-        if let Ok(re) = Regex::new(r"\b(sks|tv|cd|dvd|ktp|npwp)\b") {
+        if let Some(re) = crate::qa::re::cached(r"\b(sks|tv|cd|dvd|ktp|npwp)\b") {
             if re.is_match(&result) {
                 result = re
                     .replace_all(&result, |caps: &regex::Captures| {
@@ -355,7 +354,7 @@ pub fn fix_lowercase_acronyms(text: &str, profile: &str) -> (String, bool) {
         }
     } else if profile == "ja-en" {
         // tv, dvd
-        if let Ok(re_media) = Regex::new(r"\b(tv|dvd)\b") {
+        if let Some(re_media) = crate::qa::re::cached(r"\b(tv|dvd)\b") {
             if re_media.is_match(&result) {
                 result = re_media
                     .replace_all(&result, |caps: &regex::Captures| {
@@ -366,7 +365,7 @@ pub fn fix_lowercase_acronyms(text: &str, profile: &str) -> (String, bool) {
             }
         }
         // am/pm after number e.g. "8 am" -> "8 AM"
-        if let Ok(re_time) = Regex::new(r"\b(\d+)\s*(am|pm)\b") {
+        if let Some(re_time) = crate::qa::re::cached(r"\b(\d+)\s*(am|pm)\b") {
             if re_time.is_match(&result) {
                 result = re_time
                     .replace_all(&result, |caps: &regex::Captures| {

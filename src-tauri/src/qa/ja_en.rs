@@ -11,7 +11,6 @@
 //! - Q20: Lowercase acronyms (`tv`, `dvd`, `am/pm` after numbers)
 
 use super::common::{QaFinding, SegmentForQa};
-use regex::Regex;
 
 /// Character entry for gender conflict checks.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -217,7 +216,7 @@ pub fn check_flattened_sibling_terms(seg: &SegmentForQa) -> Vec<QaFinding> {
     let text = &seg.tgt_text;
 
     // 1. Honorifics Mr. / Ms. are always flattened forms of -san (no descriptive exception)
-    if let Ok(re_honorific) = Regex::new(r"\b(Mr\.|Ms\.)(?:\s+|$)") {
+    if let Some(re_honorific) = crate::qa::re::cached(r"\b(Mr\.|Ms\.)(?:\s+|$)") {
         for m in re_honorific.find_iter(text) {
             let matched = m.as_str().trim();
             findings.push(QaFinding::new(
@@ -236,7 +235,7 @@ pub fn check_flattened_sibling_terms(seg: &SegmentForQa) -> Vec<QaFinding> {
 
     // 2. Sibling terms with descriptive-narration exception
     let sibling_pattern = r"(?i)\b(big brother|big sister|big sis|big bro|older sister|older brother|elder sister|elder brother)\b";
-    if let Ok(re_sibling) = Regex::new(sibling_pattern) {
+    if let Some(re_sibling) = crate::qa::re::cached(sibling_pattern) {
         for m in re_sibling.find_iter(text) {
             let start = m.start();
             let in_dialogue = is_inside_quotes(text, start);
@@ -280,7 +279,7 @@ pub fn check_romanized_sfx(seg: &SegmentForQa) -> Vec<QaFinding> {
 
     for &sfx in ROMANIZED_SFX {
         let pattern = format!(r"\b{}\b", regex::escape(sfx));
-        if let Ok(re) = Regex::new(&pattern) {
+        if let Some(re) = crate::qa::re::cached(&pattern) {
             if let Some(m) = re.find(&text_lower) {
                 findings.push(QaFinding::new(
                     "Q08",
@@ -310,15 +309,15 @@ pub fn check_gender_conflicts(
         return findings;
     }
 
-    let male_pronoun_re = Regex::new(r"(?i)\b(he|him|his|himself)\b").ok();
-    let female_pronoun_re = Regex::new(r"(?i)\b(she|her|hers|herself)\b").ok();
+    let male_pronoun_re = crate::qa::re::cached(r"(?i)\b(he|him|his|himself)\b");
+    let female_pronoun_re = crate::qa::re::cached(r"(?i)\b(she|her|hers|herself)\b");
 
     for seg in segments {
         let text = &seg.tgt_text;
 
         for char_info in characters {
             let name_pattern = format!(r"\b{}\b", regex::escape(&char_info.name));
-            let has_name = Regex::new(&name_pattern)
+            let has_name = crate::qa::re::cached(&name_pattern)
                 .map(|re| re.is_match(text))
                 .unwrap_or(false);
 
@@ -341,7 +340,7 @@ pub fn check_gender_conflicts(
                 let another_opposite_character = characters.iter().any(|other| {
                     other.name != char_info.name
                         && other.is_female != char_info.is_female
-                        && Regex::new(&format!(r"\b{}\b", regex::escape(&other.name)))
+                        && crate::qa::re::cached(&format!(r"\b{}\b", regex::escape(&other.name)))
                             .map(|re| re.is_match(text))
                             .unwrap_or(false)
                 });
@@ -372,8 +371,8 @@ pub fn check_spelling_consistency(segments: &[SegmentForQa]) -> Vec<QaFinding> {
 
     // 1. Check volume-wide US vs UK consistency
     for &(us, uk) in US_UK_PAIRS {
-        let us_re = Regex::new(&format!(r"(?i)\b{}\b", us)).ok();
-        let uk_re = Regex::new(&format!(r"(?i)\b{}\b", uk)).ok();
+        let us_re = crate::qa::re::cached(&format!(r"(?i)\b{}\b", us));
+        let uk_re = crate::qa::re::cached(&format!(r"(?i)\b{}\b", uk));
 
         let mut us_matches = Vec::new();
         let mut uk_matches = Vec::new();
@@ -458,7 +457,7 @@ pub fn check_spelling_consistency(segments: &[SegmentForQa]) -> Vec<QaFinding> {
 
     for seg in segments {
         for &(pattern, message) in confused_patterns {
-            if let Ok(re) = Regex::new(pattern) {
+            if let Some(re) = crate::qa::re::cached(pattern) {
                 if let Some(m) = re.find(&seg.tgt_text) {
                     findings.push(QaFinding::new(
                         "Q18",
@@ -532,7 +531,7 @@ pub fn check_lowercase_acronyms(seg: &SegmentForQa) -> Vec<QaFinding> {
     let mut findings = Vec::new();
 
     // tv, dvd
-    if let Ok(re_media) = Regex::new(r"\b(tv|dvd)\b") {
+    if let Some(re_media) = crate::qa::re::cached(r"\b(tv|dvd)\b") {
         for m in re_media.find_iter(&seg.tgt_text) {
             findings.push(QaFinding::new(
                 "Q20",
@@ -546,7 +545,7 @@ pub fn check_lowercase_acronyms(seg: &SegmentForQa) -> Vec<QaFinding> {
     }
 
     // am/pm after numbers e.g. "8 am", "10 pm"
-    if let Ok(re_time) = Regex::new(r"\b\d+\s*(am|pm)\b") {
+    if let Some(re_time) = crate::qa::re::cached(r"\b\d+\s*(am|pm)\b") {
         for m in re_time.find_iter(&seg.tgt_text) {
             findings.push(QaFinding::new(
                 "Q20",

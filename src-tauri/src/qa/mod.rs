@@ -11,6 +11,7 @@ pub mod frequency;
 pub mod hotspots;
 pub mod ja_en;
 pub mod ja_id;
+pub mod re;
 pub mod review;
 
 pub use common::{QaFinding, SegmentForQa};
