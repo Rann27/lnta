@@ -23,6 +23,8 @@ chrono = { version = "0.4", features = ["serde"] }
 uuid = { version = "1", features = ["v4", "serde"] }
 regex = "1"
 toml = "0.8"
+encoding_rs = "0.8"
+chardetng = "0.1"
 
 [lints.clippy]
 unwrap_used = "deny"
