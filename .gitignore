@@ -1,0 +1,27 @@
+# Markdown is private working material; only README.md is published.
+*.md
+!README.md
+# App resources and synthetic test data that must ship with the code.
+!src-tauri/resources/**/*.md
+!testdata/**/*.md
+
+# Real, copyrighted volume used for local testing only. Never commit.
+Fixture/
+
+# Private working folders (specs, design docs, harness, agent state).
+docs/
+.harness/
+.director/
+.claude/
+.agent/
+
+# Dependencies and builds
+node_modules/
+dist/
+src-tauri/target/
+src-tauri/gen/
+
+# Misc
+*.log
+Thumbs.db
+.DS_Store
