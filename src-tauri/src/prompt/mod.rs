@@ -1,0 +1,1 @@
+//! LNTA prompt module.

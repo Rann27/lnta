@@ -1,0 +1,1 @@
+//! LNTA validate module.
