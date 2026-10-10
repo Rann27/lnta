@@ -1,4 +1,9 @@
+import { DevGallery } from "./DevGallery";
+
 export function App() {
+  if (import.meta.env.DEV) {
+    return <DevGallery />;
+  }
   return (
     <div id="app">
       <h1>LNTA</h1>

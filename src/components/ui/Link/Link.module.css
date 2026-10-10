@@ -1,0 +1,26 @@
+.link {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--color-text);
+  font: inherit;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: var(--space-1);
+  cursor: pointer;
+  background: transparent;
+  border: 0;
+  padding: 0;
+  transition: text-decoration-thickness var(--dur-fast) var(--ease-standard);
+}
+
+.link:hover {
+  text-decoration-thickness: var(--focus-width);
+}
+
+.icon {
+  display: inline-flex;
+  align-items: center;
+  font-size: var(--icon-sm);
+  color: var(--color-text-2);
+}

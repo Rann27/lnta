@@ -1,0 +1,22 @@
+.track {
+  height: var(--space-2);
+  background: var(--color-sunken);
+  border-radius: var(--radius-1);
+  overflow: hidden;
+  width: 100%;
+}
+
+.fill {
+  display: block;
+  height: 100%;
+  background: var(--color-text);
+  transition: width var(--dur-base) linear;
+}
+
+.live .fill {
+  background: var(--color-tally);
+}
+
+.paused .fill {
+  background: var(--color-text-3);
+}

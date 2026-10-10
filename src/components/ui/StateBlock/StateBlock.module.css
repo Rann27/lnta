@@ -1,0 +1,28 @@
+.stateBlock {
+  display: grid;
+  gap: var(--space-3);
+  justify-items: start;
+  padding: var(--space-6);
+  border: var(--hairline) dashed var(--color-border-strong);
+  border-radius: var(--radius-2);
+  background: transparent;
+  width: 100%;
+}
+
+.title {
+  margin: 0;
+  font: var(--text-body-strong);
+  color: var(--color-text);
+}
+
+.description {
+  margin: 0;
+  font: var(--text-body);
+  color: var(--color-text-2);
+}
+
+.actions {
+  display: flex;
+  gap: var(--space-4);
+  margin-top: var(--space-2);
+}

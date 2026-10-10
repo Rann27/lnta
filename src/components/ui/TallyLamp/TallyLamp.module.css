@@ -1,0 +1,8 @@
+.lamp {
+  display: inline-block;
+  width: var(--tally-size);
+  height: var(--tally-size);
+  border-radius: var(--radius-1);
+  background: var(--color-tally);
+  flex-shrink: 0;
+}
