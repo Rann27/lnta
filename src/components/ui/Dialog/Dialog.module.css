@@ -1,0 +1,64 @@
+.scrim {
+  position: fixed;
+  inset: 0;
+  background: var(--color-scrim);
+  display: grid;
+  place-content: center;
+  z-index: var(--z-dialog);
+  padding: var(--space-6);
+}
+
+.dialog {
+  border: var(--hairline) solid var(--color-border);
+  border-radius: var(--radius-3);
+  padding: var(--space-7);
+  width: min(calc(var(--rail-width-max) + var(--space-7)), calc(100vw - var(--space-9)));
+  background: var(--color-raised);
+  color: var(--color-text);
+  box-shadow: var(--shadow-2);
+  display: grid;
+  gap: var(--space-6);
+  animation: dialogEnter var(--dur-slow) var(--ease-standard);
+}
+
+.formVariant {
+  width: min(calc(var(--rail-width-max) + var(--rail-width-collapsed) + var(--space-9) + var(--space-10)), calc(100vw - var(--space-9)));
+}
+
+.header {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.title {
+  margin: 0;
+  font: var(--text-title);
+}
+
+.description {
+  margin: 0;
+  font: var(--text-body);
+  color: var(--color-text-2);
+}
+
+.body {
+  margin: 0;
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-4);
+  align-items: center;
+}
+
+@keyframes dialogEnter {
+  from {
+    opacity: 0;
+    transform: translateY(var(--space-2));
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

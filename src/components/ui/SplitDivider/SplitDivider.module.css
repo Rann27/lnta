@@ -1,0 +1,53 @@
+.divider {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  touch-action: none;
+  user-select: none;
+}
+
+.vertical {
+  width: var(--space-3);
+  cursor: col-resize;
+  height: 100%;
+}
+
+.horizontal {
+  height: var(--space-3);
+  cursor: row-resize;
+  width: 100%;
+}
+
+.line {
+  position: absolute;
+  background: var(--color-border);
+  transition: background-color var(--dur-fast) var(--ease-standard);
+}
+
+.vertical .line {
+  width: var(--hairline);
+  height: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.horizontal .line {
+  height: var(--hairline);
+  width: 100%;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.divider:hover .line {
+  background: var(--color-border-strong);
+}
+
+.divider:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+.divider:focus-visible .line {
+  background: var(--color-text);
+}

@@ -1,0 +1,19 @@
+.panel {
+  background: var(--color-surface);
+  border: var(--hairline) solid var(--color-border);
+  border-radius: var(--radius-2);
+  padding: var(--space-6);
+  box-shadow: none;
+}
+
+.flush {
+  border-radius: var(--radius-0);
+}
+
+.paddingNone {
+  padding: 0;
+}
+
+.paddingDense {
+  padding: var(--space-4);
+}

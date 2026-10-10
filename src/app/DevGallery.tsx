@@ -18,6 +18,14 @@ import { Checkbox } from "../components/ui/Checkbox";
 import { Switch } from "../components/ui/Switch";
 import { SegmentedControl } from "../components/ui/SegmentedControl";
 import { SearchField } from "../components/ui/SearchField";
+import { Panel } from "../components/ui/Panel";
+import { SplitDivider } from "../components/ui/SplitDivider";
+import { Banner } from "../components/ui/Banner";
+import { Dialog } from "../components/ui/Dialog";
+import { Popover } from "../components/ui/Popover";
+import { ContextMenu } from "../components/ui/ContextMenu";
+import { Toast } from "../components/ui/Toast";
+import { Disclosure } from "../components/ui/Disclosure";
 import { setTheme, type Theme } from "./theme";
 
 export const DevGallery: React.FC = () => {
@@ -31,6 +39,10 @@ export const DevGallery: React.FC = () => {
   const [checkVal, setCheckVal] = useState(true);
   const [switchVal, setSwitchVal] = useState(false);
   const [searchVal, setSearchVal] = useState("");
+  const [splitWidth, setSplitWidth] = useState(300);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isDestructiveOpen, setIsDestructiveOpen] = useState(false);
+  const [isToastOpen, setIsToastOpen] = useState(false);
 
   const allStatuses: StatusType[] = [
     "queued",
@@ -64,6 +76,135 @@ export const DevGallery: React.FC = () => {
           onChange={handleThemeChange}
         />
       </header>
+
+      <section style={{ marginBottom: "var(--space-8)" }}>
+        <h2 style={{ font: "var(--text-title)" }}>Banner</h2>
+        <div style={{ display: "grid", gap: "var(--space-4)", maxWidth: "var(--rail-width-max)" }}>
+          <Banner
+            variant="blocker"
+            title="Translations.docx sedang terkunci"
+            description="Tutup file tersebut di Microsoft Word, lalu coba render lagi."
+            action={<Button size="sm" variant="secondary">Coba lagi</Button>}
+          />
+          <Banner
+            variant="attention"
+            title="Glosarium memiliki 3 entri konflik"
+            description="Tinjau usulan istilah baru di tab Glosarium sebelum melanjutkan."
+            onClose={() => alert("Banner ditutup")}
+          />
+        </div>
+      </section>
+
+      <section style={{ marginBottom: "var(--space-8)" }}>
+        <h2 style={{ font: "var(--text-title)" }}>Containment & Feedback</h2>
+        <div style={{ display: "flex", gap: "var(--space-4)", flexWrap: "wrap", alignItems: "center" }}>
+          <Button variant="secondary" onClick={() => setIsDialogOpen(true)}>
+            Buka Dialog Default
+          </Button>
+          <Button variant="danger" onClick={() => setIsDestructiveOpen(true)}>
+            Buka Dialog Destruktif
+          </Button>
+          <Button variant="secondary" onClick={() => setIsToastOpen(true)}>
+            Tampilkan Toast (6s)
+          </Button>
+          <Popover
+            trigger={<Button variant="secondary">Buka Popover</Button>}
+            content={
+              <div>
+                <h4 style={{ margin: "0 0 var(--space-2)", font: "var(--text-body-strong)" }}>
+                  Detail Panggilan
+                </h4>
+                <p style={{ margin: 0, font: "var(--text-small)", color: "var(--color-text-2)" }}>
+                  Model: claude-3-7-sonnet<br />
+                  Token masuk: 4.120<br />
+                  Latensi: 2,4 s
+                </p>
+              </div>
+            }
+          />
+        </div>
+
+        <Dialog
+          isOpen={isDialogOpen}
+          onClose={() => setIsDialogOpen(false)}
+          title="Konfirmasi pengaturan"
+          description="Apakah Anda ingin menerapkan perubahan ke seluruh bab?"
+          actions={
+            <>
+              <Button variant="secondary" onClick={() => setIsDialogOpen(false)}>
+                Batal
+              </Button>
+              <Button variant="primary" onClick={() => setIsDialogOpen(false)}>
+                Terapkan
+              </Button>
+            </>
+          }
+        />
+
+        <Dialog
+          isOpen={isDestructiveOpen}
+          onClose={() => setIsDestructiveOpen(false)}
+          variant="destructive"
+          title="Hapus cache terjemahan bab 04?"
+          description="Semua segmen hasil model akan direset kembali ke teks mentah."
+          actions={
+            <>
+              <Button variant="secondary" onClick={() => setIsDestructiveOpen(false)}>
+                Batal
+              </Button>
+              <Button variant="danger" onClick={() => setIsDestructiveOpen(false)}>
+                Hapus cache
+              </Button>
+            </>
+          }
+        />
+
+        <Toast
+          isOpen={isToastOpen}
+          onClose={() => setIsToastOpen(false)}
+          variant="success"
+          title="Glosarium tersimpan"
+          message="Perubahan istilah telah ditulis ke file glossary.md."
+        />
+      </section>
+
+      <section style={{ marginBottom: "var(--space-8)" }}>
+        <h2 style={{ font: "var(--text-title)" }}>ContextMenu, Disclosure & SplitDivider</h2>
+        <div style={{ display: "grid", gap: "var(--space-4)", maxWidth: "var(--rail-width-max)" }}>
+          <ContextMenu
+            items={[
+              { label: "Buka file raw", onClick: () => alert("Buka file") },
+              { label: "Salin path", onClick: () => alert("Salin path"), shortcut: "Ctrl+C" },
+              {
+                label: "Hapus segmen",
+                destructive: true,
+                separatorBefore: true,
+                onClick: () => alert("Hapus"),
+              },
+            ]}
+          >
+            <Panel style={{ textAlign: "center", cursor: "context-menu" }}>
+              Klik kanan area panel ini untuk membuka menu konteks (atau Shift+F10)
+            </Panel>
+          </ContextMenu>
+
+          <Disclosure title="Informasi teknis dan token">
+            <p style={{ margin: 0, font: "var(--text-mono)", color: "var(--color-text-2)" }}>
+              Context: 128k · Cache read: 3.200 · Latency: 1.4s
+            </p>
+          </Disclosure>
+
+          <div style={{ display: "flex", alignItems: "center", height: "var(--space-10)", background: "var(--color-sunken)", padding: "0 var(--space-4)" }}>
+            <span style={{ font: "var(--text-small)", color: "var(--color-text-2)" }}>Lebar panel: {splitWidth}px</span>
+            <SplitDivider
+              value={splitWidth}
+              min={240}
+              max={420}
+              onChange={setSplitWidth}
+            />
+          </div>
+        </div>
+      </section>
 
       <section style={{ marginBottom: "var(--space-8)" }}>
         <h2 style={{ font: "var(--text-title)" }}>Button & IconButton</h2>
