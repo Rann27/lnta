@@ -47,6 +47,14 @@ export class PreviewTransport implements IpcTransport {
     "menyinari ",
     "langkahnya. ",
   ];
+  private inMemoryProviders: ProviderConfigEntry[] = [...PREVIEW_PROVIDERS];
+  private inMemoryModels: ModelEntry[] = [...PREVIEW_MODELS];
+  private inMemoryKeys: Map<string, string> = new Map([
+    ["anthropic", "preview-key"],
+    ["openai", "preview-key"],
+    ["gemini", "preview-key"],
+  ]);
+  private inMemoryGlobalSettings: GlobalSettings | null = null;
 
   constructor(initialScenarioName?: string) {
     this.scenarios = createPreviewScenarios();
@@ -126,7 +134,7 @@ export class PreviewTransport implements IpcTransport {
   async getAppInfo(): Promise<AppInfo> {
     return {
       version: "0.1.0",
-      license: "MIT",
+      license: "MIT + Commons Clause",
       repo_url: "https://github.com/Rann27/lnta",
     };
   }
@@ -168,6 +176,9 @@ export class PreviewTransport implements IpcTransport {
 
   // Settings
   async getGlobalSettings(): Promise<GlobalSettings> {
+    if (this.inMemoryGlobalSettings) {
+      return this.inMemoryGlobalSettings;
+    }
     return {
       theme: "dark",
       ui_language: "id",
@@ -202,14 +213,17 @@ export class PreviewTransport implements IpcTransport {
           reasoning_effort: null,
         },
       },
-      providers: PREVIEW_PROVIDERS,
+      providers: this.inMemoryProviders,
       custom_models: [],
       recent_projects: this.activeScenario.recentProjects.map((p) => p.path),
     };
   }
 
   async saveGlobalSettings(settings: GlobalSettings): Promise<void> {
-    void settings;
+    this.inMemoryGlobalSettings = settings;
+    if (settings.providers) {
+      this.inMemoryProviders = settings.providers;
+    }
   }
 
   async getProjectConfig(path: string): Promise<ProjectConfig> {
@@ -224,25 +238,33 @@ export class PreviewTransport implements IpcTransport {
 
   // Providers & Keys
   async listProviders(): Promise<ProviderConfigEntry[]> {
-    return PREVIEW_PROVIDERS;
+    return this.inMemoryProviders;
   }
 
   async saveProvider(entry: ProviderConfigEntry): Promise<void> {
-    void entry;
+    const idx = this.inMemoryProviders.findIndex((p) => p.id === entry.id);
+    if (idx >= 0) {
+      this.inMemoryProviders[idx] = entry;
+    } else {
+      this.inMemoryProviders.push(entry);
+    }
   }
 
   async deleteProvider(id: string): Promise<void> {
-    void id;
+    this.inMemoryProviders = this.inMemoryProviders.filter((p) => p.id !== id);
+    this.inMemoryKeys.delete(id);
   }
 
   async setApiKey(providerId: string, key: string): Promise<void> {
-    void providerId;
-    void key;
+    if (key.trim()) {
+      this.inMemoryKeys.set(providerId, key.trim());
+    } else {
+      this.inMemoryKeys.delete(providerId);
+    }
   }
 
   async hasApiKey(providerId: string): Promise<boolean> {
-    void providerId;
-    return true;
+    return this.inMemoryKeys.has(providerId);
   }
 
   async testProvider(providerId: string): Promise<ProviderTestResult> {
@@ -256,11 +278,18 @@ export class PreviewTransport implements IpcTransport {
 
   // Models
   async listModels(): Promise<ModelEntry[]> {
-    return PREVIEW_MODELS;
+    return this.inMemoryModels;
   }
 
   async registerModel(entry: ModelEntry): Promise<void> {
-    void entry;
+    const idx = this.inMemoryModels.findIndex(
+      (m) => m.provider === entry.provider && m.model_id === entry.model_id
+    );
+    if (idx >= 0) {
+      this.inMemoryModels[idx] = entry;
+    } else {
+      this.inMemoryModels.push(entry);
+    }
   }
 
   async fetchProviderModels(
@@ -271,7 +300,7 @@ export class PreviewTransport implements IpcTransport {
     void providerType;
     void baseUrl;
     void apiKey;
-    return PREVIEW_MODELS;
+    return this.inMemoryModels;
   }
 
   // Run

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Outlet, Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { ipc } from "../lib/ipc";
+import { Gear } from "@phosphor-icons/react";
 import { setTheme, getTheme, type Theme } from "./theme";
 import { setLanguage, getLanguage, type SupportedLanguage } from "../lib/i18n";
 import { PreviewBanner } from "./PreviewBanner";
@@ -84,6 +85,15 @@ export const Shell: React.FC = () => {
             <option value="light">Light</option>
             <option value="dark">Dark</option>
           </select>
+
+          <Link
+            to="/settings"
+            className={styles.settingsLink}
+            title={t("settings.title")}
+            aria-label={t("settings.title")}
+          >
+            <Gear size={16} />
+          </Link>
         </div>
       </header>
 

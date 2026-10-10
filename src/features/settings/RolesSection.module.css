@@ -1,0 +1,133 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.title {
+  font: var(--text-heading-2);
+  color: var(--color-text);
+  margin: 0;
+}
+
+.subtitle {
+  font: var(--text-caption);
+  color: var(--color-text-3);
+  margin: 0;
+}
+
+.rolesGrid {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+.roleCard {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-2);
+  padding: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.roleHeader {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.roleTitle {
+  font: var(--text-body-strong);
+  color: var(--color-text);
+  margin: 0;
+}
+
+.roleDesc {
+  font: var(--text-caption);
+  color: var(--color-text-3);
+  margin: 0;
+}
+
+.sectionBlock {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.blockLabel {
+  font: var(--text-label);
+  color: var(--color-text-2);
+}
+
+.fallbacksList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.fallbackRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  background: var(--color-field);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-1);
+}
+
+.fallbackInfo {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  font: var(--text-body);
+}
+
+.fallbackIndex {
+  font: var(--text-mono);
+  color: var(--color-text-3);
+  font-size: var(--text-small);
+}
+
+.fallbackName {
+  font: var(--text-body-strong);
+}
+
+.fallbackModelId {
+  font: var(--text-mono);
+  color: var(--color-text-3);
+  font-size: var(--text-small);
+}
+
+.fallbackActions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.addFallbackRow {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--space-3);
+  margin-top: var(--space-2);
+}
+
+.addFallbackPicker {
+  flex: 1;
+}
+
+.emptyFallbacks {
+  font: var(--text-caption);
+  color: var(--color-text-3);
+  font-style: italic;
+  padding: var(--space-2) 0;
+}

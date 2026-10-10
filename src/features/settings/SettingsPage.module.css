@@ -1,0 +1,104 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  padding: var(--space-6) var(--space-8);
+  gap: var(--space-6);
+  max-width: var(--layout-regular);
+  margin: 0 auto;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.topBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+.titleArea {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.backLink {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font: var(--text-caption);
+  color: var(--color-text-3);
+  text-decoration: none;
+}
+
+.backLink:hover {
+  color: var(--color-text);
+}
+
+.title {
+  font: var(--text-title);
+  color: var(--color-text);
+  margin: 0;
+}
+
+.subtitle {
+  font: var(--text-body);
+  color: var(--color-text-3);
+  margin: 0;
+}
+
+.navTabs {
+  display: flex;
+  border-bottom: 1px solid var(--color-border);
+  gap: var(--space-2);
+}
+
+.tabButton {
+  padding: var(--space-2) var(--space-4);
+  font: var(--text-label);
+  color: var(--color-text-2);
+  background: transparent;
+  border: 0;
+  border-bottom: var(--focus-width) solid transparent;
+  cursor: pointer;
+  transition: all var(--dur-fast) ease;
+}
+
+.tabButton:hover {
+  color: var(--color-text);
+}
+
+.tabButton:focus-visible {
+  outline: var(--focus-width) solid var(--color-focus);
+  outline-offset: var(--focus-offset);
+}
+
+.tabActive {
+  color: var(--color-tally);
+  border-bottom-color: var(--color-tally);
+}
+
+.contentArea {
+  display: flex;
+  flex-direction: column;
+}
+
+.loading {
+  padding: var(--space-8);
+  text-align: center;
+  color: var(--color-text-3);
+  font: var(--text-body);
+}
+
+.errorBanner {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-field);
+  border: 1px solid var(--color-border);
+  border-left: var(--space-1) solid var(--color-warn);
+  border-radius: var(--radius-1);
+  color: var(--color-text);
+  font: var(--text-caption);
+}

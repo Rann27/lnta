@@ -1,0 +1,130 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+.titleGroup {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.title {
+  font: var(--text-heading-2);
+  color: var(--color-text);
+  margin: 0;
+}
+
+.subtitle {
+  font: var(--text-caption);
+  color: var(--color-text-3);
+  margin: 0;
+}
+
+.modelGrid {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.modelCard {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-2);
+  padding: var(--space-3) var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.cardTop {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.nameWrap {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+}
+
+.displayName {
+  font: var(--text-body-strong);
+  color: var(--color-text);
+}
+
+.modelId {
+  font: var(--text-mono);
+  font-size: var(--text-small);
+  color: var(--color-text-3);
+}
+
+.providerTag {
+  font: var(--text-caption);
+  color: var(--color-text-3);
+  background: var(--color-field);
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-1);
+}
+
+.cardBottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+  font: var(--text-caption);
+  color: var(--color-text-2);
+}
+
+.specs {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.warningOutput {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  color: var(--color-warn);
+}
+
+.pricing {
+  color: var(--color-text-3);
+}
+
+.emptyState {
+  padding: var(--space-8) var(--space-4);
+  text-align: center;
+  border: 1px dashed var(--color-border);
+  border-radius: var(--radius-2);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+  color: var(--color-text-3);
+}
+
+.dialogForm {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding: var(--space-2) 0;
+}
+
+.gridTwo {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-3);
+}

@@ -1,0 +1,229 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  position: relative;
+  width: 100%;
+}
+
+.label {
+  font: var(--text-label);
+  color: var(--color-text-2);
+}
+
+.trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  min-height: var(--control-md);
+  padding: var(--space-2) var(--space-3);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-2);
+  color: var(--color-text);
+  font: var(--text-body);
+  text-align: left;
+  cursor: pointer;
+  box-sizing: border-box;
+}
+
+.trigger:hover:not(:disabled) {
+  border-color: var(--color-border-strong);
+}
+
+.trigger:focus-visible {
+  outline: var(--focus-width) solid var(--color-focus);
+  outline-offset: var(--focus-offset);
+}
+
+.trigger:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.triggerContent {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  overflow: hidden;
+}
+
+.triggerName {
+  font: var(--text-body-strong);
+  white-space: nowrap;
+}
+
+.triggerModelId {
+  font: var(--text-mono);
+  color: var(--color-text-3);
+  font-size: var(--text-small);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.placeholder {
+  color: var(--color-text-3);
+}
+
+.chevron {
+  display: inline-flex;
+  align-items: center;
+  color: var(--color-text-3);
+  margin-left: var(--space-2);
+  flex-shrink: 0;
+}
+
+.popover {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  margin-top: var(--space-1);
+  background: var(--color-raised);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-2);
+  box-shadow: var(--shadow-1);
+  max-height: var(--logpanel-width);
+  overflow-y: auto;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+}
+
+.searchWrap {
+  padding: var(--space-2);
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-surface);
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.searchIcon {
+  color: var(--color-text-3);
+  flex-shrink: 0;
+}
+
+.searchInput {
+  flex: 1;
+  background: transparent;
+  border: 0;
+  color: var(--color-text);
+  font: var(--text-body);
+}
+
+.searchInput:focus-visible {
+  outline: var(--focus-width) solid var(--color-focus);
+  outline-offset: var(--focus-offset);
+}
+
+.searchInput::placeholder {
+  color: var(--color-text-3);
+}
+
+.listbox {
+  display: flex;
+  flex-direction: column;
+  padding: var(--space-1) 0;
+}
+
+.groupHeader {
+  padding: var(--space-2) var(--space-3) var(--space-1);
+  font: var(--text-caption);
+  color: var(--color-text-3);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.option {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding: var(--space-2) var(--space-3);
+  cursor: pointer;
+  color: var(--color-text);
+  transition: background-color var(--dur-fast) ease;
+}
+
+.option:hover,
+.optionHighlighted {
+  background: var(--color-hover);
+}
+
+.optionSelected {
+  background: var(--color-selected);
+}
+
+.optionHeader {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.modelName {
+  font: var(--text-body-strong);
+}
+
+.modelId {
+  font: var(--text-mono);
+  color: var(--color-text-3);
+  font-size: var(--text-small);
+}
+
+.optionMeta {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  font: var(--text-caption);
+  color: var(--color-text-2);
+}
+
+.warningOutput {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  color: var(--color-warn);
+}
+
+.experimentalBadge {
+  font: var(--text-caption);
+  color: var(--color-tally);
+  border: 1px solid var(--color-tally);
+  border-radius: var(--radius-1);
+  padding: 0 var(--space-1);
+}
+
+.empty {
+  padding: var(--space-6) var(--space-4);
+  text-align: center;
+  color: var(--color-text-3);
+  font: var(--text-body);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.empty p {
+  margin: 0;
+}
+
+.settingsLink {
+  color: var(--color-tally);
+  text-decoration: underline;
+  cursor: pointer;
+  background: none;
+  border: 0;
+  font: inherit;
+  padding: 0;
+}
+
+.settingsLink:hover {
+  text-decoration: none;
+}

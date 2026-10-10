@@ -211,5 +211,95 @@
       "state_announcement_completed": "Run selesai.",
       "state_announcement_idle": "Run berada dalam keadaan idle."
     }
+  },
+  "model_picker": {
+    "placeholder": "Pilih model...",
+    "search_placeholder": "Cari nama model atau provider...",
+    "empty_no_models": "Belum ada model terdaftar.",
+    "empty_no_results": "Tidak ada model yang cocok.",
+    "go_to_settings": "Buka Pengaturan untuk menambahkan provider",
+    "missing_output_limit": "batas output belum diisi",
+    "experimental": "Eksperimental",
+    "context_tokens": "{{count}} token konteks",
+    "output_tokens": "{{count}} token output"
+  },
+  "about": {
+    "title": "Tentang LNTA",
+    "button": "Tentang LNTA",
+    "version": "Versi",
+    "license": "Lisensi"
+  },
+  "settings": {
+    "title": "Pengaturan",
+    "subtitle": "Konfigurasi provider API, model, peran pipeline, dan preferensi aplikasi.",
+    "nav_label": "Navigasi pengaturan",
+    "tabs": {
+      "providers": "Provider & Kunci",
+      "models": "Model",
+      "roles": "Peran & Fallback"
+    },
+    "providers": {
+      "title": "Provider API",
+      "subtitle": "Kelola koneksi model OpenAI-compat, Anthropic, dan Google Gemini.",
+      "add_button": "Tambah provider",
+      "empty_text": "Belum ada provider yang dikonfigurasi.",
+      "active_toggle": "Aktif",
+      "base_url": "Base URL",
+      "api_key_label": "API Key",
+      "test_success": "Terkoneksi (latensi {{latency}} ms)",
+      "test_error": "Gagal terhubung: {{error}}",
+      "fetch_models_button": "Ambil model dari provider",
+      "fetching_models": "Mengambil model...",
+      "dialog_title": "Tambah Provider API",
+      "provider_type_label": "Tipe provider",
+      "name_label": "Nama tampilan",
+      "id_label": "ID unik",
+      "id_hint": "Digunakan sebagai referensi model (misal: openai, groq, openrouter)",
+      "base_url_label": "Base URL endpoint"
+    },
+    "models": {
+      "title": "Registri Model",
+      "subtitle": "Daftar model yang tersedia untuk alur penerjemahan dan QA.",
+      "add_button": "Tambah model manual",
+      "empty_text": "Belum ada model di registri.",
+      "reasoning_supported": "Mendukung reasoning",
+      "dialog_title": "Tambah Model Manual",
+      "provider_label": "Provider",
+      "model_id_label": "ID Model",
+      "display_name_label": "Nama Tampilan",
+      "context_window_label": "Jendela Konteks (token)",
+      "max_output_label": "Batas Output Maksimum (token)",
+      "max_output_hint": "Batas output wajib diisi agar pemotongan chunk akurat.",
+      "input_price_label": "Harga Masuk (USD / 1M token)",
+      "output_price_label": "Harga Keluar (USD / 1M token)",
+      "supports_reasoning_label": "Model mendukung reasoning / thinking"
+    },
+    "roles": {
+      "title": "Peran Pipeline & Fallback",
+      "subtitle": "Tentukan model utama dan urutan fallback untuk setiap tugas otomatis.",
+      "translator": {
+        "title": "Penerjemah",
+        "desc": "Menerjemahkan segmen bab dari bahasa Jepang ke bahasa target."
+      },
+      "repair": {
+        "title": "Perbaikan",
+        "desc": "Memperbaiki segmen yang gagal validasi atau memiliki tag rusak."
+      },
+      "qa_reviewer": {
+        "title": "Reviewer QA",
+        "desc": "Memindai draf bab dan menemukan potensi kesalahan terjemahan."
+      },
+      "qa_fixer": {
+        "title": "Perbaikan QA",
+        "desc": "Menerapkan usulan perbaikan kontekstual hasil pemindaian QA."
+      },
+      "primary_label": "Model Utama",
+      "fallbacks_label": "Daftar Model Fallback",
+      "no_fallbacks": "Belum ada model fallback yang dikonfigurasi.",
+      "select_fallback_placeholder": "Pilih model fallback...",
+      "add_fallback_button": "Tambah Fallback",
+      "move_up": "Pindahkan ke atas",
+      "move_down": "Pindahkan ke bawah"
+    }
   }
 }

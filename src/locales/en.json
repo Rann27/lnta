@@ -211,5 +211,95 @@
       "state_announcement_completed": "Run completed.",
       "state_announcement_idle": "Run is in idle state."
     }
+  },
+  "model_picker": {
+    "placeholder": "Select model...",
+    "search_placeholder": "Search model name or provider...",
+    "empty_no_models": "No registered models yet.",
+    "empty_no_results": "No models match your search.",
+    "go_to_settings": "Open Settings to add a provider",
+    "missing_output_limit": "output limit not set",
+    "experimental": "Experimental",
+    "context_tokens": "{{count}} context tokens",
+    "output_tokens": "{{count}} output tokens"
+  },
+  "about": {
+    "title": "About LNTA",
+    "button": "About LNTA",
+    "version": "Version",
+    "license": "License"
+  },
+  "settings": {
+    "title": "Settings",
+    "subtitle": "Configure API providers, models, pipeline roles, and app preferences.",
+    "nav_label": "Settings navigation",
+    "tabs": {
+      "providers": "Providers & Keys",
+      "models": "Models",
+      "roles": "Roles & Fallback"
+    },
+    "providers": {
+      "title": "API Providers",
+      "subtitle": "Manage OpenAI-compatible, Anthropic, and Google Gemini connections.",
+      "add_button": "Add provider",
+      "empty_text": "No providers configured yet.",
+      "active_toggle": "Active",
+      "base_url": "Base URL",
+      "api_key_label": "API Key",
+      "test_success": "Connected (latency {{latency}} ms)",
+      "test_error": "Connection failed: {{error}}",
+      "fetch_models_button": "Fetch models from provider",
+      "fetching_models": "Fetching models...",
+      "dialog_title": "Add API Provider",
+      "provider_type_label": "Provider type",
+      "name_label": "Display name",
+      "id_label": "Unique ID",
+      "id_hint": "Used as provider reference (e.g. openai, groq, openrouter)",
+      "base_url_label": "Endpoint base URL"
+    },
+    "models": {
+      "title": "Model Registry",
+      "subtitle": "Models available for translation and QA pipeline tasks.",
+      "add_button": "Add manual model",
+      "empty_text": "No models in registry yet.",
+      "reasoning_supported": "Supports reasoning",
+      "dialog_title": "Add Manual Model",
+      "provider_label": "Provider",
+      "model_id_label": "Model ID",
+      "display_name_label": "Display Name",
+      "context_window_label": "Context Window (tokens)",
+      "max_output_label": "Maximum Output Limit (tokens)",
+      "max_output_hint": "Max output is required for accurate chunk planning.",
+      "input_price_label": "Input Price (USD / 1M tokens)",
+      "output_price_label": "Output Price (USD / 1M tokens)",
+      "supports_reasoning_label": "Model supports reasoning / thinking"
+    },
+    "roles": {
+      "title": "Pipeline Roles & Fallback",
+      "subtitle": "Set the primary model and fallback order for automated tasks.",
+      "translator": {
+        "title": "Translator",
+        "desc": "Translates chapter segments from Japanese to the target language."
+      },
+      "repair": {
+        "title": "Repair",
+        "desc": "Repairs segments that fail validation or have broken tags."
+      },
+      "qa_reviewer": {
+        "title": "QA Reviewer",
+        "desc": "Scans chapter drafts and flags potential translation issues."
+      },
+      "qa_fixer": {
+        "title": "QA Fixer",
+        "desc": "Applies contextual fixes proposed by QA scans."
+      },
+      "primary_label": "Primary Model",
+      "fallbacks_label": "Fallback Models List",
+      "no_fallbacks": "No fallback models configured.",
+      "select_fallback_placeholder": "Select a fallback model...",
+      "add_fallback_button": "Add Fallback",
+      "move_up": "Move up",
+      "move_down": "Move down"
+    }
   }
 }

@@ -49,6 +49,30 @@
   outline-offset: var(--focus-offset);
 }
 
+.settingsLink {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-2);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-2);
+  padding: var(--space-1) var(--space-2);
+  height: var(--control-sm);
+  box-sizing: border-box;
+  text-decoration: none;
+}
+
+.settingsLink:hover {
+  color: var(--color-text);
+  border-color: var(--color-border-strong);
+}
+
+.settingsLink:focus-visible {
+  outline: var(--focus-width) solid var(--color-focus);
+  outline-offset: var(--focus-offset);
+}
+
 .main {
   flex: 1;
   display: flex;
