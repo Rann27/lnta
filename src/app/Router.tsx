@@ -2,6 +2,7 @@ import React from "react";
 import { HashRouter, Routes, Route, Navigate } from "react-router-dom";
 import { Shell } from "./Shell";
 import { ProjectsPage } from "../features/projects";
+import { WizardPage } from "../features/wizard";
 
 export const AppRouter: React.FC = () => {
   return (
@@ -9,6 +10,7 @@ export const AppRouter: React.FC = () => {
       <Routes>
         <Route path="/" element={<Shell />}>
           <Route index element={<ProjectsPage />} />
+          <Route path="wizard" element={<WizardPage />} />
           <Route
             path="workspace"
             element={

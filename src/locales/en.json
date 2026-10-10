@@ -71,6 +71,37 @@
     "theme": "Theme",
     "language": "Language"
   },
+  "wizard": {
+    "title": "Project wizard",
+    "steps": {
+      "folder": "Folder",
+      "profile": "Profile & instruction",
+      "template": "Template & glossary",
+      "model": "Model",
+      "preflight": "Preflight"
+    },
+    "next": "Next",
+    "back": "Back",
+    "suggested_profile": "Suggested from instruction: {{profile}}",
+    "target_language": "Target language",
+    "instruction_file": "Instruction file",
+    "template_treatment": "Template treatment",
+    "treatment_keep": "Keep front matter",
+    "treatment_ignore": "Ignore document content, render chapters only",
+    "treatment_frozen": "Import chapters as frozen",
+    "send_full_glossary": "Send full glossary in prompt",
+    "preflight_rerun": "Run preflight again",
+    "preflight_checking": "Checking folder...",
+    "preflight_blockers_count": "{{count}} blockers",
+    "preflight_warnings_count": "{{count}} warnings",
+    "preflight_infos_count": "{{count}} info",
+    "preflight_passed_count": "{{count}} checks passed",
+    "run_disabled_reason": "Resolve all blockers before running the volume.",
+    "blockers": "Blockers",
+    "warnings": "Warnings",
+    "infos": "Info",
+    "passed": "Passed"
+  },
   "errors": {
     "file_not_found": "File not found.",
     "instruction_missing": "Instruction file not found.",

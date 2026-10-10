@@ -1,0 +1,132 @@
+.checklist {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  width: 100%;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+.summary {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  font: var(--text-body-strong);
+}
+
+.group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.groupTitle {
+  margin: 0;
+  font: var(--text-body-strong);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.groupBlocker .groupTitle {
+  color: var(--color-danger);
+}
+
+.groupWarning .groupTitle {
+  color: var(--color-warn);
+}
+
+.groupInfo .groupTitle {
+  color: var(--color-text-muted);
+}
+
+.groupPass .groupTitle {
+  color: var(--color-text);
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.item {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-2);
+}
+
+.itemBlocker {
+  border-color: var(--color-danger-subtle);
+  background: var(--color-danger-subtle);
+}
+
+.itemWarning {
+  border-color: var(--color-warn-subtle);
+  background: var(--color-warn-subtle);
+}
+
+.itemLeft {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  min-width: 0;
+}
+
+.icon {
+  margin-top: var(--space-1);
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.iconBlocker {
+  color: var(--color-danger);
+}
+
+.iconWarning {
+  color: var(--color-warn);
+}
+
+.iconInfo {
+  color: var(--color-text-muted);
+}
+
+.iconPass {
+  color: var(--color-text);
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-width: 0;
+}
+
+.itemTitle {
+  font: var(--text-body-strong);
+  color: var(--color-text);
+}
+
+.itemMessage {
+  margin: 0;
+  font: var(--text-caption);
+  color: var(--color-text-muted);
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-shrink: 0;
+}

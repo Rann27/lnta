@@ -1,0 +1,117 @@
+.container {
+  max-width: 100%;
+  margin: 0 auto;
+  padding: var(--space-8) var(--space-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-7);
+  box-sizing: border-box;
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: 16rem 1fr;
+  gap: var(--space-8);
+  align-items: start;
+}
+
+.stepContent {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-2);
+  padding: var(--space-6);
+}
+
+.stepHeader {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.stepTitle {
+  margin: 0;
+  font: var(--text-title);
+  color: var(--color-text);
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.label {
+  font: var(--text-body-strong);
+  color: var(--color-text);
+}
+
+.helper {
+  margin: 0;
+  font: var(--text-caption);
+  color: var(--color-text-muted);
+}
+
+.suggestionBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  background: var(--color-warn-subtle);
+  color: var(--color-warn);
+  border-radius: var(--radius-1);
+  font: var(--text-caption);
+  width: fit-content;
+}
+
+.radioGroup {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.radioOption {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-2);
+  cursor: pointer;
+  background: var(--color-surface);
+}
+
+.radioOption:hover {
+  background: var(--color-raised);
+}
+
+.radioOptionSelected {
+  border-color: var(--color-tally);
+  background: var(--color-raised);
+}
+
+.select {
+  font: var(--text-body);
+  color: var(--color-text);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-2);
+  padding: var(--space-2) var(--space-3);
+  height: var(--control-md);
+}
+
+.select:focus-visible {
+  outline: var(--focus-width) solid var(--color-focus);
+  outline-offset: var(--focus-offset);
+}
+
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding-top: var(--space-5);
+  border-top: 1px solid var(--color-border);
+}

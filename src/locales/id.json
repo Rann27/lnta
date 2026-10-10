@@ -71,6 +71,37 @@
     "theme": "Tema",
     "language": "Bahasa"
   },
+  "wizard": {
+    "title": "Wizard proyek",
+    "steps": {
+      "folder": "Folder",
+      "profile": "Profil & instruction",
+      "template": "Template & glosarium",
+      "model": "Model",
+      "preflight": "Preflight"
+    },
+    "next": "Lanjut",
+    "back": "Kembali",
+    "suggested_profile": "Disarankan dari instruction: {{profile}}",
+    "target_language": "Bahasa target",
+    "instruction_file": "File instruction",
+    "template_treatment": "Perlakuan template",
+    "treatment_keep": "Pertahankan halaman depan",
+    "treatment_ignore": "Abaikan isi dokumen, render bab saja",
+    "treatment_frozen": "Impor bab sebagai bab beku",
+    "send_full_glossary": "Kirim seluruh glosarium ke prompt",
+    "preflight_rerun": "Jalankan preflight lagi",
+    "preflight_checking": "Memeriksa folder...",
+    "preflight_blockers_count": "{{count}} blocker",
+    "preflight_warnings_count": "{{count}} peringatan",
+    "preflight_infos_count": "{{count}} info",
+    "preflight_passed_count": "{{count}} cek lolos",
+    "run_disabled_reason": "Selesaikan semua blocker sebelum menjalankan volume.",
+    "blockers": "Blocker",
+    "warnings": "Peringatan",
+    "infos": "Info",
+    "passed": "Lolos"
+  },
   "errors": {
     "file_not_found": "File tidak ditemukan.",
     "instruction_missing": "File instruction tidak ditemukan.",
