@@ -1,0 +1,114 @@
+.row {
+  display: grid;
+  grid-template-columns: 4.5rem minmax(10rem, 1fr) minmax(10rem, 1fr) 7rem;
+  gap: var(--space-4);
+  padding: var(--space-3) var(--space-6);
+  border-bottom: 1px solid var(--color-border);
+  align-items: start;
+  transition: background-color var(--dur-fast) var(--ease-standard);
+  cursor: pointer;
+  background-color: var(--color-surface);
+}
+
+.row:hover {
+  background-color: var(--state-hover);
+}
+
+.row.selected {
+  background-color: var(--state-selected);
+  outline: 1px solid var(--color-border-strong);
+}
+
+.indexCell {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font: var(--text-mono);
+  color: var(--color-text-3);
+  user-select: none;
+}
+
+.manualIcon {
+  color: var(--color-text-2);
+  flex-shrink: 0;
+  display: inline-flex;
+}
+
+.sourceCell {
+  font: var(--text-reading-src);
+  color: var(--color-text);
+  word-break: break-word;
+  white-space: pre-wrap;
+}
+
+.sourceStacked {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.targetCell {
+  font: var(--text-reading-tgt);
+  color: var(--color-text);
+  word-break: break-word;
+  white-space: pre-wrap;
+}
+
+.failedText {
+  color: var(--color-text-3);
+  font-style: italic;
+}
+
+.pendingText {
+  color: var(--color-text-3);
+  font-style: italic;
+}
+
+.findingsCell {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  align-items: flex-start;
+}
+
+/* Fixed segments: scene or image */
+.fixedRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-2) var(--space-6);
+  background-color: var(--color-sunken);
+  border-bottom: 1px solid var(--color-border);
+  font: var(--text-small);
+  color: var(--color-text-2);
+  cursor: pointer;
+  transition: background-color var(--dur-fast) var(--ease-standard);
+}
+
+.fixedRow:hover {
+  background-color: var(--state-hover);
+}
+
+.fixedRow.selected {
+  background-color: var(--state-selected);
+  outline: 1px solid var(--color-border-strong);
+}
+
+.fixedIcon {
+  color: var(--color-text-3);
+  flex-shrink: 0;
+}
+
+.fixedLabel {
+  font: var(--text-mono);
+  color: var(--color-text-2);
+}
+
+.sceneMarker {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  font: var(--text-body);
+  color: var(--color-text-3);
+  letter-spacing: 0.5em;
+}

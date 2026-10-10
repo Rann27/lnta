@@ -5,6 +5,7 @@ import { ChapterRail } from "./Rail";
 import { StatusBar } from "./StatusBar";
 import { LogDrawer } from "./LogDrawer";
 import { RunTab } from "./RunTab";
+import { ChapterTab } from "../chapters";
 import { GlossaryTab } from "../glossary";
 import { useWorkspaceStore, type WorkspaceTab } from "./store";
 import { useProjectsStore } from "../projects/store";
@@ -186,16 +187,7 @@ export const Workspace: React.FC = () => {
             tabIndex={0}
           >
             {activeTab === "run" && <RunTab />}
-            {activeTab === "chapters" && (
-              <div className={styles.placeholderCard}>
-                <h3 style={{ margin: 0, font: "var(--text-title)" }}>
-                  {t("workspace.tabs.chapters")}
-                </h3>
-                <p style={{ margin: 0, color: "var(--color-text-2)" }}>
-                  Tab Bab menampilkan tinjauan virtual berpasangan sumber dan terjemahan.
-                </p>
-              </div>
-            )}
+            {activeTab === "chapters" && <ChapterTab />}
             {activeTab === "glossary" && <GlossaryTab />}
             {activeTab === "qa" && (
               <div className={styles.placeholderCard}>

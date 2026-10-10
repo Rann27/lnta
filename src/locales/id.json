@@ -334,5 +334,49 @@
       "translation_label": "Terjemahan",
       "note_label": "Catatan (Gender / Peran)"
     }
+  },
+  "chapters": {
+    "title": "Bab",
+    "search_placeholder": "Cari teks sumber, terjemahan, atau gambar...",
+    "search_results_count": "{{filtered}} dari {{total}} segmen",
+    "breadcrumb_chapter": "Bab {{ordinal}} · {{title}}",
+    "breadcrumb_segment": "segmen {{index}}",
+    "filters": {
+      "all": "Semua",
+      "text": "Teks",
+      "fixed": "Tetap",
+      "findings": "Ada temuan",
+      "translated": "Diterjemahkan",
+      "pending": "Belum diterjemahkan"
+    },
+    "columns": {
+      "index": "#",
+      "source": "Sumber (JP)",
+      "target": "Terjemahan",
+      "findings": "Temuan"
+    },
+    "empty": {
+      "no_chapter_title": "Belum ada bab yang dipilih",
+      "no_chapter_desc": "Pilih bab dari panel kiri untuk meninjau segmen dan terjemahan.",
+      "no_segments_title": "Bab ini belum memiliki segmen",
+      "no_segments_desc": "Segmen akan muncul setelah bab diuraikan.",
+      "no_results_title": "Tidak ada segmen yang cocok",
+      "no_results_desc": "Ubah kata kunci pencarian atau bersihkan filter untuk menampilkan segmen.",
+      "reset_filter": "Reset filter"
+    },
+    "loading": "Memuat segmen bab...",
+    "error_loading": "Gagal memuat segmen bab.",
+    "retry": "Coba lagi",
+    "edited_manually": "Diedit manual",
+    "validation_failed": "Belum lolos validasi",
+    "not_translated": "Belum diterjemahkan",
+    "fixed": {
+      "image": "Gambar ilustrasi",
+      "scene": "Penanda adegan"
+    },
+    "status": {
+      "failed": "gagal",
+      "missing": "gambar hilang"
+    }
   }
 }

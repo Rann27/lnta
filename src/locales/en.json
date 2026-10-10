@@ -334,5 +334,49 @@
       "translation_label": "Translation",
       "note_label": "Note (Gender / Role)"
     }
+  },
+  "chapters": {
+    "title": "Chapters",
+    "search_placeholder": "Search source text, translation, or image file...",
+    "search_results_count": "{{filtered}} of {{total}} segments",
+    "breadcrumb_chapter": "Chapter {{ordinal}} · {{title}}",
+    "breadcrumb_segment": "segment {{index}}",
+    "filters": {
+      "all": "All",
+      "text": "Text",
+      "fixed": "Fixed",
+      "findings": "Findings",
+      "translated": "Translated",
+      "pending": "Pending"
+    },
+    "columns": {
+      "index": "#",
+      "source": "Source (JP)",
+      "target": "Translation",
+      "findings": "Findings"
+    },
+    "empty": {
+      "no_chapter_title": "No chapter selected",
+      "no_chapter_desc": "Select a chapter from the side rail to review segments and translations.",
+      "no_segments_title": "This chapter has no segments",
+      "no_segments_desc": "Segments will appear once the chapter is parsed.",
+      "no_results_title": "No matching segments",
+      "no_results_desc": "Change search keywords or reset filter to display segments.",
+      "reset_filter": "Reset filter"
+    },
+    "loading": "Loading chapter segments...",
+    "error_loading": "Failed to load chapter segments.",
+    "retry": "Retry",
+    "edited_manually": "Edited manually",
+    "validation_failed": "Validation not passed",
+    "not_translated": "Not translated",
+    "fixed": {
+      "image": "Illustration image",
+      "scene": "Scene marker"
+    },
+    "status": {
+      "failed": "failed",
+      "missing": "image missing"
+    }
   }
 }
