@@ -8,6 +8,7 @@ pub mod registry;
 pub mod retry;
 pub mod types;
 
+use crate::error::AppError;
 pub use anthropic::{
     parse_recorded_anthropic_sse, AnthropicCacheControl, AnthropicConfig, AnthropicProvider,
     AnthropicSystemBlock,
@@ -28,3 +29,36 @@ pub use retry::{calculate_retry_delay, is_retryable_status, RetryConfig};
 pub use types::{
     FinishReason, Provider, ProviderOutcome, ProviderRequest, ProviderResponse, TokenUsage,
 };
+
+/// Unified enum covering all concrete provider implementations for static dispatch.
+#[derive(Clone)]
+pub enum AnyProvider {
+    OpenAiCompat(std::sync::Arc<OpenAiCompatProvider>),
+    Anthropic(std::sync::Arc<AnthropicProvider>),
+    Gemini(std::sync::Arc<GeminiProvider>),
+    Mock(std::sync::Arc<MockProvider>),
+}
+
+impl Provider for AnyProvider {
+    fn name(&self) -> &'static str {
+        match self {
+            Self::OpenAiCompat(p) => p.name(),
+            Self::Anthropic(p) => p.name(),
+            Self::Gemini(p) => p.name(),
+            Self::Mock(p) => p.name(),
+        }
+    }
+
+    async fn send_request(
+        &self,
+        req: &ProviderRequest,
+        token_cb: Option<&mut (dyn FnMut(&str) + Send)>,
+    ) -> Result<ProviderOutcome, AppError> {
+        match self {
+            Self::OpenAiCompat(p) => p.send_request(req, token_cb).await,
+            Self::Anthropic(p) => p.send_request(req, token_cb).await,
+            Self::Gemini(p) => p.send_request(req, token_cb).await,
+            Self::Mock(p) => p.send_request(req, token_cb).await,
+        }
+    }
+}

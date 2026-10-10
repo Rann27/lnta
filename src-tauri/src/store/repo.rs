@@ -632,6 +632,14 @@ impl<'a> RunRepo<'a> {
         }
     }
 
+    pub fn update_status(&self, id: &str, status: &str) -> Result<(), AppError> {
+        self.conn.execute(
+            "UPDATE run SET status = ?1 WHERE id = ?2",
+            params![status, id],
+        )?;
+        Ok(())
+    }
+
     pub fn finish_run(&self, id: &str, status: &str) -> Result<(), AppError> {
         let now = chrono::Utc::now().to_rfc3339();
         self.conn.execute(
