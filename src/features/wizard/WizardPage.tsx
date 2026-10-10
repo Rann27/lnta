@@ -4,6 +4,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { Sparkle, Play } from "@phosphor-icons/react";
 import { Button } from "../../components/ui/Button";
 import { Switch } from "../../components/ui/Switch";
+import { Checkbox } from "../../components/ui/Checkbox";
 import { PathField } from "../../components/ui/PathField";
 import { WizardStepper } from "./WizardStepper";
 import { PreflightChecklist } from "./PreflightChecklist";
@@ -23,6 +24,9 @@ export const WizardPage: React.FC = () => {
     instructionCandidates,
     templateTreatment,
     sendFullGlossary,
+    frozenMappings,
+    isLoadingFrozen,
+    toggleFrozenMapping,
     preflight,
     isPreflightRunning,
     initWizard,
@@ -143,6 +147,56 @@ export const WizardPage: React.FC = () => {
                 </label>
               ))}
             </div>
+
+            {templateTreatment === "import_frozen" && (
+              <div className={styles.frozenContainer}>
+                <div className={styles.frozenHeader}>
+                  <h3 className={styles.frozenTitle}>{t("wizard.frozen_mapping_title")}</h3>
+                  <p className={styles.helper}>{t("wizard.frozen_mapping_desc")}</p>
+                </div>
+
+                {isLoadingFrozen ? (
+                  <p className={styles.helper}>{t("wizard.frozen_loading")}</p>
+                ) : frozenMappings.length === 0 ? (
+                  <p className={styles.helper}>{t("wizard.frozen_empty")}</p>
+                ) : (
+                  <div className={styles.frozenTableWrapper}>
+                    <table className={styles.frozenTable}>
+                      <thead>
+                        <tr>
+                          <th style={{ width: "3rem", textAlign: "center" }}>
+                            {t("wizard.frozen_th_freeze")}
+                          </th>
+                          <th>{t("wizard.frozen_th_chapter")}</th>
+                          <th>{t("wizard.frozen_th_raw_title")}</th>
+                          <th>{t("wizard.frozen_th_heading")}</th>
+                          <th style={{ textAlign: "right" }}>{t("wizard.frozen_th_paragraphs")}</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {frozenMappings.map((m) => (
+                          <tr key={m.raw_chapter_prefix}>
+                            <td style={{ textAlign: "center" }}>
+                              <Checkbox
+                                checked={m.is_frozen}
+                                onChange={() => toggleFrozenMapping(m.raw_chapter_prefix)}
+                                aria-label={`${t("wizard.frozen_th_freeze")} ${m.raw_chapter_prefix}`}
+                              />
+                            </td>
+                            <td>
+                              <strong>{m.raw_chapter_prefix}</strong>: {m.raw_chapter_file}
+                            </td>
+                            <td>{m.raw_chapter_title || "-"}</td>
+                            <td>{m.docx_heading || "-"}</td>
+                            <td style={{ textAlign: "right" }}>{m.paragraph_count}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
+            )}
 
             <div style={{ marginTop: "var(--space-4)" }}>
               <Switch

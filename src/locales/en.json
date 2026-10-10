@@ -100,7 +100,16 @@
     "blockers": "Blockers",
     "warnings": "Warnings",
     "infos": "Info",
-    "passed": "Passed"
+    "passed": "Passed",
+    "frozen_mapping_title": "Frozen chapter mappings from document",
+    "frozen_mapping_desc": "Match document headings with raw chapters. Checked chapters will be marked frozen and kept verbatim.",
+    "frozen_th_chapter": "Raw chapter",
+    "frozen_th_raw_title": "Raw title",
+    "frozen_th_heading": "Detected docx heading",
+    "frozen_th_paragraphs": "Paragraphs",
+    "frozen_th_freeze": "Freeze",
+    "frozen_loading": "Analyzing document...",
+    "frozen_empty": "No matching headings or text found in Translations.docx."
   },
   "errors": {
     "file_not_found": "File not found.",

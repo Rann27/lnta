@@ -1,6 +1,11 @@
 import { create } from "zustand";
 import { ipc } from "../../lib/ipc";
-import type { PreflightReport, ProjectConfig, RolesConfig } from "../../lib/bindings";
+import type {
+  FrozenChapterMapping,
+  PreflightReport,
+  ProjectConfig,
+  RolesConfig,
+} from "../../lib/bindings";
 
 export interface WizardState {
   currentStep: number;
@@ -12,6 +17,8 @@ export interface WizardState {
   instructionCandidates: string[];
   templateTreatment: string;
   sendFullGlossary: boolean;
+  frozenMappings: FrozenChapterMapping[];
+  isLoadingFrozen: boolean;
   roles: RolesConfig | null;
   preflight: PreflightReport | null;
   isLoading: boolean;
@@ -26,6 +33,8 @@ export interface WizardState {
   setInstructionFile: (file: string) => void;
   setTemplateTreatment: (treatment: string) => void;
   setSendFullGlossary: (val: boolean) => void;
+  fetchFrozenProposal: () => Promise<void>;
+  toggleFrozenMapping: (prefix: string) => void;
   runPreflightCheck: () => Promise<void>;
   saveAndProceed: () => Promise<void>;
 }
@@ -40,6 +49,8 @@ export const useWizardStore = create<WizardState>((set, get) => ({
   instructionCandidates: ["instruction.md", "instruction-en.md"],
   templateTreatment: "keep_front_matter",
   sendFullGlossary: false,
+  frozenMappings: [],
+  isLoadingFrozen: false,
   roles: null,
   preflight: null,
   isLoading: false,
@@ -106,10 +117,34 @@ export const useWizardStore = create<WizardState>((set, get) => ({
 
   setTemplateTreatment: (treatment: string) => {
     set({ templateTreatment: treatment });
+    if (treatment === "import_frozen") {
+      void get().fetchFrozenProposal();
+    }
   },
 
   setSendFullGlossary: (val: boolean) => {
     set({ sendFullGlossary: val });
+  },
+
+  fetchFrozenProposal: async () => {
+    const { folderPath } = get();
+    if (!folderPath) return;
+    set({ isLoadingFrozen: true });
+    try {
+      const mappings = await ipc.proposeFrozenChapters(folderPath);
+      set({ frozenMappings: mappings, isLoadingFrozen: false });
+    } catch {
+      set({ isLoadingFrozen: false });
+    }
+  },
+
+  toggleFrozenMapping: (prefix: string) => {
+    const { frozenMappings } = get();
+    set({
+      frozenMappings: frozenMappings.map((m) =>
+        m.raw_chapter_prefix === prefix ? { ...m, is_frozen: !m.is_frozen } : m
+      ),
+    });
   },
 
   runPreflightCheck: async () => {
@@ -124,7 +159,15 @@ export const useWizardStore = create<WizardState>((set, get) => ({
   },
 
   saveAndProceed: async () => {
-    const { folderPath, config, profile, instructionFile, templateTreatment, sendFullGlossary } = get();
+    const {
+      folderPath,
+      config,
+      profile,
+      instructionFile,
+      templateTreatment,
+      sendFullGlossary,
+      frozenMappings,
+    } = get();
     const updated: ProjectConfig = {
       profile,
       target_language: profile === "ja-en" ? "en" : "id",
@@ -140,5 +183,9 @@ export const useWizardStore = create<WizardState>((set, get) => ({
       budget_cost_limit: config?.budget_cost_limit ?? null,
     };
     await ipc.saveProjectConfig(folderPath, updated);
+
+    if (templateTreatment === "import_frozen" && frozenMappings.length > 0) {
+      await ipc.confirmFrozenChapters(folderPath, frozenMappings);
+    }
   },
 }));

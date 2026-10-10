@@ -6,6 +6,7 @@ import type {
   Chapter,
   ChapterDetail,
   EngineEvent,
+  FrozenChapterMapping,
   GlobalSettings,
   GlossaryEntry,
   GlossaryEntryInput,
@@ -32,6 +33,8 @@ export interface IpcTransport {
   listRecentProjects(): Promise<RecentProjectEntry[]>;
   resetProject(path: string): Promise<void>;
   createProject(path: string, profile: string): Promise<ProjectOpenResult>;
+  proposeFrozenChapters(projectPath: string): Promise<FrozenChapterMapping[]>;
+  confirmFrozenChapters(projectPath: string, mappings: FrozenChapterMapping[]): Promise<void>;
 
   // Preflight
   runPreflight(path: string): Promise<PreflightReport>;
@@ -108,6 +111,14 @@ export class TauriTransport implements IpcTransport {
 
   createProject(path: string, profile: string): Promise<ProjectOpenResult> {
     return invoke<ProjectOpenResult>("create_project", { path, profile });
+  }
+
+  proposeFrozenChapters(projectPath: string): Promise<FrozenChapterMapping[]> {
+    return invoke<FrozenChapterMapping[]>("propose_frozen_chapters", { projectPath });
+  }
+
+  confirmFrozenChapters(projectPath: string, mappings: FrozenChapterMapping[]): Promise<void> {
+    return invoke<void>("confirm_frozen_chapters", { projectPath, mappings });
   }
 
   runPreflight(path: string): Promise<PreflightReport> {

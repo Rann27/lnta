@@ -79,6 +79,8 @@ mod tests {
         qa::QaCheckGroup::export(&cfg).unwrap();
         qa::QaFindingsSummary::export(&cfg).unwrap();
         qa::QaFixLogItem::export(&cfg).unwrap();
+        crate::docx::import::ExtractedDocxHeading::export(&cfg).unwrap();
+        crate::docx::import::FrozenChapterMapping::export(&cfg).unwrap();
         AppErrorPayload::export(&cfg).unwrap();
     }
 }

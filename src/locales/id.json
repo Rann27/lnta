@@ -100,7 +100,16 @@
     "blockers": "Blocker",
     "warnings": "Peringatan",
     "infos": "Info",
-    "passed": "Lolos"
+    "passed": "Lolos",
+    "frozen_mapping_title": "Pemetaan bab beku dari dokumen",
+    "frozen_mapping_desc": "Cocokkan heading dokumen dengan bab raw. Bab yang dicentang akan ditandai beku dan dipertahankan verbatim.",
+    "frozen_th_chapter": "Bab raw",
+    "frozen_th_raw_title": "Judul raw",
+    "frozen_th_heading": "Heading docx terdeteksi",
+    "frozen_th_paragraphs": "Paragraf",
+    "frozen_th_freeze": "Bekukan",
+    "frozen_loading": "Menganalisis dokumen...",
+    "frozen_empty": "Tidak ditemukan heading atau teks yang cocok di Translations.docx."
   },
   "errors": {
     "file_not_found": "File tidak ditemukan.",

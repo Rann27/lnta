@@ -168,6 +168,18 @@ pub fn apply_ai_fixes_to_db(
                 continue;
             }
 
+            // Per Story A4 and FR-QA-11, frozen chapters are scanned read-only; no fixes applied
+            let is_frozen: bool = conn
+                .query_row(
+                    "SELECT frozen FROM chapter WHERE id = ?1",
+                    rusqlite::params![&item.chapter_id],
+                    |r| r.get(0),
+                )
+                .unwrap_or(false);
+            if is_frozen {
+                continue;
+            }
+
             // Find current translation for this segment
             let current_trans = trans_repo
                 .get_current_by_chapter(&item.chapter_id)?

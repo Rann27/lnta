@@ -29,6 +29,8 @@ pub fn run() {
             commands::project::list_recent_projects,
             commands::project::reset_project,
             commands::project::create_project,
+            commands::project::propose_frozen_chapters,
+            commands::project::confirm_frozen_chapters,
             commands::preflight::run_preflight,
             commands::settings::get_global_settings,
             commands::settings::save_global_settings,

@@ -17,6 +17,7 @@
 pub mod body;
 pub mod default_template;
 pub mod images;
+pub mod import;
 pub mod media;
 pub mod styles;
 pub mod template;
@@ -32,6 +33,11 @@ pub use default_template::generate_default_template;
 pub use images::{
     build_image_paragraph_xml, build_missing_image_paragraph_xml, parse_content_box_from_doc,
     scale_image_dimensions, ContentBoxEmu,
+};
+pub use import::{
+    apply_frozen_mappings_to_db, extract_headings_from_document_xml,
+    extract_headings_from_docx_bytes, propose_frozen_chapter_mappings, ExtractedDocxHeading,
+    FrozenChapterMapping,
 };
 pub use media::{
     add_image_to_package, compute_media_hash, convert_webp_to_png, get_image_dimensions,

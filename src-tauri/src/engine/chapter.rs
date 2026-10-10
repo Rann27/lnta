@@ -759,7 +759,7 @@ pub fn render_docx_after_chapter(
     let mut doc_pr_id_counter = 0u32;
 
     for ch in all_chapters {
-        if ch.status != "done" && !ch.frozen {
+        if ch.status != "done" || ch.frozen {
             continue;
         }
 

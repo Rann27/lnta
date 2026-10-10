@@ -4,6 +4,7 @@ import type {
   Chapter,
   ChapterDetail,
   EngineEvent,
+  FrozenChapterMapping,
   GlobalSettings,
   GlossaryEntry,
   GlossaryEntryInput,
@@ -168,6 +169,23 @@ export class PreviewTransport implements IpcTransport {
       preflight: this.activeScenario.preflight,
       latest_run: null,
     };
+  }
+
+  async proposeFrozenChapters(projectPath: string): Promise<FrozenChapterMapping[]> {
+    void projectPath;
+    return this.activeScenario.chapters.slice(0, 2).map((ch, idx) => ({
+      raw_chapter_prefix: ch.prefix,
+      raw_chapter_file: ch.file_name,
+      raw_chapter_title: ch.title_src,
+      docx_heading: `Bab ${idx + 1}: Terjemahan Beku`,
+      paragraph_count: 12,
+      is_frozen: true,
+    }));
+  }
+
+  async confirmFrozenChapters(projectPath: string, mappings: FrozenChapterMapping[]): Promise<void> {
+    void projectPath;
+    void mappings;
   }
 
   // Preflight

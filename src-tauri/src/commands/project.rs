@@ -185,6 +185,67 @@ pub fn create_project(path: String, profile: String) -> Result<ProjectOpenResult
     open_project(path)
 }
 
+#[tauri::command]
+pub fn propose_frozen_chapters(
+    project_path: String,
+) -> Result<Vec<crate::docx::import::FrozenChapterMapping>, AppError> {
+    let p = Path::new(&project_path);
+    let layout = ProjectLayout::new(p);
+
+    let docx_path = if layout.root.join("Translations.docx").exists() {
+        layout.root.join("Translations.docx")
+    } else if layout.template_file.exists() {
+        layout.template_file.clone()
+    } else {
+        return Ok(Vec::new());
+    };
+
+    let bytes = std::fs::read(&docx_path).map_err(|e| AppError::FileNotFound {
+        path: format!("Failed to read docx for frozen chapter detection: {e}"),
+    })?;
+
+    let docx_headings = crate::docx::import::extract_headings_from_docx_bytes(&bytes)?;
+    let discovered = discover_chapters(p)?;
+
+    Ok(crate::docx::import::propose_frozen_chapter_mappings(
+        &docx_headings,
+        &discovered,
+    ))
+}
+
+#[tauri::command]
+pub fn confirm_frozen_chapters(
+    project_path: String,
+    mappings: Vec<crate::docx::import::FrozenChapterMapping>,
+) -> Result<(), AppError> {
+    let p = Path::new(&project_path);
+    let layout = ProjectLayout::new(p);
+
+    let docx_path = if layout.root.join("Translations.docx").exists() {
+        layout.root.join("Translations.docx")
+    } else if layout.template_file.exists() {
+        layout.template_file.clone()
+    } else {
+        return Ok(());
+    };
+
+    let bytes = std::fs::read(&docx_path).map_err(|e| AppError::FileNotFound {
+        path: format!("Failed to read docx: {e}"),
+    })?;
+    let docx_headings = crate::docx::import::extract_headings_from_docx_bytes(&bytes)?;
+
+    let conn = open_path(&layout.db_file)?;
+    crate::docx::import::apply_frozen_mappings_to_db(&conn, &mappings, &docx_headings)?;
+
+    if layout.config_file.exists() {
+        let mut cfg = ProjectConfig::load_from_file(&layout.config_file)?;
+        cfg.template_treatment = "frozen_prefix".to_string();
+        cfg.save_to_file(&layout.config_file)?;
+    }
+
+    Ok(())
+}
+
 fn md5_or_simple(text: &str) -> u64 {
     use std::collections::hash_map::DefaultHasher;
     use std::hash::{Hash, Hasher};

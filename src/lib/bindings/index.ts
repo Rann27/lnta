@@ -32,4 +32,6 @@ export * from "./QaFindingsSummary";
 export * from "./QaFixLogItem";
 export * from "./Segment";
 export * from "./Translation";
+export * from "./ExtractedDocxHeading";
+export * from "./FrozenChapterMapping";
 export * from "./ValueSource";
