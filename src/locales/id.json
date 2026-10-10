@@ -301,5 +301,38 @@
       "move_up": "Pindahkan ke atas",
       "move_down": "Pindahkan ke bawah"
     }
+  },
+  "glossary": {
+    "title": "Glosarium",
+    "search_placeholder": "Cari sumber, terjemahan, atau catatan...",
+    "count": "{{count}} entri",
+    "add_entry": "Tambah entri",
+    "reload": "Muat ulang",
+    "empty_title": "Belum ada entri glosarium",
+    "empty_desc": "Entri glosarium akan muncul secara otomatis saat bab selesai diterjemahkan, atau Anda dapat menambahkannya secara manual.",
+    "empty_search_title": "Tidak ada hasil pencarian",
+    "empty_search_desc": "Tidak ada entri glosarium yang cocok dengan kata kunci pencarian.",
+    "clear_search": "Hapus pencarian",
+    "columns": {
+      "source": "Sumber",
+      "translation": "Terjemahan",
+      "note": "Catatan",
+      "tier": "Tier",
+      "first_chapter": "Bab Pertama",
+      "occurrences": "Kemunculan",
+      "actions": "Aksi"
+    },
+    "conflict": {
+      "title": "Konflik Usulan Model",
+      "proposed": "Usulan model: {{proposed}}",
+      "use_proposal": "Pakai usulan",
+      "ignore": "Abaikan"
+    },
+    "dialog": {
+      "add_title": "Tambah Entri Glosarium",
+      "source_label": "Teks Sumber (Jepang)",
+      "translation_label": "Terjemahan",
+      "note_label": "Catatan (Gender / Peran)"
+    }
   }
 }

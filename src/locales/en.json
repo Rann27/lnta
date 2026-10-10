@@ -301,5 +301,38 @@
       "move_up": "Move up",
       "move_down": "Move down"
     }
+  },
+  "glossary": {
+    "title": "Glossary",
+    "search_placeholder": "Search source, translation, or note...",
+    "count": "{{count}} entries",
+    "add_entry": "Add entry",
+    "reload": "Reload",
+    "empty_title": "No glossary entries yet",
+    "empty_desc": "Glossary entries will appear automatically as chapters complete translation, or you can add them manually.",
+    "empty_search_title": "No search results",
+    "empty_search_desc": "No glossary entries match your search query.",
+    "clear_search": "Clear search",
+    "columns": {
+      "source": "Source",
+      "translation": "Translation",
+      "note": "Note",
+      "tier": "Tier",
+      "first_chapter": "First Chapter",
+      "occurrences": "Occurrences",
+      "actions": "Actions"
+    },
+    "conflict": {
+      "title": "Model Proposal Conflict",
+      "proposed": "Model proposal: {{proposed}}",
+      "use_proposal": "Use proposal",
+      "ignore": "Ignore"
+    },
+    "dialog": {
+      "add_title": "Add Glossary Entry",
+      "source_label": "Source Text (Japanese)",
+      "translation_label": "Translation",
+      "note_label": "Note (Gender / Role)"
+    }
   }
 }

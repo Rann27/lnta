@@ -1,0 +1,148 @@
+.row {
+  display: flex;
+  flex-direction: column;
+  border-bottom: 1px solid var(--color-border);
+  transition: background-color var(--dur-fast) ease;
+}
+
+.row:hover {
+  background: var(--color-hover);
+}
+
+.rowEditing {
+  background: var(--color-field);
+}
+
+.cellsGrid {
+  display: grid;
+  grid-template-columns: minmax(11rem, 1.2fr) minmax(12rem, 1.4fr) minmax(14rem, 2fr) 5rem 6rem 5rem 6rem;
+  align-items: center;
+  min-height: var(--row-regular);
+  padding: var(--space-1) var(--space-3);
+  gap: var(--space-3);
+  font: var(--text-body);
+  box-sizing: border-box;
+}
+
+.cellSource {
+  font: var(--text-reading-src);
+  color: var(--color-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cellTranslation {
+  color: var(--color-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cellNote {
+  font: var(--text-caption);
+  color: var(--color-text-2);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cellTier {
+  display: inline-flex;
+}
+
+.tierBadge {
+  font: var(--text-caption);
+  padding: 0 var(--space-2);
+  border-radius: var(--radius-1);
+  background: var(--color-field);
+  color: var(--color-text-2);
+  border: 1px solid var(--color-border);
+}
+
+.tier1Badge {
+  color: var(--color-tally);
+  border-color: var(--color-tally);
+}
+
+.cellChapter {
+  font: var(--text-mono);
+  font-size: var(--text-small);
+  color: var(--color-text-3);
+}
+
+.cellOccurrences {
+  font: var(--text-mono);
+  font-size: var(--text-small);
+  color: var(--color-text-2);
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.cellActions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-1);
+}
+
+.lintArea {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 0 var(--space-3) var(--space-1);
+}
+
+.lintItem {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  font: var(--text-caption);
+  color: var(--color-warn);
+}
+
+.conflictSubrow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  background: var(--color-field);
+  border-top: 1px dashed var(--color-border);
+  font: var(--text-caption);
+}
+
+.conflictInfo {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--color-warn);
+}
+
+.proposedText {
+  font: var(--text-body-strong);
+  color: var(--color-text);
+}
+
+.conflictActions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.editInput {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-1);
+  color: var(--color-text);
+  font: inherit;
+  padding: var(--space-1) var(--space-2);
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.editInput:focus-visible {
+  outline: var(--focus-width) solid var(--color-focus);
+  outline-offset: var(--focus-offset);
+}

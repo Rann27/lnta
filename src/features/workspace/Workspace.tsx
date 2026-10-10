@@ -5,6 +5,7 @@ import { ChapterRail } from "./Rail";
 import { StatusBar } from "./StatusBar";
 import { LogDrawer } from "./LogDrawer";
 import { RunTab } from "./RunTab";
+import { GlossaryTab } from "../glossary";
 import { useWorkspaceStore, type WorkspaceTab } from "./store";
 import { useProjectsStore } from "../projects/store";
 import styles from "./Workspace.module.css";
@@ -195,16 +196,7 @@ export const Workspace: React.FC = () => {
                 </p>
               </div>
             )}
-            {activeTab === "glossary" && (
-              <div className={styles.placeholderCard}>
-                <h3 style={{ margin: 0, font: "var(--text-title)" }}>
-                  {t("workspace.tabs.glossary")}
-                </h3>
-                <p style={{ margin: 0, color: "var(--color-text-2)" }}>
-                  Tab Glosarium menampilkan tabel entri dengan pengeditan sebaris dan linting.
-                </p>
-              </div>
-            )}
+            {activeTab === "glossary" && <GlossaryTab />}
             {activeTab === "qa" && (
               <div className={styles.placeholderCard}>
                 <h3 style={{ margin: 0, font: "var(--text-title)" }}>
