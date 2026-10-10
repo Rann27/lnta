@@ -1,0 +1,220 @@
+/*
+ * Tally design tokens for LNTA.
+ * Canonical source: copy this file to src/styles/tokens.css unchanged.
+ * Components reference these custom properties only; raw hex, rgb, and px
+ * values outside this file are rejected by scripts/check-guards.mjs.
+ *
+ * Theme resolution:
+ *   - no data-theme attribute  -> follows the OS (prefers-color-scheme)
+ *   - data-theme="light"        -> forced light
+ *   - data-theme="dark"         -> forced dark
+ * The dark block is repeated on purpose: once for the OS preference, once for
+ * the explicit attribute. Keep both copies identical.
+ */
+
+:root {
+  color-scheme: light;
+
+  /* Neutrals: graphite panels on a warm grey console */
+  --color-canvas: #e9e8e4;
+  --color-surface: #f4f3f0;
+  --color-raised: #ffffff;
+  --color-field: #ffffff;
+  --color-sunken: #dedddb;
+  --color-border: #cfcdc6;
+  --color-border-strong: #7a776f;
+
+  --color-text: #18191b;
+  --color-text-2: #46474b;
+  --color-text-3: #5e5f64;
+  --color-text-disabled: #8e8f93;
+
+  /* Accent: the tally light. Marks what is live, and the one primary action. */
+  --color-tally: #ad3019;
+  --color-tally-hover: #962915;
+  --color-on-tally: #ffffff;
+  --color-tally-subtle: #f5dcd5;
+  --color-tally-on-subtle: #8e2814;
+
+  /* Status */
+  --color-warn: #7a5200;
+  --color-warn-subtle: #f1e2bd;
+  --color-danger: #9e1b4c;
+  --color-danger-subtle: #f3d6e1;
+
+  /* Interaction layers (applied over the element's own background) */
+  --state-hover: rgb(24 25 27 / 0.06);
+  --state-pressed: rgb(24 25 27 / 0.1);
+  --state-selected: rgb(24 25 27 / 0.08);
+  --color-focus: #18191b;
+  --color-scrim: rgb(19 20 22 / 0.48);
+
+  /* Hazard hatch: non-colour cue for blocked and failed states */
+  --pattern-hazard: repeating-linear-gradient(
+    135deg,
+    var(--color-danger) 0 2px,
+    transparent 2px 5px
+  );
+
+  /* Elevation: panels are flat; only floating layers cast shadows */
+  --shadow-1: 0 1px 2px rgb(24 25 27 / 0.08), 0 4px 12px rgb(24 25 27 / 0.1);
+  --shadow-2: 0 2px 4px rgb(24 25 27 / 0.1), 0 12px 32px rgb(24 25 27 / 0.18);
+
+  /* Typography */
+  --font-sans: "IBM Plex Sans", "IBM Plex Sans JP", "Segoe UI", system-ui, sans-serif;
+  --font-jp: "IBM Plex Sans JP", "Yu Gothic UI", "Meiryo", sans-serif;
+  --font-mono: "IBM Plex Mono", "Cascadia Mono", Consolas, monospace;
+  --font-serif: "IBM Plex Serif", Georgia, serif;
+
+  --text-display: 600 22px/28px var(--font-sans);
+  --text-title: 600 16px/22px var(--font-sans);
+  --text-subtitle: 600 14px/20px var(--font-sans);
+  --text-body: 400 13px/20px var(--font-sans);
+  --text-body-strong: 600 13px/20px var(--font-sans);
+  --text-label: 500 12px/16px var(--font-sans);
+  --text-small: 400 12px/16px var(--font-sans);
+  --text-mono: 400 12px/18px var(--font-mono);
+  --text-reading-src: 400 15px/26px var(--font-jp);
+  --text-reading-tgt: 400 15px/24px var(--font-sans);
+  --text-proof: 400 16px/28px var(--font-serif);
+  --tracking-display: -0.01em;
+
+  /* Spacing: 4px base */
+  --space-1: 2px;
+  --space-2: 4px;
+  --space-3: 6px;
+  --space-4: 8px;
+  --space-5: 12px;
+  --space-6: 16px;
+  --space-7: 20px;
+  --space-8: 24px;
+  --space-9: 32px;
+  --space-10: 48px;
+
+  /* Sizes */
+  --control-sm: 24px;
+  --control-md: 28px;
+  --control-lg: 32px;
+  --row-dense: 28px;
+  --row-regular: 32px;
+  --runbar-height: 48px;
+  --statusbar-height: 24px;
+  --rail-width: 300px;
+  --rail-width-min: 240px;
+  --rail-width-max: 420px;
+  --rail-width-collapsed: 56px;
+  --logpanel-width: 360px;
+  --tally-size: 8px;
+  --ruler-height-rail: 6px;
+  --ruler-height-header: 10px;
+  --icon-sm: 16px;
+  --icon-md: 20px;
+  --hairline: 1px;
+  --focus-width: 2px;
+  --focus-offset: 2px;
+  --reading-measure: 68ch;
+
+  /* Shape: small radii, no pills */
+  --radius-0: 0;
+  --radius-1: 2px;
+  --radius-2: 4px;
+  --radius-3: 6px;
+
+  /* Motion: state changes only, never loops */
+  --dur-fast: 80ms;
+  --dur-base: 140ms;
+  --dur-slow: 200ms;
+  --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  --ease-exit: cubic-bezier(0.4, 0, 1, 1);
+
+  /* Layers */
+  --z-rail: 10;
+  --z-drawer: 20;
+  --z-popover: 30;
+  --z-dialog: 40;
+  --z-toast: 50;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+
+    --color-canvas: #131416;
+    --color-surface: #1a1b1e;
+    --color-raised: #232529;
+    --color-field: #0e0f11;
+    --color-sunken: #0e0f11;
+    --color-border: #2d2f34;
+    --color-border-strong: #74777f;
+
+    --color-text: #ecebe7;
+    --color-text-2: #b8b7b1;
+    --color-text-3: #93928d;
+    --color-text-disabled: #5f6066;
+
+    --color-tally: #ff6b4d;
+    --color-tally-hover: #ff8466;
+    --color-on-tally: #131416;
+    --color-tally-subtle: #3a1e18;
+    --color-tally-on-subtle: #ff9c85;
+
+    --color-warn: #e6b450;
+    --color-warn-subtle: #33290f;
+    --color-danger: #ff79a8;
+    --color-danger-subtle: #3a1626;
+
+    --state-hover: rgb(236 235 231 / 0.06);
+    --state-pressed: rgb(236 235 231 / 0.1);
+    --state-selected: rgb(236 235 231 / 0.08);
+    --color-focus: #ecebe7;
+    --color-scrim: rgb(0 0 0 / 0.6);
+
+    --shadow-1: 0 1px 2px rgb(0 0 0 / 0.5), 0 4px 12px rgb(0 0 0 / 0.45);
+    --shadow-2: 0 2px 4px rgb(0 0 0 / 0.55), 0 12px 32px rgb(0 0 0 / 0.6);
+  }
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+
+  --color-canvas: #131416;
+  --color-surface: #1a1b1e;
+  --color-raised: #232529;
+  --color-field: #0e0f11;
+  --color-sunken: #0e0f11;
+  --color-border: #2d2f34;
+  --color-border-strong: #74777f;
+
+  --color-text: #ecebe7;
+  --color-text-2: #b8b7b1;
+  --color-text-3: #93928d;
+  --color-text-disabled: #5f6066;
+
+  --color-tally: #ff6b4d;
+  --color-tally-hover: #ff8466;
+  --color-on-tally: #131416;
+  --color-tally-subtle: #3a1e18;
+  --color-tally-on-subtle: #ff9c85;
+
+  --color-warn: #e6b450;
+  --color-warn-subtle: #33290f;
+  --color-danger: #ff79a8;
+  --color-danger-subtle: #3a1626;
+
+  --state-hover: rgb(236 235 231 / 0.06);
+  --state-pressed: rgb(236 235 231 / 0.1);
+  --state-selected: rgb(236 235 231 / 0.08);
+  --color-focus: #ecebe7;
+  --color-scrim: rgb(0 0 0 / 0.6);
+
+  --shadow-1: 0 1px 2px rgb(0 0 0 / 0.5), 0 4px 12px rgb(0 0 0 / 0.45);
+  --shadow-2: 0 2px 4px rgb(0 0 0 / 0.55), 0 12px 32px rgb(0 0 0 / 0.6);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --dur-fast: 0ms;
+    --dur-base: 0ms;
+    --dur-slow: 0ms;
+  }
+}

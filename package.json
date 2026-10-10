@@ -16,6 +16,10 @@
     "check": "tsc --noEmit && eslint . && node scripts/check-guards.mjs && node scripts/check-i18n.mjs && node scripts/check-fixture-leak.mjs && vitest run && cargo fmt --manifest-path src-tauri/Cargo.toml --check && cargo clippy --manifest-path src-tauri/Cargo.toml --all-targets -- -D warnings && cargo test --manifest-path src-tauri/Cargo.toml"
   },
   "dependencies": {
+    "@fontsource/ibm-plex-mono": "^5.3.0",
+    "@fontsource/ibm-plex-sans": "^5.3.0",
+    "@fontsource/ibm-plex-sans-jp": "^5.3.0",
+    "@fontsource/ibm-plex-serif": "^5.3.0",
     "@tauri-apps/api": "^2",
     "@tauri-apps/plugin-opener": "^2",
     "react": "^19.1.0",
@@ -28,6 +32,7 @@
     "@types/react-dom": "^19.1.6",
     "@vitejs/plugin-react": "^6.0.2",
     "eslint": "^10.12.0",
+    "jsdom": "^29.1.1",
     "prettier": "^3.9.10",
     "typescript": "~6.0.3",
     "typescript-eslint": "^8.71.1",
