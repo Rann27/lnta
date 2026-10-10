@@ -25,6 +25,7 @@ regex = "1"
 toml = "0.8"
 encoding_rs = "0.8"
 chardetng = "0.1"
+strsim = "0.11"
 
 [lints.clippy]
 unwrap_used = "deny"
