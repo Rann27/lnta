@@ -1,0 +1,10 @@
+.container {
+  display: grid;
+  gap: var(--space-2);
+  width: 100%;
+}
+
+.countText {
+  font: var(--text-small);
+  color: var(--color-text-3);
+}

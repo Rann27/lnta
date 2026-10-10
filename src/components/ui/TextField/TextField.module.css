@@ -1,0 +1,89 @@
+.container {
+  display: grid;
+  gap: var(--space-2);
+  width: 100%;
+}
+
+.label {
+  font: var(--text-label);
+  color: var(--color-text-2);
+}
+
+.inputWrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.input {
+  height: var(--control-md);
+  padding: 0 var(--space-4);
+  width: 100%;
+  background: var(--color-field);
+  color: var(--color-text);
+  border: var(--hairline) solid var(--color-border-strong);
+  border-radius: var(--radius-1);
+  font: var(--text-body);
+}
+
+.input::placeholder {
+  color: var(--color-text-3);
+}
+
+.input:hover:not(:disabled) {
+  border-color: var(--color-text-2);
+}
+
+.input:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+  border-color: var(--color-text);
+}
+
+.input:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.hasError .input {
+  border-color: var(--color-danger);
+}
+
+.hasLeft .input {
+  padding-left: var(--control-md);
+}
+
+.hasRight .input {
+  padding-right: var(--control-md);
+}
+
+.leftSlot {
+  position: absolute;
+  left: var(--space-3);
+  display: flex;
+  align-items: center;
+  pointer-events: none;
+  color: var(--color-text-3);
+}
+
+.rightSlot {
+  position: absolute;
+  right: var(--space-3);
+  display: flex;
+  align-items: center;
+  color: var(--color-text-3);
+}
+
+.hint {
+  font: var(--text-small);
+  color: var(--color-text-3);
+}
+
+.errorMsg {
+  font: var(--text-small);
+  color: var(--color-danger);
+  display: flex;
+  gap: var(--space-2);
+  align-items: center;
+}

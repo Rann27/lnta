@@ -14,7 +14,15 @@
     "test_connection": "Tes koneksi",
     "change_model": "Ganti model",
     "retranslate_segment": "Terjemahkan ulang segmen",
-    "undo_fix": "Batalkan perbaikan"
+    "undo_fix": "Batalkan perbaikan",
+    "browse": "Pilih",
+    "clear_key": "Hapus kunci",
+    "change_key": "Ganti kunci",
+    "clear_search": "Hapus pencarian"
+  },
+  "fields": {
+    "stored_in_keyring": "Tersimpan di Credential Manager",
+    "search_placeholder": "Cari..."
   },
   "status": {
     "queued": "antri",

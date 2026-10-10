@@ -14,7 +14,15 @@
     "test_connection": "Test connection",
     "change_model": "Change model",
     "retranslate_segment": "Retranslate segment",
-    "undo_fix": "Undo fix"
+    "undo_fix": "Undo fix",
+    "browse": "Browse",
+    "clear_key": "Clear key",
+    "change_key": "Change key",
+    "clear_search": "Clear search"
+  },
+  "fields": {
+    "stored_in_keyring": "Saved in Credential Manager",
+    "search_placeholder": "Search..."
   },
   "status": {
     "queued": "queued",

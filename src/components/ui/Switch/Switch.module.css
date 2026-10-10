@@ -1,0 +1,65 @@
+.container {
+  display: inline-flex;
+  gap: var(--space-4);
+  align-items: center;
+  cursor: pointer;
+  user-select: none;
+  font: var(--text-body);
+  color: var(--color-text);
+}
+
+.disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.track {
+  position: relative;
+  width: var(--control-md);
+  height: var(--icon-sm);
+  border-radius: var(--radius-2);
+  border: var(--hairline) solid var(--color-border-strong);
+  background: var(--color-field);
+  flex-shrink: 0;
+  transition: background-color var(--dur-fast) var(--ease-standard),
+    border-color var(--dur-fast) var(--ease-standard);
+}
+
+.knob {
+  position: absolute;
+  top: var(--space-1);
+  left: var(--space-1);
+  width: var(--ruler-height-header);
+  height: var(--ruler-height-header);
+  border-radius: var(--radius-1);
+  background: var(--color-border-strong);
+  transition: transform var(--dur-base) var(--ease-standard),
+    background-color var(--dur-fast) var(--ease-standard);
+}
+
+.input {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+  margin: 0;
+}
+
+.input:focus-visible + .track {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+.checked .track {
+  background: var(--color-text);
+  border-color: var(--color-text);
+}
+
+.checked .knob {
+  transform: translateX(var(--space-5));
+  background: var(--color-surface);
+}
+
+.label {
+  font: var(--text-body);
+}
