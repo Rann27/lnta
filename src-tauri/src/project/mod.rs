@@ -5,6 +5,7 @@ pub mod discover;
 pub mod instruction;
 pub mod layout;
 pub mod preflight;
+pub mod settings;
 
 use std::path::{Path, PathBuf};
 
@@ -15,6 +16,10 @@ pub use layout::ProjectLayout;
 pub use preflight::{
     detect_instruction_language, run_preflight, PreflightAction, PreflightEnvironment,
     PreflightItem, PreflightReport, PreflightStatus,
+};
+pub use settings::{
+    EffectiveSettings, GlobalSettings, ModelReference, ProjectSettingsOverrides,
+    ProviderConfigEntry, Role, RoleConfig, RolesConfig,
 };
 
 use crate::error::AppError;

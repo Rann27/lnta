@@ -4,6 +4,7 @@ pub mod anthropic;
 pub mod gemini;
 pub mod mock;
 pub mod openai_compat;
+pub mod registry;
 pub mod retry;
 pub mod types;
 
@@ -18,6 +19,10 @@ pub use gemini::{
 pub use mock::{MockProvider, MockStep};
 pub use openai_compat::{
     parse_recorded_sse_stream, parse_sse_line, OpenAiCompatConfig, OpenAiCompatProvider,
+};
+pub use registry::{
+    default_known_models, fetch_models_from_provider, ModelEntry, ModelPricing, ModelRegistry,
+    ValueSource,
 };
 pub use retry::{calculate_retry_delay, is_retryable_status, RetryConfig};
 pub use types::{
