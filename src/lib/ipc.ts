@@ -24,6 +24,7 @@ import type {
   Segment,
   Translation,
   ProjectUsageResponse,
+  ProjectPlanPreview,
 } from "./bindings";
 
 export interface IpcTransport {
@@ -37,6 +38,7 @@ export interface IpcTransport {
   createProject(path: string, profile: string): Promise<ProjectOpenResult>;
   proposeFrozenChapters(projectPath: string): Promise<FrozenChapterMapping[]>;
   confirmFrozenChapters(projectPath: string, mappings: FrozenChapterMapping[]): Promise<void>;
+  getPlanPreview(path: string, model?: ModelReference | null): Promise<ProjectPlanPreview>;
 
   // Preflight
   runPreflight(path: string): Promise<PreflightReport>;
@@ -154,6 +156,10 @@ export class TauriTransport implements IpcTransport {
 
   confirmFrozenChapters(projectPath: string, mappings: FrozenChapterMapping[]): Promise<void> {
     return invoke<void>("confirm_frozen_chapters", { projectPath, mappings });
+  }
+
+  getPlanPreview(path: string, model?: ModelReference | null): Promise<ProjectPlanPreview> {
+    return invoke<ProjectPlanPreview>("get_plan_preview", { path, model: model ?? null });
   }
 
   runPreflight(path: string): Promise<PreflightReport> {

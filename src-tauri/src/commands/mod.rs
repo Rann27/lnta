@@ -50,6 +50,9 @@ mod tests {
         AppInfo::export(&cfg).unwrap();
         project::ProjectOpenResult::export(&cfg).unwrap();
         project::RecentProjectEntry::export(&cfg).unwrap();
+        project::PlannedPartPreview::export(&cfg).unwrap();
+        project::ChapterPlanPreview::export(&cfg).unwrap();
+        project::ProjectPlanPreview::export(&cfg).unwrap();
         crate::project::preflight::PreflightStatus::export(&cfg).unwrap();
         crate::project::preflight::PreflightAction::export(&cfg).unwrap();
         crate::project::preflight::PreflightItem::export(&cfg).unwrap();

@@ -107,6 +107,44 @@ pub fn calculate_required_parts(
         .max(1)
 }
 
+/// Computes learned token estimation weights from completed chapter character counts
+/// and actual model calls per FR-PLN-04 and Story B5.
+pub fn compute_learned_ratios(
+    completed_chapters_count: usize,
+    total_completed_chars: usize,
+    total_translator_in_tokens: u64,
+    total_translator_out_tokens: u64,
+    total_translator_calls: usize,
+) -> Option<EstimationWeights> {
+    if completed_chapters_count == 0
+        || total_completed_chars == 0
+        || total_translator_out_tokens == 0
+        || total_translator_in_tokens == 0
+    {
+        return None;
+    }
+
+    let default_weights = EstimationWeights::default();
+    let prompt_overhead =
+        default_weights.prompt_overhead_tokens as u64 * total_translator_calls as u64;
+    let content_in_tokens = if total_translator_in_tokens > prompt_overhead {
+        total_translator_in_tokens - prompt_overhead
+    } else {
+        total_translator_in_tokens
+    };
+
+    // Calculate characters per token with sanity clamping
+    let chars_per_in = (total_completed_chars as f64 / content_in_tokens as f64).clamp(0.1, 10.0);
+    let chars_per_out =
+        (total_completed_chars as f64 / total_translator_out_tokens as f64).clamp(0.2, 10.0);
+
+    Some(EstimationWeights {
+        chars_per_input_token: (chars_per_in * 100.0).round() / 100.0,
+        chars_per_output_token: (chars_per_out * 100.0).round() / 100.0,
+        prompt_overhead_tokens: default_weights.prompt_overhead_tokens,
+    })
+}
+
 #[cfg(test)]
 #[allow(clippy::unwrap_used, clippy::panic)]
 mod tests {
@@ -157,5 +195,32 @@ mod tests {
         let num_parts = calculate_required_parts(500, 10_000, 1500, &limits, &weights);
 
         assert!(num_parts > 1);
+    }
+
+    #[test]
+    fn test_compute_learned_ratios_empty_or_zero() {
+        assert!(compute_learned_ratios(0, 1000, 1500, 800, 1).is_none());
+        assert!(compute_learned_ratios(1, 0, 1500, 800, 1).is_none());
+        assert!(compute_learned_ratios(1, 1000, 0, 800, 1).is_none());
+        assert!(compute_learned_ratios(1, 1000, 1500, 0, 1).is_none());
+    }
+
+    #[test]
+    fn test_compute_learned_ratios_successful() {
+        // 2 chapters, 20,000 chars, 2 calls
+        // 2 calls overhead = 4,000 tok
+        // in_tokens = 24,000 (content in = 20,000)
+        // out_tokens = 10,000
+        let weights = compute_learned_ratios(2, 20_000, 24_000, 10_000, 2).unwrap();
+        assert_eq!(weights.chars_per_input_token, 1.0);
+        assert_eq!(weights.chars_per_output_token, 2.0);
+
+        // Another volume with more concise output
+        // 1 chapter, 10,000 chars, 1 call
+        // 1 call overhead = 2,000 tok
+        // in_tokens = 12,000 (content in = 10,000)
+        // out_tokens = 4,000 -> chars_per_output = 2.5
+        let weights2 = compute_learned_ratios(1, 10_000, 12_000, 4_000, 1).unwrap();
+        assert_eq!(weights2.chars_per_output_token, 2.5);
     }
 }

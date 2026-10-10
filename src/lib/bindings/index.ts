@@ -40,3 +40,6 @@ export * from "./ChapterUsage";
 export * from "./RoleUsage";
 export * from "./ModelUsage";
 export * from "./ProjectUsageResponse";
+export * from "./PlannedPartPreview";
+export * from "./ChapterPlanPreview";
+export * from "./ProjectPlanPreview";

@@ -8,6 +8,7 @@ import {
 } from "@phosphor-icons/react";
 import { Button } from "../../../components/ui/Button";
 import { Popover } from "../../../components/ui/Popover";
+import { PlanPreviewDialog } from "../PlanPreview/PlanPreviewDialog";
 import { useWorkspaceStore } from "../store";
 import styles from "./RunControl.module.css";
 
@@ -25,6 +26,7 @@ export const RunControl: React.FC = () => {
   } = useWorkspaceStore();
 
   const [menuOpen, setMenuOpen] = useState(false);
+  const [planPreviewOpen, setPlanPreviewOpen] = useState(false);
 
   const state = runState.state;
   const hasBlockers = preflight ? !preflight.can_run || preflight.items.some((i) => i.status === "blocker") : false;
@@ -124,7 +126,7 @@ export const RunControl: React.FC = () => {
             className={styles.menuItem}
             onClick={() => {
               setMenuOpen(false);
-              setActiveTab("chapters");
+              setPlanPreviewOpen(true);
             }}
           >
             {t("workspace.run_control.view_plan")}
@@ -247,6 +249,11 @@ export const RunControl: React.FC = () => {
           }
         />
       )}
+
+      <PlanPreviewDialog
+        isOpen={planPreviewOpen}
+        onClose={() => setPlanPreviewOpen(false)}
+      />
     </div>
   );
 };

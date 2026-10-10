@@ -31,6 +31,7 @@ pub fn run() {
             commands::project::create_project,
             commands::project::propose_frozen_chapters,
             commands::project::confirm_frozen_chapters,
+            commands::project::get_plan_preview,
             commands::preflight::run_preflight,
             commands::settings::get_global_settings,
             commands::settings::save_global_settings,

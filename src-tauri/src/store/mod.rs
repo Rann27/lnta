@@ -338,4 +338,65 @@ mod tests {
         assert_eq!(list.len(), 1);
         assert_eq!(list[0].code, "RUN_STARTED");
     }
+
+    #[test]
+    fn test_get_learned_ratio_stats() {
+        let conn = open_in_memory().unwrap();
+        let chapter_repo = ChapterRepo::new(&conn);
+        let call_repo = CallRepo::new(&conn);
+
+        // Before any chapters/calls
+        assert!(call_repo.get_learned_ratio_stats().unwrap().is_none());
+
+        // Add a chapter that is done
+        let chap = Chapter {
+            id: "chap-done".to_string(),
+            ordinal: 1,
+            file_name: "01_test.md".to_string(),
+            prefix: "01".to_string(),
+            title_src: "第1話".to_string(),
+            title_tgt: Some("Bab 1".to_string()),
+            src_hash: "hash".to_string(),
+            line_count: 50,
+            char_count: 10_000,
+            status: "done".to_string(),
+            frozen: false,
+            parts_planned: 1,
+            updated_at: chrono::Utc::now().to_rfc3339(),
+        };
+        chapter_repo.insert(&chap).unwrap();
+
+        // Add call for this chapter with role translator
+        let call = Call {
+            id: "call-1".to_string(),
+            run_id: None,
+            role: "translator".to_string(),
+            provider: "openai_compat".to_string(),
+            model: "gpt-4o".to_string(),
+            chapter_id: Some("chap-done".to_string()),
+            part_index: Some(1),
+            kind: "chunk".to_string(),
+            status: "ok".to_string(),
+            finish_reason: Some("stop".to_string()),
+            in_tokens: 12_000,
+            cached_in: 0,
+            cache_write: 0,
+            out_tokens: 5_000,
+            reasoning_tokens: 0,
+            cost: Some(0.05),
+            latency_ms: 1200,
+            contract_version: None,
+            manifest_json: None,
+            error: None,
+            raw_response: None,
+        };
+        call_repo.insert(&call).unwrap();
+
+        let stats = call_repo.get_learned_ratio_stats().unwrap().unwrap();
+        assert_eq!(stats.completed_chapters_count, 1);
+        assert_eq!(stats.total_completed_chars, 10_000);
+        assert_eq!(stats.total_translator_in_tokens, 12_000);
+        assert_eq!(stats.total_translator_out_tokens, 5_000);
+        assert_eq!(stats.total_translator_calls, 1);
+    }
 }

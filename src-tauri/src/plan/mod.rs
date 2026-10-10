@@ -10,7 +10,8 @@ pub mod estimate;
 pub mod split;
 
 pub use estimate::{
-    calculate_required_parts, estimate_chunk_tokens, EstimationWeights, ModelLimits,
+    calculate_required_parts, compute_learned_ratios, estimate_chunk_tokens, EstimationWeights,
+    ModelLimits,
 };
 pub use split::{
     is_forbidden_split, plan_chapter_chunks, ChapterPlanResult, PlannedPart, SplitPriority,

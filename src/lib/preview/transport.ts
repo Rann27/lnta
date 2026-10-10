@@ -22,6 +22,7 @@ import type {
   Segment,
   Translation,
   ProjectUsageResponse,
+  ProjectPlanPreview,
 } from "../bindings";
 import type { IpcTransport } from "../ipc";
 import {
@@ -188,6 +189,50 @@ export class PreviewTransport implements IpcTransport {
   async confirmFrozenChapters(projectPath: string, mappings: FrozenChapterMapping[]): Promise<void> {
     void projectPath;
     void mappings;
+  }
+
+  async getPlanPreview(path: string, model?: ModelReference | null): Promise<ProjectPlanPreview> {
+    void path;
+    const chapters = this.activeScenario.chapters.map((ch) => ({
+      chapter_id: ch.id,
+      file_name: ch.file_name,
+      title: ch.title_tgt ?? ch.title_src,
+      line_count: ch.line_count,
+      char_count: ch.char_count,
+      part_count: ch.parts_planned || 1,
+      estimated_input_tokens: 4500,
+      estimated_output_tokens: 2200,
+      estimated_cost: 0.045,
+      status: ch.status,
+      parts: [
+        {
+          part_index: 1,
+          total_parts: 1,
+          line_start: 1,
+          line_end: ch.line_count,
+          segment_count: 50,
+          estimated_input_tokens: 4500,
+          estimated_output_tokens: 2200,
+        },
+      ],
+    }));
+
+    return {
+      model_id: model?.model_id ?? "claude-3-5-sonnet",
+      model_name: model?.model_id ?? "Claude 3.5 Sonnet",
+      provider: model?.provider ?? "anthropic",
+      total_chapters: chapters.length,
+      total_parts: chapters.reduce((acc, c) => acc + c.part_count, 0),
+      total_input_tokens: chapters.reduce((acc, c) => acc + c.estimated_input_tokens, 0),
+      total_output_tokens: chapters.reduce((acc, c) => acc + c.estimated_output_tokens, 0),
+      estimated_total_cost: 0.225,
+      has_cost_estimate: true,
+      is_learned_ratio: true,
+      completed_chapters_count: 2,
+      chars_per_input_token: 1.1,
+      chars_per_output_token: 1.9,
+      chapters,
+    };
   }
 
   // Preflight

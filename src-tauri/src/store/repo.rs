@@ -122,6 +122,15 @@ pub struct GlossaryEntry {
     pub file_line: Option<i32>,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct LearnedRatioStats {
+    pub completed_chapters_count: usize,
+    pub total_completed_chars: usize,
+    pub total_translator_in_tokens: u64,
+    pub total_translator_out_tokens: u64,
+    pub total_translator_calls: usize,
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct Finding {
     pub id: String,
@@ -784,6 +793,56 @@ impl<'a> CallRepo<'a> {
             result.push(r?);
         }
         Ok(result)
+    }
+
+    /// Fetches statistics from completed chapters and translator calls for ratio learning.
+    pub fn get_learned_ratio_stats(&self) -> Result<Option<LearnedRatioStats>, AppError> {
+        let mut stmt = self.conn.prepare(
+            "SELECT 
+                COUNT(DISTINCT ch.id),
+                COALESCE(SUM(c.in_tokens), 0),
+                COALESCE(SUM(c.out_tokens), 0),
+                COUNT(c.id)
+             FROM chapter ch
+             JOIN call c ON c.chapter_id = ch.id
+             WHERE ch.status = 'done'
+               AND c.role = 'translator'
+               AND (c.status = 'ok' OR c.status = 'completed')",
+        )?;
+        let row = stmt.query_row([], |r| {
+            let ch_count: i64 = r.get(0)?;
+            let in_tok: i64 = r.get(1)?;
+            let out_tok: i64 = r.get(2)?;
+            let calls: i64 = r.get(3)?;
+            Ok((ch_count, in_tok, out_tok, calls))
+        })?;
+
+        let (ch_count, in_tok, out_tok, calls) = row;
+        if ch_count == 0 || calls == 0 || in_tok <= 0 || out_tok <= 0 {
+            return Ok(None);
+        }
+
+        let mut char_stmt = self.conn.prepare(
+            "SELECT COALESCE(SUM(char_count), 0)
+             FROM chapter
+             WHERE status = 'done'
+               AND id IN (
+                   SELECT DISTINCT chapter_id FROM call
+                   WHERE role = 'translator' AND (status = 'ok' OR status = 'completed')
+               )",
+        )?;
+        let total_chars: i64 = char_stmt.query_row([], |r| r.get(0))?;
+        if total_chars <= 0 {
+            return Ok(None);
+        }
+
+        Ok(Some(LearnedRatioStats {
+            completed_chapters_count: ch_count as usize,
+            total_completed_chars: total_chars as usize,
+            total_translator_in_tokens: in_tok as u64,
+            total_translator_out_tokens: out_tok as u64,
+            total_translator_calls: calls as usize,
+        }))
     }
 
     fn map_row(row: &Row) -> rusqlite::Result<Call> {

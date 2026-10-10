@@ -246,6 +246,308 @@ pub fn confirm_frozen_chapters(
     Ok(())
 }
 
+/// Preview of a single planned part within a chapter.
+#[derive(Debug, Clone, Serialize, Deserialize, TS)]
+#[ts(export, export_to = "../../src/lib/bindings/PlannedPartPreview.ts")]
+pub struct PlannedPartPreview {
+    pub part_index: i32,
+    pub total_parts: i32,
+    pub line_start: i32,
+    pub line_end: i32,
+    #[ts(type = "number")]
+    pub segment_count: usize,
+    #[ts(type = "number")]
+    pub estimated_input_tokens: u32,
+    #[ts(type = "number")]
+    pub estimated_output_tokens: u32,
+}
+
+/// Preview of a chapter's chunk plan and token/cost estimates.
+#[derive(Debug, Clone, Serialize, Deserialize, TS)]
+#[ts(export, export_to = "../../src/lib/bindings/ChapterPlanPreview.ts")]
+pub struct ChapterPlanPreview {
+    pub chapter_id: String,
+    pub file_name: String,
+    pub title: String,
+    #[ts(type = "number")]
+    pub line_count: usize,
+    #[ts(type = "number")]
+    pub char_count: usize,
+    #[ts(type = "number")]
+    pub part_count: usize,
+    #[ts(type = "number")]
+    pub estimated_input_tokens: u32,
+    #[ts(type = "number")]
+    pub estimated_output_tokens: u32,
+    pub estimated_cost: Option<f64>,
+    pub status: String,
+    pub parts: Vec<PlannedPartPreview>,
+}
+
+/// Full project plan preview and volume-wide token and cost estimates.
+#[derive(Debug, Clone, Serialize, Deserialize, TS)]
+#[ts(export, export_to = "../../src/lib/bindings/ProjectPlanPreview.ts")]
+pub struct ProjectPlanPreview {
+    pub model_id: String,
+    pub model_name: String,
+    pub provider: String,
+    #[ts(type = "number")]
+    pub total_chapters: usize,
+    #[ts(type = "number")]
+    pub total_parts: usize,
+    #[ts(type = "number")]
+    pub total_input_tokens: u32,
+    #[ts(type = "number")]
+    pub total_output_tokens: u32,
+    pub estimated_total_cost: Option<f64>,
+    pub has_cost_estimate: bool,
+    pub is_learned_ratio: bool,
+    #[ts(type = "number")]
+    pub completed_chapters_count: usize,
+    pub chars_per_input_token: f64,
+    pub chars_per_output_token: f64,
+    pub chapters: Vec<ChapterPlanPreview>,
+}
+
+#[tauri::command]
+pub fn get_plan_preview(
+    path: String,
+    model: Option<crate::project::settings::ModelReference>,
+) -> Result<ProjectPlanPreview, AppError> {
+    let p = Path::new(&path);
+    if !p.exists() || !p.is_dir() {
+        return Err(AppError::FileNotFound {
+            path: format!("Project directory not found: {path}"),
+        });
+    }
+
+    let layout = ProjectLayout::new(p);
+    let config = if layout.config_file.exists() {
+        ProjectConfig::load_from_file(&layout.config_file)?
+    } else {
+        ProjectConfig::for_profile("ja-id")
+    };
+
+    let global = GlobalSettings::load_from_app_data().unwrap_or_default();
+    let settings = crate::project::settings::EffectiveSettings::merge(&global, &config, None);
+
+    let conn = open_path(&layout.db_file)?;
+    let registry = crate::provider::registry::ModelRegistry::default();
+
+    let target_ref = model.unwrap_or_else(|| settings.roles.translator.primary.clone());
+    let model_entry = registry.get(&target_ref.provider, &target_ref.model_id);
+    let model_name = model_entry
+        .map(|m| m.display_name.clone())
+        .unwrap_or_else(|| target_ref.model_id.clone());
+
+    let role_cfg = settings
+        .roles
+        .for_role(crate::project::settings::Role::Translator);
+    let max_output = role_cfg
+        .max_output_tokens
+        .or_else(|| model_entry.map(|m| m.max_output_tokens))
+        .unwrap_or(4096);
+    let context_window = model_entry.map(|m| m.context_window).unwrap_or(128_000);
+
+    let limits = crate::plan::ModelLimits {
+        max_output_tokens: max_output,
+        context_window,
+    };
+
+    // Calculate learned weights if completed chapters exist in DB
+    let call_repo = crate::store::repo::CallRepo::new(&conn);
+    let learned_stats = call_repo.get_learned_ratio_stats()?;
+    let (weights, is_learned, completed_chapters_count) = if let Some(stats) = learned_stats {
+        if let Some(w) = crate::plan::compute_learned_ratios(
+            stats.completed_chapters_count,
+            stats.total_completed_chars,
+            stats.total_translator_in_tokens,
+            stats.total_translator_out_tokens,
+            stats.total_translator_calls,
+        ) {
+            (w, true, stats.completed_chapters_count)
+        } else {
+            (crate::plan::EstimationWeights::default(), false, 0)
+        }
+    } else {
+        (crate::plan::EstimationWeights::default(), false, 0)
+    };
+
+    let chapter_repo = ChapterRepo::new(&conn);
+    let db_chapters = chapter_repo.list_all()?;
+
+    let chapters_to_plan: Vec<(String, String, String, String, bool)> = if !db_chapters.is_empty() {
+        db_chapters
+            .into_iter()
+            .map(|ch| (ch.id, ch.file_name, ch.title_src, ch.status, ch.frozen))
+            .collect()
+    } else {
+        let discovered = discover_chapters(&layout.root)?;
+        discovered
+            .into_iter()
+            .map(|ch| {
+                (
+                    ch.prefix.clone(),
+                    ch.file_name,
+                    ch.title_candidate,
+                    "not_started".to_string(),
+                    false,
+                )
+            })
+            .collect()
+    };
+
+    let illustrations = crate::raw::IllustrationSet::from_dir(&layout.illustrations_dir);
+    let parse_opts = crate::raw::segment::ParseOptions {
+        strip_brackets: settings.strip_title_brackets,
+        ruby_normalize: settings.normalize_ruby,
+        ..Default::default()
+    };
+
+    let mut chapter_previews = Vec::new();
+    let mut total_in = 0u32;
+    let mut total_out = 0u32;
+    let mut total_parts = 0usize;
+    let mut total_cost: Option<f64> = None;
+
+    let has_pricing = if let Some(m) = model_entry {
+        m.pricing.input_per_million.is_some() || m.pricing.output_per_million.is_some()
+    } else {
+        false
+    };
+    if has_pricing {
+        total_cost = Some(0.0);
+    }
+
+    for (ch_id, file_name, title_src, status, frozen) in chapters_to_plan {
+        let chapter_path = layout.root.join(&file_name);
+        if !chapter_path.exists() {
+            continue;
+        }
+
+        let content = read_raw_file(&chapter_path)?;
+        let parsed =
+            crate::raw::segment::parse_chapter(&file_name, &content, &illustrations, &parse_opts);
+
+        if frozen {
+            chapter_previews.push(ChapterPlanPreview {
+                chapter_id: ch_id,
+                file_name,
+                title: parsed.title_clean.unwrap_or(title_src),
+                line_count: parsed.line_count as usize,
+                char_count: parsed.char_count as usize,
+                part_count: 0,
+                estimated_input_tokens: 0,
+                estimated_output_tokens: 0,
+                estimated_cost: None,
+                status: "frozen".to_string(),
+                parts: Vec::new(),
+            });
+            continue;
+        }
+
+        if parsed.is_image_page {
+            chapter_previews.push(ChapterPlanPreview {
+                chapter_id: ch_id,
+                file_name,
+                title: title_src,
+                line_count: parsed.line_count as usize,
+                char_count: parsed.char_count as usize,
+                part_count: 0,
+                estimated_input_tokens: 0,
+                estimated_output_tokens: 0,
+                estimated_cost: None,
+                status: "done".to_string(),
+                parts: Vec::new(),
+            });
+            continue;
+        }
+
+        let plan = crate::plan::plan_chapter_chunks(
+            &file_name,
+            &parsed.segments,
+            parsed.line_count as usize,
+            settings.chunk_threshold_lines,
+            &limits,
+            &weights,
+        );
+
+        let mut ch_in = 0u32;
+        let mut ch_out = 0u32;
+        let mut parts_preview = Vec::new();
+
+        for p in &plan.parts {
+            ch_in += p.estimated_input_tokens;
+            ch_out += p.estimated_output_tokens;
+            parts_preview.push(PlannedPartPreview {
+                part_index: p.part_index,
+                total_parts: p.total_parts,
+                line_start: p.line_start,
+                line_end: p.line_end,
+                segment_count: p.segment_count,
+                estimated_input_tokens: p.estimated_input_tokens,
+                estimated_output_tokens: p.estimated_output_tokens,
+            });
+        }
+
+        let ch_cost = if let Some(m) = model_entry {
+            let in_p = m.pricing.input_per_million.unwrap_or(0.0);
+            let out_p = m.pricing.output_per_million.unwrap_or(0.0);
+            if in_p > 0.0 || out_p > 0.0 {
+                let cost =
+                    (ch_in as f64 * in_p / 1_000_000.0) + (ch_out as f64 * out_p / 1_000_000.0);
+                Some((cost * 10_000.0).round() / 10_000.0)
+            } else {
+                None
+            }
+        } else {
+            None
+        };
+
+        if let (Some(total), Some(ch_c)) = (total_cost.as_mut(), ch_cost) {
+            *total += ch_c;
+        }
+
+        total_in += ch_in;
+        total_out += ch_out;
+        total_parts += plan.parts.len();
+
+        chapter_previews.push(ChapterPlanPreview {
+            chapter_id: ch_id,
+            file_name,
+            title: parsed.title_clean.unwrap_or(title_src),
+            line_count: parsed.line_count as usize,
+            char_count: parsed.char_count as usize,
+            part_count: plan.parts.len(),
+            estimated_input_tokens: ch_in,
+            estimated_output_tokens: ch_out,
+            estimated_cost: ch_cost,
+            status,
+            parts: parts_preview,
+        });
+    }
+
+    let estimated_total_cost = total_cost.map(|c| (c * 10_000.0).round() / 10_000.0);
+    let has_cost_estimate = estimated_total_cost.is_some();
+
+    Ok(ProjectPlanPreview {
+        model_id: target_ref.model_id,
+        model_name,
+        provider: target_ref.provider,
+        total_chapters: chapter_previews.len(),
+        total_parts,
+        total_input_tokens: total_in,
+        total_output_tokens: total_out,
+        estimated_total_cost,
+        has_cost_estimate,
+        is_learned_ratio: is_learned,
+        completed_chapters_count,
+        chars_per_input_token: weights.chars_per_input_token,
+        chars_per_output_token: weights.chars_per_output_token,
+        chapters: chapter_previews,
+    })
+}
+
 fn md5_or_simple(text: &str) -> u64 {
     use std::collections::hash_map::DefaultHasher;
     use std::hash::{Hash, Hasher};
