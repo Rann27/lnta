@@ -57,6 +57,9 @@
     "parse_failed": "Failed to parse model response.",
     "validation_failed": "Segment validation failed.",
     "permission_denied": "Folder access denied.",
+    "database_error": "Internal database error.",
+    "not_found": "Item not found.",
+    "migration_failed": "Database migration failed.",
     "unknown": "An unknown error occurred."
   }
 }

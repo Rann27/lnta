@@ -57,6 +57,9 @@
     "parse_failed": "Gagal mengurai respons model.",
     "validation_failed": "Validasi segmen gagal.",
     "permission_denied": "Akses folder ditolak.",
+    "database_error": "Kesalahan database internal.",
+    "not_found": "Data tidak ditemukan.",
+    "migration_failed": "Migrasi database gagal.",
     "unknown": "Terjadi kesalahan yang tidak diketahui."
   }
 }
