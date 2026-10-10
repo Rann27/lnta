@@ -1,0 +1,31 @@
+.line {
+  display: grid;
+  grid-template-columns: 6ch 6ch 1fr;
+  gap: var(--space-4);
+  padding: var(--space-1) var(--space-5);
+  font: var(--text-mono);
+  color: var(--color-text-2);
+  align-items: baseline;
+  box-sizing: border-box;
+}
+
+.timestamp {
+  color: var(--color-text-3);
+}
+
+.scope {
+  color: var(--color-text-2);
+}
+
+.message {
+  color: var(--color-text);
+  word-break: break-word;
+}
+
+.warning .message {
+  color: var(--color-warn);
+}
+
+.error .message {
+  color: var(--color-danger);
+}

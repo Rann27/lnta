@@ -1,0 +1,121 @@
+.workspace {
+  display: grid;
+  grid-template-rows: var(--runbar-height) 1fr var(--statusbar-height);
+  width: 100%;
+  height: 100vh;
+  min-width: 64rem; /* 1024px minimum window width */
+  min-height: 40rem; /* 640px minimum window height */
+  overflow: hidden;
+  background: var(--color-canvas);
+  color: var(--color-text);
+  box-sizing: border-box;
+}
+
+.body {
+  display: grid;
+  min-height: 0;
+  height: 100%;
+  overflow: hidden;
+}
+
+/* 1024 - 1279px */
+.layoutCompact .body {
+  grid-template-columns: auto minmax(0, 1fr);
+}
+
+/* 1280 - 1599px */
+.layoutRegular .body {
+  grid-template-columns: auto minmax(0, 1fr);
+}
+
+/* >= 1600px */
+.layoutWide .body {
+  grid-template-columns: auto minmax(0, 1fr) var(--logpanel-width);
+}
+
+.mainContent {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  height: 100%;
+  overflow: hidden;
+  background: var(--color-canvas);
+}
+
+.tabs {
+  display: flex;
+  gap: var(--space-1);
+  padding: 0 var(--space-6);
+  border-bottom: var(--hairline) solid var(--color-border);
+  background: var(--color-canvas);
+  height: calc(var(--control-lg) + var(--space-2));
+  box-sizing: border-box;
+}
+
+.tab {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  height: calc(var(--control-lg) + var(--space-2));
+  padding: 0 var(--space-5);
+  border: 0;
+  border-bottom: var(--focus-width) solid transparent;
+  background: transparent;
+  color: var(--color-text-2);
+  font: var(--text-body-strong);
+  cursor: pointer;
+  box-sizing: border-box;
+  transition: color var(--dur-fast) var(--ease-standard);
+}
+
+.tab:hover {
+  color: var(--color-text);
+}
+
+.tabActive {
+  color: var(--color-text);
+  border-bottom-color: var(--color-text);
+}
+
+.tab:focus-visible {
+  outline: var(--focus-width) solid var(--color-focus);
+  outline-offset: calc(-1 * var(--focus-offset));
+}
+
+.tabBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 var(--space-2);
+  border-radius: var(--radius-1);
+  background: var(--color-warn-subtle);
+  color: var(--color-warn);
+  font: var(--text-mono);
+  font-size: var(--text-small);
+  line-height: 1;
+}
+
+.tabPanel {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: var(--space-6);
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+.tabPanel:focus-visible {
+  outline: var(--focus-width) solid var(--color-focus);
+  outline-offset: calc(-1 * var(--focus-offset));
+}
+
+.placeholderCard {
+  background: var(--color-surface);
+  border: var(--hairline) solid var(--color-border);
+  border-radius: var(--radius-2);
+  padding: var(--space-6);
+  display: grid;
+  gap: var(--space-4);
+}

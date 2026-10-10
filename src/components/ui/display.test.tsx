@@ -6,6 +6,7 @@ import { Button } from "./Button";
 import { ProgressBar } from "./ProgressBar";
 import { IconButton } from "./IconButton";
 import { StatusTag, type StatusType } from "./StatusTag";
+import { SegmentRuler } from "./SegmentRuler";
 import { FolderOpen } from "@phosphor-icons/react";
 
 describe("Button component", () => {
@@ -90,3 +91,59 @@ describe("StatusTag component", () => {
     }
   });
 });
+
+describe("SegmentRuler component", () => {
+  it("renders passive ruler with cells and aria-hidden", () => {
+    const segments = [
+      { idx: 1, status: "done" as const },
+      { idx: 2, status: "live" as const },
+      { idx: 3, status: "pending" as const },
+    ];
+    const { container } = render(<SegmentRuler segments={segments} variant="rail" />);
+    const ruler = container.firstElementChild as HTMLElement;
+    expect(ruler).toHaveAttribute("aria-hidden", "true");
+    expect(container.querySelectorAll('[data-status="done"]')).toHaveLength(1);
+    expect(container.querySelectorAll('[data-status="live"]')).toHaveLength(1);
+    expect(container.querySelectorAll('[data-status="pending"]')).toHaveLength(1);
+  });
+
+  it("performs binning with worst status priority (fail > flag > live > done)", () => {
+    const segments = [
+      { idx: 1, status: "done" as const },
+      { idx: 2, status: "flag" as const },
+      { idx: 3, status: "done" as const },
+      { idx: 4, status: "fail" as const },
+      { idx: 5, status: "done" as const },
+      { idx: 6, status: "live" as const },
+    ];
+    // Bin into 2 bins: [1,2,3] -> worst is "flag", [4,5,6] -> worst is "fail"
+    const { container } = render(<SegmentRuler segments={segments} maxBins={2} />);
+    const cells = container.querySelectorAll("[data-status]");
+    expect(cells).toHaveLength(2);
+    expect(cells[0]).toHaveAttribute("data-status", "flag");
+    expect(cells[1]).toHaveAttribute("data-status", "fail");
+  });
+
+  it("renders interactive cells as buttons and responds to click", () => {
+    let clickedIndex = -1;
+    const segments = [
+      { idx: 10, status: "done" as const },
+      { idx: 11, status: "live" as const },
+    ];
+    const { container } = render(
+      <SegmentRuler
+        segments={segments}
+        variant="header"
+        interactive
+        onSelectSegment={(idx) => {
+          clickedIndex = idx;
+        }}
+      />
+    );
+    const buttons = container.querySelectorAll("button");
+    expect(buttons).toHaveLength(2);
+    buttons[1].click();
+    expect(clickedIndex).toBe(11);
+  });
+});
+

@@ -1,0 +1,45 @@
+.statusBar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+  height: var(--statusbar-height);
+  padding: 0 var(--space-6);
+  background: var(--color-surface);
+  border-top: var(--hairline) solid var(--color-border);
+  font: var(--text-small);
+  color: var(--color-text-2);
+  white-space: nowrap;
+  overflow: hidden;
+  box-sizing: border-box;
+  width: 100%;
+}
+
+.item {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  background: transparent;
+  border: 0;
+  padding: 0;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.item:hover {
+  color: var(--color-text);
+}
+
+.item:focus-visible {
+  outline: var(--focus-width) solid var(--color-focus);
+  outline-offset: var(--focus-offset);
+}
+
+.warning {
+  color: var(--color-warn);
+}
+
+.warning:hover {
+  color: var(--color-text);
+}

@@ -1,0 +1,88 @@
+.runBar {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--space-8);
+  height: var(--runbar-height);
+  padding: 0 var(--space-6);
+  background: var(--color-surface);
+  border-bottom: var(--hairline) solid var(--color-border);
+  box-sizing: border-box;
+  width: 100%;
+}
+
+.left {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  min-width: 0;
+  max-width: 22.5rem;
+}
+
+.projectName {
+  font: var(--text-subtitle);
+  color: var(--color-text);
+  white-space: nowrap;
+}
+
+.profileBadge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0 var(--space-2);
+  border: var(--hairline) solid var(--color-border-strong);
+  border-radius: var(--radius-1);
+  font: var(--text-mono);
+  color: var(--color-text);
+  white-space: nowrap;
+}
+
+.folderPath {
+  font: var(--text-mono);
+  color: var(--color-text-3);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: default;
+}
+
+.center {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  white-space: nowrap;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.statusLabel {
+  font: var(--text-body-strong);
+  color: var(--color-text);
+}
+
+.positionSummary {
+  font: var(--text-body);
+  color: var(--color-text-2);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.right {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-5);
+  white-space: nowrap;
+}
+
+.counter {
+  font: var(--text-small);
+  color: var(--color-text-2);
+  font-variant-numeric: tabular-nums;
+  cursor: default;
+}
+
+.counterBold {
+  color: var(--color-text);
+  font-weight: 600;
+}

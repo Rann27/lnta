@@ -116,5 +116,69 @@
     "not_found": "Data tidak ditemukan.",
     "migration_failed": "Migrasi database gagal.",
     "unknown": "Terjadi kesalahan yang tidak diketahui."
+  },
+  "workspace": {
+    "tabs": {
+      "run": "Run",
+      "chapters": "Bab",
+      "glossary": "Glosarium",
+      "qa": "QA",
+      "usage": "Pemakaian",
+      "project": "Proyek"
+    },
+    "position_summary": "Bab {{currentChap}}/{{totalChap}} · bagian {{currentPart}}/{{totalPart}} · segmen {{currentSeg}}/{{totalSeg}}",
+    "tokens_inline": "Token masuk {{input}} · keluar {{output}}",
+    "tokens_tooltip": "Jumlah akumulasi token prompt dan completion run ini",
+    "folder_path_tooltip": "Lokasi folder: {{path}}",
+    "run_control": {
+      "run_volume": "Jalankan volume",
+      "start_from_selected": "Mulai dari bab terpilih",
+      "selected_only": "Hanya bab terpilih",
+      "view_plan": "Lihat rencana",
+      "run_preflight": "Jalankan preflight",
+      "pause": "Jeda",
+      "pausing": "Menjeda...",
+      "stop_now": "Hentikan sekarang",
+      "stop_run": "Hentikan run",
+      "resume_run": "Lanjutkan run",
+      "pause_qa": "Jeda QA",
+      "stop_qa": "Hentikan QA",
+      "open_docx": "Buka Translations.docx",
+      "rerun_qa": "Jalankan QA lagi",
+      "preflight_blocker_reason": "Preflight mendeteksi blocker. Selesaikan terlebih dahulu."
+    },
+    "rail": {
+      "chapters_header": "Bab ({{count}})",
+      "collapse_rail": "Ciutkan rail bab",
+      "expand_rail": "Perluas rail bab",
+      "retranslate_chapter": "Terjemahkan ulang bab",
+      "start_run_from_here": "Mulai run dari sini",
+      "open_raw_file": "Buka file raw",
+      "copy_path": "Salin path",
+      "image_pages_label": "halaman gambar"
+    },
+    "statusbar": {
+      "docx_rendered": "docx dirender {{time}}",
+      "docx_locked": "docx terkunci",
+      "glossary_entries": "{{count}} entri glosarium",
+      "watcher_active": "Pengawas aktif"
+    },
+    "log": {
+      "title": "Log",
+      "toggle": "Ciutkan/Buka log",
+      "filter_all": "Semua",
+      "filter_warn_error": "Peringatan dan error",
+      "filter_selected_chapter": "Bab terpilih",
+      "copy": "Salin log",
+      "copied": "Log disalin ke clipboard",
+      "empty": "Belum ada log tercatat."
+    },
+    "panes": {
+      "rail": "Daftar bab",
+      "content": "Area konten utama",
+      "log": "Panel log"
+    },
+    "segment_single": "Segmen {{num}}: {{status}}",
+    "segment_range": "Segmen {{from}}-{{to}}: {{status}}"
   }
 }

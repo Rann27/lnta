@@ -116,5 +116,69 @@
     "not_found": "Item not found.",
     "migration_failed": "Database migration failed.",
     "unknown": "An unknown error occurred."
+  },
+  "workspace": {
+    "tabs": {
+      "run": "Run",
+      "chapters": "Chapters",
+      "glossary": "Glossary",
+      "qa": "QA",
+      "usage": "Usage",
+      "project": "Project"
+    },
+    "position_summary": "Chapter {{currentChap}}/{{totalChap}} · part {{currentPart}}/{{totalPart}} · segment {{currentSeg}}/{{totalSeg}}",
+    "tokens_inline": "Tokens in {{input}} · out {{output}}",
+    "tokens_tooltip": "Cumulative prompt and completion token count for this run",
+    "folder_path_tooltip": "Folder path: {{path}}",
+    "run_control": {
+      "run_volume": "Run volume",
+      "start_from_selected": "Start from selected chapter",
+      "selected_only": "Selected chapter only",
+      "view_plan": "View plan",
+      "run_preflight": "Run preflight",
+      "pause": "Pause",
+      "pausing": "Pausing...",
+      "stop_now": "Stop now",
+      "stop_run": "Stop run",
+      "resume_run": "Resume run",
+      "pause_qa": "Pause QA",
+      "stop_qa": "Stop QA",
+      "open_docx": "Open Translations.docx",
+      "rerun_qa": "Run QA again",
+      "preflight_blocker_reason": "Preflight detected blockers. Resolve them first."
+    },
+    "rail": {
+      "chapters_header": "Chapters ({{count}})",
+      "collapse_rail": "Collapse chapter rail",
+      "expand_rail": "Expand chapter rail",
+      "retranslate_chapter": "Retranslate chapter",
+      "start_run_from_here": "Start run from here",
+      "open_raw_file": "Open raw file",
+      "copy_path": "Copy path",
+      "image_pages_label": "image pages"
+    },
+    "statusbar": {
+      "docx_rendered": "docx rendered {{time}}",
+      "docx_locked": "docx locked",
+      "glossary_entries": "{{count}} glossary entries",
+      "watcher_active": "Watcher active"
+    },
+    "log": {
+      "title": "Log",
+      "toggle": "Collapse/Expand log",
+      "filter_all": "All",
+      "filter_warn_error": "Warnings and errors",
+      "filter_selected_chapter": "Selected chapter",
+      "copy": "Copy log",
+      "copied": "Log copied to clipboard",
+      "empty": "No log entries recorded."
+    },
+    "panes": {
+      "rail": "Chapter list",
+      "content": "Main content area",
+      "log": "Log panel"
+    },
+    "segment_single": "Segment {{num}}: {{status}}",
+    "segment_range": "Segment {{from}}-{{to}}: {{status}}"
   }
 }

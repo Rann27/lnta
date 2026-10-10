@@ -1,0 +1,97 @@
+.item {
+  display: grid;
+  grid-template-columns: 3ch minmax(0, 1fr) auto;
+  grid-template-rows: auto auto;
+  column-gap: var(--space-4);
+  row-gap: var(--space-3);
+  padding: var(--space-4) var(--space-6);
+  width: 100%;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+  font: inherit;
+  box-sizing: border-box;
+  transition: background-color var(--dur-fast) var(--ease-standard);
+}
+
+.item:hover {
+  background: var(--state-hover);
+}
+
+.selected {
+  background: var(--state-selected);
+}
+
+.selected .fileName {
+  font-weight: 600;
+}
+
+.item:focus-visible {
+  outline: var(--focus-width) solid var(--color-focus);
+  outline-offset: calc(-1 * var(--focus-offset));
+}
+
+.ordinal {
+  font: var(--text-mono);
+  color: var(--color-text-3);
+  grid-column: 1;
+  grid-row: 1;
+}
+
+.fileName {
+  grid-column: 2;
+  grid-row: 1;
+  font: var(--text-body);
+  color: var(--color-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.status {
+  grid-column: 3;
+  grid-row: 1;
+}
+
+.track {
+  grid-column: 2 / 4;
+  grid-row: 2;
+  display: flex;
+  align-items: center;
+}
+
+.imagePagesLabel {
+  font: var(--text-small);
+  color: var(--color-text-3);
+  line-height: 1;
+}
+
+.frozenBar {
+  width: 100%;
+  height: var(--ruler-height-rail);
+  background: var(--color-sunken);
+  border-radius: var(--radius-0);
+}
+
+/* Collapsed view (56px) */
+.itemCollapsed {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-2);
+  height: var(--control-lg);
+}
+
+.itemCollapsed .ordinal {
+  font-size: var(--text-small);
+}
+
+.itemCollapsedDot {
+  width: var(--tally-size);
+  height: var(--tally-size);
+  border-radius: var(--radius-1);
+}

@@ -1,0 +1,103 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  background: var(--color-surface);
+  position: relative;
+  box-sizing: border-box;
+}
+
+/* Bottom drawer variant (Compact and Regular widths) */
+.drawer {
+  border-top: var(--hairline) solid var(--color-border);
+  width: 100%;
+}
+
+/* Right panel variant (Wide layout >= 1600px) */
+.panel {
+  border-left: var(--hairline) solid var(--color-border);
+  width: var(--logpanel-width);
+  height: 100%;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  height: var(--control-lg);
+  padding: 0 var(--space-4) 0 var(--space-6);
+  background: var(--color-surface);
+  border-bottom: var(--hairline) solid var(--color-border);
+  box-sizing: border-box;
+}
+
+.headerTitle {
+  font: var(--text-label);
+  color: var(--color-text-2);
+  margin: 0;
+}
+
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.filterSelect {
+  height: var(--control-sm);
+  padding: 0 var(--space-2);
+  font: var(--text-small);
+  color: var(--color-text-2);
+  background: var(--color-field);
+  border: var(--hairline) solid var(--color-border);
+  border-radius: var(--radius-1);
+}
+
+.logList {
+  flex: 1;
+  background: var(--color-sunken);
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: var(--space-2) 0;
+  margin: 0;
+  box-sizing: border-box;
+}
+
+.emptyState {
+  padding: var(--space-6);
+  color: var(--color-text-3);
+  font: var(--text-small);
+  text-align: center;
+}
+
+.resizerHorizontal {
+  position: absolute;
+  top: calc(-1 * var(--space-1));
+  left: 0;
+  right: 0;
+  height: var(--space-2);
+  cursor: row-resize;
+  background: transparent;
+  z-index: var(--z-drawer);
+}
+
+.resizerHorizontal:hover,
+.resizing {
+  background: var(--color-border-strong);
+}
+
+.resizerVertical {
+  position: absolute;
+  top: 0;
+  left: calc(-1 * var(--space-1));
+  bottom: 0;
+  width: var(--space-2);
+  cursor: col-resize;
+  background: transparent;
+  z-index: var(--z-drawer);
+}
+
+.resizerVertical:hover,
+.resizing {
+  background: var(--color-border-strong);
+}

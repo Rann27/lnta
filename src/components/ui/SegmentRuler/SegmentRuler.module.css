@@ -1,0 +1,70 @@
+.ruler {
+  display: flex;
+  gap: 1px;
+  height: var(--ruler-height-rail);
+  align-items: stretch;
+  position: relative;
+  width: 100%;
+}
+
+.variantHeader {
+  height: var(--ruler-height-header);
+}
+
+.cell {
+  flex: 1 1 0;
+  min-width: 1px;
+  border-radius: var(--radius-0);
+  background: var(--color-text);
+  border: 0;
+  padding: 0;
+  margin: 0;
+  box-sizing: border-box;
+}
+
+.cellButton {
+  cursor: pointer;
+  appearance: none;
+}
+
+.cellButton:focus-visible {
+  outline: var(--focus-width) solid var(--color-focus);
+  outline-offset: var(--focus-offset);
+  z-index: 1;
+}
+
+.pending {
+  background: transparent;
+  box-shadow: inset 0 0 0 1px var(--color-border-strong);
+}
+
+.live {
+  background: var(--color-tally);
+}
+
+.flag {
+  background: var(--color-warn);
+}
+
+.paused {
+  background: var(--color-text-3);
+}
+
+.fail {
+  background: var(--pattern-hazard);
+  box-shadow: inset 0 0 0 1px var(--color-danger);
+}
+
+.done {
+  background: var(--color-text);
+}
+
+.fixed {
+  flex: 0 0 1px;
+  min-width: 1px;
+  background: var(--color-text-3);
+  margin-top: calc(-1 * var(--space-1));
+  margin-bottom: calc(-1 * var(--space-1));
+  margin-left: 1px;
+  margin-right: 1px;
+}
