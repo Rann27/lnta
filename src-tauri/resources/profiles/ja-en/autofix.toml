@@ -1,0 +1,8 @@
+# Mechanical autofix rules for JP -> EN (PRD Appendix B & start-en.md)
+
+unambiguous_acronyms = [
+    "tv",
+    "dvd"
+]
+
+[spelling_replacements]

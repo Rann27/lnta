@@ -1,0 +1,35 @@
+# Mechanical autofix rules for JP -> ID (PRD Appendix B & start.md)
+
+unambiguous_acronyms = [
+    "sks",
+    "tv",
+    "cd",
+    "dvd",
+    "ktp",
+    "npwp"
+]
+
+[spelling_replacements]
+"praktek" = "praktik"
+"nomer" = "nomor"
+"aktifitas" = "aktivitas"
+"karna" = "karena"
+"balsem" = "balsam"
+"cinderamata" = "cenderamata"
+"gladi" = "geladi"
+"hakekat" = "hakikat"
+"ijin" = "izin"
+"jadwal" = "jadwal"
+"kolega" = "kolega"
+"kuitansi" = "kuitansi"
+"lubang" = "lubang"
+"manajemen" = "manajemen"
+"masjid" = "masjid"
+"negeri" = "negeri"
+"objek" = "objek"
+"paspor" = "paspor"
+"risiko" = "risiko"
+"sekadar" = "sekadar"
+"standar" = "standar"
+"subjek" = "subjek"
+"zaman" = "zaman"

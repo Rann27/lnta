@@ -1,0 +1,19 @@
+# Profile configuration for Japanese to English (JP -> EN)
+name = "ja-en"
+source_language = "ja"
+target_language = "en"
+instruction_candidates = [
+    "instruction-en.md",
+    "instructions-en.md",
+    "instruction.md",
+    "instructions.md",
+    "instruction*.md"
+]
+chunk_threshold_lines = 1500
+gender_keywords = ["male", "female", "man", "woman", "boy", "girl"]
+scene_marker_set = ["◆", "◇", "★", "☆", "◈", "■", "□", "***", "* * *", "＊＊＊"]
+ellipsis_form = "..."
+ratio_band_min = 0.4
+ratio_band_max = 2.2
+title_strip_brackets = true
+ruby_normalize = true

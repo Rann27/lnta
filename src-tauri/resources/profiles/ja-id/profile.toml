@@ -1,0 +1,18 @@
+# Profile configuration for Japanese to Indonesian (JP -> ID)
+name = "ja-id"
+source_language = "ja"
+target_language = "id"
+instruction_candidates = [
+    "instruction.md",
+    "instructions.md",
+    "instruction-id.md",
+    "instruction*.md"
+]
+chunk_threshold_lines = 1500
+gender_keywords = ["laki-laki", "perempuan", "pria", "wanita", "lelaki", "cowok", "cewek"]
+scene_marker_set = ["◆", "◇", "★", "☆", "◈", "■", "□", "***", "* * *", "＊＊＊"]
+ellipsis_form = "……"
+ratio_band_min = 0.5
+ratio_band_max = 2.0
+title_strip_brackets = true
+ruby_normalize = true

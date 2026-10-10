@@ -1,0 +1,36 @@
+# QA check configurations for JP -> ID (PRD Appendix B)
+
+genre_terms = [
+    "penjara bawah tanah",
+    "keterampilan",
+    "ramuan",
+    "jendela sistem",
+    "serikat",
+    "rombongan",
+    "tingkat"
+]
+
+honorifics = [
+    "kakak",
+    "Kak",
+    "adik",
+    "abang",
+    "Pak",
+    "Bu"
+]
+
+pronoun_pairs = [
+    ["aku", "kau"],
+    ["aku", "kamu"],
+    ["saya", "Anda"]
+]
+
+metronome_openers = [
+    "Saat",
+    "Ketika"
+]
+
+ambiguous_acronyms = [
+    "sim",
+    "kk"
+]

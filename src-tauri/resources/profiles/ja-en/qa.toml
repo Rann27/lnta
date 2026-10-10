@@ -1,0 +1,45 @@
+# QA check configurations for JP -> EN (PRD Appendix B)
+
+sfx_romaji = [
+    "doki doki",
+    "gacha",
+    "suya suya",
+    "munya munya",
+    "pekori",
+    "fuwa fuwa"
+]
+
+sfx_allowed = [
+    "fufu",
+    "ara ara"
+]
+
+confusable_pairs = [
+    ["its", "it's"],
+    ["their", "there"],
+    ["lay", "lie"],
+    ["breath", "breathe"]
+]
+
+honorifics = [
+    "big brother",
+    "big sis",
+    "older brother",
+    "older sister",
+    "elder brother",
+    "elder sister",
+    "Mr.",
+    "Ms."
+]
+
+metronome_openers = [
+    "As",
+    "When",
+    "With that"
+]
+
+ambiguous_acronyms = [
+    "id",
+    "ok",
+    "okay"
+]
