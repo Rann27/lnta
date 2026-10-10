@@ -4,11 +4,20 @@
 //! PRD §5.5, FR-QA-01..02, and Appendix B.
 
 pub mod common;
+pub mod fix_mechanical;
+pub mod fixlog;
 pub mod frequency;
 pub mod ja_en;
 pub mod ja_id;
 
 pub use common::{QaFinding, SegmentForQa};
+pub use fix_mechanical::{
+    apply_mechanical_fixes_to_text, AppliedMechanicalFix, MechanicalFixOptions,
+};
+pub use fixlog::{
+    apply_mechanical_fixes_to_volume, undo_batch, undo_batch_and_rerender, undo_fix,
+    undo_fix_and_rerender, undo_run, undo_run_and_rerender, ApplyMechanicalResult,
+};
 pub use frequency::{analyze_phrase_frequency, FrequencyItem, FrequencyReport};
 pub use ja_en::CharacterGender;
 

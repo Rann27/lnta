@@ -728,7 +728,7 @@ async fn translate_part_with_truncation_depth(
 }
 
 /// Re-renders Translations.docx with all chapters currently marked as `done` or `frozen`.
-fn render_docx_after_chapter(
+pub fn render_docx_after_chapter(
     conn: &Connection,
     layout: &ProjectLayout,
     settings: &EffectiveSettings,
