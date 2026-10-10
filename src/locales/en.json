@@ -58,6 +58,19 @@
     },
     "switch_scenario": "Switch scenario"
   },
+  "projects": {
+    "title": "Home",
+    "subtitle": "Select a recent project or open a new folder to begin.",
+    "recent_title": "Recent projects",
+    "empty_title": "No projects yet",
+    "empty_desc": "Choose a folder that holds an instruction file and numbered chapter files.",
+    "drop_hint": "Drop project folder here",
+    "chapters_progress": "{{done}} of {{total}} chapters",
+    "last_opened": "Opened {{time}}",
+    "loading": "Loading projects...",
+    "theme": "Theme",
+    "language": "Language"
+  },
   "errors": {
     "file_not_found": "File not found.",
     "instruction_missing": "Instruction file not found.",

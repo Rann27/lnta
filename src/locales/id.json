@@ -58,6 +58,19 @@
     },
     "switch_scenario": "Ganti skenario"
   },
+  "projects": {
+    "title": "Beranda",
+    "subtitle": "Pilih proyek terbaru atau buka folder baru untuk memulai.",
+    "recent_title": "Proyek terbaru",
+    "empty_title": "Belum ada proyek",
+    "empty_desc": "Pilih folder yang berisi file instruction dan file bab berprefix angka.",
+    "drop_hint": "Lepaskan folder proyek di sini",
+    "chapters_progress": "{{done}} dari {{total}} bab",
+    "last_opened": "Dibuka {{time}}",
+    "loading": "Memuat proyek...",
+    "theme": "Tema",
+    "language": "Bahasa"
+  },
   "errors": {
     "file_not_found": "File tidak ditemukan.",
     "instruction_missing": "File instruction tidak ditemukan.",

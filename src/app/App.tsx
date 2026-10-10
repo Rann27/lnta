@@ -1,20 +1,17 @@
+import { AppRouter } from "./Router";
 import { DevGallery } from "./DevGallery";
-import { PreviewBanner } from "./PreviewBanner";
 
 export function App() {
-  if (import.meta.env.DEV) {
-    return (
-      <>
-        <PreviewBanner />
-        <DevGallery />
-      </>
-    );
+  const isGallery =
+    import.meta.env.DEV &&
+    typeof window !== "undefined" &&
+    new URLSearchParams(window.location.search).get("view") === "gallery";
+
+  if (isGallery) {
+    return <DevGallery />;
   }
-  return (
-    <div id="app">
-      <h1>LNTA</h1>
-    </div>
-  );
+
+  return <AppRouter />;
 }
 
 export default App;

@@ -1,0 +1,85 @@
+.container {
+  max-width: 100%;
+  margin: 0 auto;
+  padding: var(--space-8) var(--space-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  min-height: 100%;
+  box-sizing: border-box;
+  position: relative;
+}
+
+.hero {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.title {
+  margin: 0;
+  font: var(--text-display);
+  color: var(--color-text);
+  letter-spacing: -0.01em;
+}
+
+.subtitle {
+  margin: 0;
+  font: var(--text-body);
+  color: var(--color-text-muted);
+}
+
+.actionsBar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.sectionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.sectionTitle {
+  margin: 0;
+  font: var(--text-title);
+  color: var(--color-text);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(18rem, 1fr));
+  gap: var(--space-5);
+}
+
+.dropOverlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: var(--color-scrim);
+  border: 1px dashed var(--color-tally);
+  border-radius: var(--radius-3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  pointer-events: none;
+}
+
+.dropMessage {
+  padding: var(--space-5) var(--space-7);
+  background: var(--color-raised);
+  border-radius: var(--radius-2);
+  font: var(--text-body-strong);
+  color: var(--color-text);
+  box-shadow: var(--shadow-1);
+}

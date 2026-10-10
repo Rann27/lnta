@@ -34,3 +34,17 @@ export function formatTime(date: Date | string | number): string {
   const minutes = String(d.getMinutes()).padStart(2, "0");
   return `${hours}:${minutes}`;
 }
+
+export function formatDateTime(date: Date | string | number, lang?: SupportedLanguage): string {
+  const activeLang = lang ?? getLanguage();
+  const locale = activeLang === "id" ? "id-ID" : "en-US";
+  const d = typeof date === "object" && date instanceof Date ? date : new Date(date);
+  return new Intl.DateTimeFormat(locale, {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  }).format(d);
+}
