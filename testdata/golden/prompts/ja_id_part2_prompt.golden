@@ -1,0 +1,13 @@
+<reference_glossary>
+佐藤 === Satou === laki-laki; protagonis
+美咲 === Misaki === perempuan; adik
+魔導学院 === Akademi Sihir === organisasi
+</reference_glossary>
+<context readonly="true">
+<pair id="4"><source>佐藤は荷物をまとめ、王都へ向かう準備を整えた。</source><target>Satou mengemas barang bawaannya dan bersiap menuju Ibukota Kerajaan.</target></pair>
+<pair id="6"><source>扉を開けると、冷たい風が頬をかすめた。</source><target>Saat ia membuka pintu, hembusan angin dingin menyentuh pipinya.</target></pair>
+</context>
+<chapter file="02_第1話.md" part="2" of="2">
+<s id="7">街道沿いには多くの旅人が歩いていた。</s>
+<s id="8">「魔導学院まではあと三日の道のりだな」</s>
+</chapter>

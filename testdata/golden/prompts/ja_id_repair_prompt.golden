@@ -1,0 +1,15 @@
+<repair>
+<issue id="17">segmen hilang dari output sebelumnya</issue>
+<issue id="19">tanda petik ganda tidak seimbang</issue>
+</repair>
+<reference_glossary>
+佐藤 === Satou === laki-laki; protagonis
+</reference_glossary>
+<context readonly="true">
+<pair id="16"><source>前夜の出来事を思い返していた。</source><target>Ia merenungkan kembali kejadian malam sebelumnya.</target></pair>
+<pair id="18"><source>風が止み、沈黙が訪れた。</source><target>Angin mereda, dan keheningan pun menyelimuti.</target></pair>
+</context>
+<chapter file="02_第1話.md" part="1" of="1">
+<s id="17">佐藤は静かに息を呑んだ。</s>
+<s id="19">「本当にこれで良かったのだろうか」</s>
+</chapter>
