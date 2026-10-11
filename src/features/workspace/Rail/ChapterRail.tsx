@@ -12,12 +12,14 @@ export const ChapterRail: React.FC = () => {
     chapters,
     selectedChapterId,
     chapterSegments,
+    imagePageIds,
+    projectPath,
     railWidth,
     railCollapsed,
     selectChapter,
     setRailWidth,
     toggleRailCollapsed,
-    startRun,
+    translateChapterOnly,
   } = useWorkspaceStore();
 
   const [isResizing, setIsResizing] = useState(false);
@@ -84,11 +86,12 @@ export const ChapterRail: React.FC = () => {
             <RailItem
               chapter={ch}
               segments={chapterSegments[ch.id]}
+              isImagePage={imagePageIds[ch.id] ?? false}
+              projectPath={projectPath}
               isSelected={ch.id === selectedChapterId}
               isCollapsed={railCollapsed}
               onSelect={selectChapter}
-              onStartRunFromHere={(id) => startRun(id)}
-              onRetranslate={(id) => startRun(id)}
+              onRetranslate={(id) => void translateChapterOnly(id)}
             />
           </li>
         ))}

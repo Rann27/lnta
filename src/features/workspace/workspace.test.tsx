@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import "@testing-library/jest-dom/vitest";
 import { render, screen, fireEvent, cleanup } from "@testing-library/react";
 import "../../lib/i18n";
+import { MemoryRouter } from "react-router-dom";
 import { Workspace } from "./Workspace";
 import { useWorkspaceStore } from "./store";
 import { RunControl } from "./RunBar/RunControl";
@@ -91,25 +92,25 @@ describe("Workspace shell", () => {
   it("applies layout classes at 1024, 1280, and 1600 widths", () => {
     // 1024px: Compact layout
     Object.defineProperty(window, "innerWidth", { writable: true, configurable: true, value: 1024 });
-    const { container, unmount } = render(<Workspace />);
+    const { container, unmount } = render(<MemoryRouter><Workspace /></MemoryRouter>);
     expect(container.firstChild).toHaveClass(/layoutCompact/);
     unmount();
 
     // 1280px: Regular layout
     Object.defineProperty(window, "innerWidth", { writable: true, configurable: true, value: 1280 });
-    const { container: container1280, unmount: unmount1280 } = render(<Workspace />);
+    const { container: container1280, unmount: unmount1280 } = render(<MemoryRouter><Workspace /></MemoryRouter>);
     expect(container1280.firstChild).toHaveClass(/layoutRegular/);
     unmount1280();
 
     // 1600px: Wide layout
     Object.defineProperty(window, "innerWidth", { writable: true, configurable: true, value: 1600 });
-    const { container: container1600, unmount: unmount1600 } = render(<Workspace />);
+    const { container: container1600, unmount: unmount1600 } = render(<MemoryRouter><Workspace /></MemoryRouter>);
     expect(container1600.firstChild).toHaveClass(/layoutWide/);
     unmount1600();
   });
 
   it("handles rail collapse and expand toggle", () => {
-    render(<Workspace />);
+    render(<MemoryRouter><Workspace /></MemoryRouter>);
     const toggleBtn = screen.getByRole("button", { name: /Ciutkan rail bab|Collapse chapter rail/i });
     expect(toggleBtn).toBeInTheDocument();
 
@@ -140,6 +141,7 @@ describe("Workspace shell", () => {
     const { container } = render(
       <RailItem
         chapter={imageChapter}
+        isImagePage
         isSelected={false}
         isCollapsed={false}
         onSelect={() => {}}
@@ -180,7 +182,7 @@ describe("Workspace shell", () => {
   });
 
   it("supports F6 pane cycling across rail, content, and log panes", () => {
-    const { container } = render(<Workspace />);
+    const { container } = render(<MemoryRouter><Workspace /></MemoryRouter>);
 
     // Press F6
     fireEvent.keyDown(window, { key: "F6" });
@@ -189,7 +191,7 @@ describe("Workspace shell", () => {
   });
 
   it("switches workspace tabs via tab buttons and Ctrl+1..6 shortcuts", () => {
-    render(<Workspace />);
+    render(<MemoryRouter><Workspace /></MemoryRouter>);
     const chaptersTab = screen.getByRole("tab", { name: /Bab|Chapters/i });
     fireEvent.click(chaptersTab);
     expect(useWorkspaceStore.getState().activeTab).toBe("chapters");

@@ -1,87 +1,69 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
-import {
-  Warning,
-  BookBookmark,
-  FileDoc,
-  Cpu,
-  Eye,
-} from "@phosphor-icons/react";
+import { useNavigate } from "react-router-dom";
+import { Warning, BookBookmark, FileDoc, Cpu } from "@phosphor-icons/react";
 import { useWorkspaceStore } from "../store";
 import styles from "./StatusBar.module.css";
 
 export const StatusBar: React.FC = () => {
   const { t } = useTranslation();
-  const {
-    providerStatus,
-    docxStatus,
-    glossaryCount,
-    setActiveTab,
-  } = useWorkspaceStore();
+  const navigate = useNavigate();
+  const { providerStatus, docxStatus, glossaryCount, setActiveTab, retryDocxRender } =
+    useWorkspaceStore();
 
   const isDocxLocked = docxStatus.status === "locked";
   const docxText = isDocxLocked
     ? t("workspace.statusbar.docx_locked")
-    : t("workspace.statusbar.docx_rendered", {
-        time: docxStatus.lastRenderedTime || "10:32",
-      });
+    : docxStatus.lastRenderedTime
+      ? t("workspace.statusbar.docx_rendered", { time: docxStatus.lastRenderedTime })
+      : t("workspace.statusbar.docx_not_rendered");
 
   return (
     <footer className={styles.statusBar} role="contentinfo">
-      {/* 1. Translator provider status */}
       <button
         type="button"
-        className={[
-          styles.item,
-          !providerStatus.connected ? styles.warning : "",
-        ]
+        className={[styles.item, !providerStatus.connected ? styles.warning : ""]
           .filter(Boolean)
           .join(" ")}
-        onClick={() => setActiveTab("project")}
-        title="Buka pengaturan provider"
+        onClick={() => navigate("/settings")}
+        title={t("workspace.statusbar.provider_settings_title")}
       >
-        <Cpu size={14} />
+        {providerStatus.connected ? <Cpu size={14} /> : <Warning size={14} />}
         <span>
-          {providerStatus.name} · {providerStatus.model}
+          {providerStatus.model
+            ? `${providerStatus.name} · ${providerStatus.model}`
+            : t("workspace.statusbar.provider_none")}
         </span>
       </button>
 
-      {/* 2. docx render status */}
-      <button
-        type="button"
-        className={[
-          styles.item,
-          isDocxLocked ? styles.warning : "",
-        ]
-          .filter(Boolean)
-          .join(" ")}
-        onClick={() => {
-          // If locked, retry render
-        }}
-        title={isDocxLocked ? "Klik untuk render ulang" : undefined}
-      >
-        {isDocxLocked ? <Warning size={14} /> : <FileDoc size={14} />}
-        <span>{docxText}</span>
-      </button>
-
-      {/* 3. Glossary entries count */}
-      <button
-        type="button"
-        className={styles.item}
-        onClick={() => setActiveTab("glossary")}
-        title="Buka tab Glosarium"
-      >
-        <BookBookmark size={14} />
-        <span>
-          {t("workspace.statusbar.glossary_entries", { count: glossaryCount })}
+      {isDocxLocked ? (
+        <button
+          type="button"
+          className={[styles.item, styles.warning].join(" ")}
+          onClick={() => void retryDocxRender()}
+          title={t("workspace.statusbar.docx_retry_title")}
+        >
+          <Warning size={14} />
+          <span>{docxText}</span>
+        </button>
+      ) : (
+        <span className={styles.item} style={{ cursor: "default" }}>
+          <FileDoc size={14} />
+          <span>{docxText}</span>
         </span>
-      </button>
+      )}
 
-      {/* 4. Folder watcher status */}
-      <span className={styles.item} style={{ cursor: "default" }}>
-        <Eye size={14} />
-        <span>{t("workspace.statusbar.watcher_active")}</span>
-      </span>
+      {glossaryCount !== null && (
+        <button
+          type="button"
+          className={styles.item}
+          onClick={() => setActiveTab("glossary")}
+          title={t("workspace.statusbar.glossary_tab_title")}
+        >
+          <BookBookmark size={14} />
+          <span>{t("workspace.statusbar.glossary_entries", { count: glossaryCount })}</span>
+        </button>
+      )}
     </footer>
   );
 };

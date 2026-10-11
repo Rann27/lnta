@@ -4,32 +4,35 @@ import { StatusTag, type StatusType } from "../../../components/ui/StatusTag";
 import { SegmentRuler, type SegmentItem } from "../../../components/ui/SegmentRuler";
 import { Popover } from "../../../components/ui/Popover";
 import type { Chapter } from "../../../lib/bindings";
+import { ipc } from "../../../lib/ipc";
 import styles from "./RailItem.module.css";
 
 export interface RailItemProps {
   chapter: Chapter;
   segments?: SegmentItem[];
+  /** A chapter with only image/scene segments and no heading (FR-RAW-08). */
+  isImagePage?: boolean;
+  projectPath?: string;
   isSelected: boolean;
   isCollapsed: boolean;
   onSelect: (chapterId: string) => void;
-  onStartRunFromHere?: (chapterId: string) => void;
   onRetranslate?: (chapterId: string) => void;
 }
 
 export const RailItem: React.FC<RailItemProps> = ({
   chapter,
   segments = [],
+  isImagePage = false,
+  projectPath = "",
   isSelected,
   isCollapsed,
   onSelect,
-  onStartRunFromHere,
   onRetranslate,
 }) => {
   const { t } = useTranslation();
   const [menuOpen, setMenuOpen] = useState(false);
 
-  // Check if image-page chapter
-  const isImagePage = !chapter.title_src && chapter.char_count === 0;
+  const rawFilePath = `${projectPath.replace(/[\\/]+$/, "")}/${chapter.file_name}`;
 
   // Ordinal formatting: 2 digits (e.g. 01, 02)
   const ordinalFormatted = String(chapter.ordinal).padStart(2, "0");
@@ -184,29 +187,6 @@ export const RailItem: React.FC<RailItemProps> = ({
           >
             {t("workspace.rail.retranslate_chapter")}
           </button>
-          <button
-            type="button"
-            role="menuitem"
-            style={{
-              display: "flex",
-              alignItems: "center",
-              height: "var(--control-md)",
-              padding: "0 var(--space-4)",
-              background: "transparent",
-              border: 0,
-              borderRadius: "var(--radius-1)",
-              color: "var(--color-text)",
-              font: "var(--text-body)",
-              textAlign: "left",
-              cursor: "pointer",
-            }}
-            onClick={() => {
-              setMenuOpen(false);
-              onStartRunFromHere?.(chapter.id);
-            }}
-          >
-            {t("workspace.rail.start_run_from_here")}
-          </button>
           <div style={{ height: "1px", background: "var(--color-border)", margin: "var(--space-1) 0" }} />
           <button
             type="button"
@@ -226,7 +206,7 @@ export const RailItem: React.FC<RailItemProps> = ({
             }}
             onClick={() => {
               setMenuOpen(false);
-              // Open raw file action
+              void ipc.openPath(rawFilePath);
             }}
           >
             {t("workspace.rail.open_raw_file")}
@@ -249,7 +229,7 @@ export const RailItem: React.FC<RailItemProps> = ({
             }}
             onClick={() => {
               setMenuOpen(false);
-              navigator.clipboard?.writeText(chapter.file_name);
+              void navigator.clipboard?.writeText(rawFilePath);
             }}
           >
             {t("workspace.rail.copy_path")}

@@ -70,3 +70,15 @@
   font: var(--text-caption);
   color: var(--color-text-muted);
 }
+
+.profileBadge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0 var(--space-2);
+  border: var(--hairline) solid var(--color-border-strong);
+  border-radius: var(--radius-1);
+  font: var(--text-mono);
+  color: var(--color-text);
+  white-space: nowrap;
+  flex-shrink: 0;
+}

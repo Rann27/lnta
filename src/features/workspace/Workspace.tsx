@@ -125,7 +125,7 @@ export const Workspace: React.FC = () => {
     { id: "run", label: t("workspace.tabs.run") },
     { id: "chapters", label: t("workspace.tabs.chapters") },
     { id: "glossary", label: t("workspace.tabs.glossary") },
-    { id: "qa", label: t("workspace.tabs.qa"), badge: qaFindingsCount > 0 ? qaFindingsCount : undefined },
+    { id: "qa", label: t("workspace.tabs.qa"), badge: qaFindingsCount && qaFindingsCount > 0 ? qaFindingsCount : undefined },
     { id: "usage", label: t("workspace.tabs.usage") },
     { id: "project", label: t("workspace.tabs.project") },
   ];

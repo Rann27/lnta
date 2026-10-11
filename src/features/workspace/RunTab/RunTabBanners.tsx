@@ -12,6 +12,8 @@ export const RunTabBanners: React.FC = () => {
     chapters,
     selectChapter,
     setActiveTab,
+    retryDocxRender,
+    runError,
   } = useWorkspaceStore();
 
   const [dismissedDocx, setDismissedDocx] = useState(false);
@@ -47,7 +49,22 @@ export const RunTabBanners: React.FC = () => {
     });
   }
 
-  // 2. Docx locked attention banner
+  // 2. A run or command the backend refused, e.g. a missing instruction file
+  if (runError) {
+    bannerList.push({
+      id: "run_error",
+      variant: "blocker",
+      title: t("workspace.run_error_title"),
+      description: runError,
+      action: (
+        <Button variant="secondary" onClick={() => setActiveTab("project")}>
+          {t("workspace.run_tab.action_check_preflight")}
+        </Button>
+      ),
+    });
+  }
+
+  // 3. Docx locked attention banner
   if (docxStatus.status === "locked" && !dismissedDocx) {
     bannerList.push({
       id: "docx_locked",
@@ -57,9 +74,7 @@ export const RunTabBanners: React.FC = () => {
       action: (
         <Button
           variant="secondary"
-          onClick={() => {
-            // retry docx
-          }}
+          onClick={() => void retryDocxRender()}
         >
           {t("workspace.run_tab.action_retry_docx")}
         </Button>

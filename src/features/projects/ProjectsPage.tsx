@@ -106,15 +106,18 @@ export const ProjectsPage: React.FC = () => {
         <p className={styles.subtitle}>{t("projects.subtitle")}</p>
       </header>
 
-      <div className={styles.actionsBar}>
-        <Button
-          variant="primary"
-          icon={<FolderOpen size={16} />}
-          onClick={handleOpenFolder}
-        >
-          {t("actions.open_folder")}
-        </Button>
-      </div>
+      {/* One primary action per screen: the empty state carries its own button. */}
+      {(isLoading || recentProjects.length > 0) && (
+        <div className={styles.actionsBar}>
+          <Button
+            variant="primary"
+            icon={<FolderOpen size={16} />}
+            onClick={handleOpenFolder}
+          >
+            {t("actions.open_folder")}
+          </Button>
+        </div>
+      )}
 
       <section className={styles.section}>
         <div className={styles.sectionHeader}>

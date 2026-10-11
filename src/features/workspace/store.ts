@@ -1,9 +1,12 @@
 import { create } from "zustand";
+import type { UnlistenFn } from "@tauri-apps/api/event";
 import { ipc } from "../../lib/ipc";
 import { notifyOS } from "../../lib/notifications";
 import i18n from "../../lib/i18n";
 import type {
   Chapter,
+  ChapterDetail,
+  ChunkPlan,
   EngineEvent,
   PreflightReport,
   ProjectConfig,
@@ -27,17 +30,33 @@ export type WorkspaceTab =
   | "usage"
   | "project";
 
+/** The part the engine is working on, as reported by `chapter:status` events. */
+export interface ActivePart {
+  chapterId: string;
+  current: number;
+  total: number;
+}
+
 export interface WorkspaceState {
   projectPath: string;
   projectConfig: ProjectConfig | null;
   chapters: Chapter[];
+  /** Raw engine status per chapter (`translating(part 1/2)`, `validating`, ...). */
+  chapterPhase: Record<string, string>;
   selectedChapterId: string | null;
   chapterSegments: Record<string, SegmentItem[]>;
+  chapterParts: Record<string, ChunkPlan[]>;
+  imagePageIds: Record<string, boolean>;
   runState: RunStateResponse;
+  activePart: ActivePart | null;
+  /** Characters streamed by the current model call; reset when a new part starts. */
+  streamChars: number;
+  callStartedAt: number | null;
+  runError: string | null;
   preflight: PreflightReport | null;
-  inputTokens: number;
-  outputTokens: number;
-  cachedTokens: number;
+  inputTokens: number | null;
+  outputTokens: number | null;
+  cachedTokens: number | null;
   activeTab: WorkspaceTab;
   railWidth: number;
   railCollapsed: boolean;
@@ -47,11 +66,15 @@ export interface WorkspaceState {
   logs: LogEntry[];
   docxStatus: { status: string; lastRenderedTime?: string };
   providerStatus: { name: string; model: string; connected: boolean };
-  glossaryCount: number;
-  qaFindingsCount: number;
+  glossaryCount: number | null;
+  qaFindingsCount: number | null;
+  qaPhase: string | null;
 
   // Actions
   initWorkspace: (path: string) => Promise<void>;
+  refreshChapter: (chapterId: string) => Promise<void>;
+  refreshUsage: () => Promise<void>;
+  refreshCounts: () => Promise<void>;
   selectChapter: (id: string) => void;
   setActiveTab: (tab: WorkspaceTab) => void;
   setRailWidth: (width: number) => void;
@@ -60,7 +83,11 @@ export interface WorkspaceState {
   toggleLogDrawer: () => void;
   setLogDrawerHeight: (height: number) => void;
   setLogFilter: (filter: "all" | "warn_error" | "selected_chapter") => void;
-  startRun: (chapterId?: string) => Promise<void>;
+  startRun: () => Promise<void>;
+  translateChapterOnly: (chapterId: string) => Promise<void>;
+  startQa: () => Promise<void>;
+  retryDocxRender: () => Promise<void>;
+  openDocx: () => Promise<void>;
   pauseRun: () => Promise<void>;
   resumeRun: () => Promise<void>;
   stopRun: () => Promise<void>;
@@ -68,161 +95,215 @@ export interface WorkspaceState {
   handleEngineEvent: (event: EngineEvent) => void;
 }
 
-function synthesizeSegmentsForChapter(ch: Chapter): SegmentItem[] {
-  // If chapter has char_count === 0 and title_src is empty, it's an image-page chapter
-  if (!ch.title_src && ch.char_count === 0) {
-    return [
-      { idx: 1, kind: "image", status: "done", isFixed: true },
-      { idx: 2, kind: "image", status: "done", isFixed: true },
-    ];
+const LIVE_PHASES = ["planned", "translating", "validating", "repairing", "running"];
+
+/** Maps engine chapter statuses onto the UI vocabulary used by tags and rulers. */
+export function normalizeChapterStatus(raw: string, runActive: boolean): string {
+  if (raw === "done" || raw === "needs_attention" || raw === "blocked" || raw === "frozen") {
+    return raw;
   }
-
-  const segmentCount = Math.max(12, Math.min(80, Math.floor(ch.char_count / 150) || 24));
-  const items: SegmentItem[] = [];
-
-  for (let i = 1; i <= segmentCount; i++) {
-    // Distribute scene markers or images occasionally
-    const isFixed = i === Math.floor(segmentCount / 2);
-    let status: SegmentItem["status"] = "pending";
-
-    if (ch.status === "done") {
-      status = "done";
-    } else if (ch.status === "running") {
-      if (i < segmentCount * 0.4) {
-        status = "done";
-      } else if (i < segmentCount * 0.6) {
-        status = "live";
-      } else {
-        status = "pending";
-      }
-    } else if (ch.status === "paused") {
-      if (i < segmentCount * 0.4) {
-        status = "done";
-      } else if (i < segmentCount * 0.6) {
-        status = "paused";
-      } else {
-        status = "pending";
-      }
-    } else if (ch.status === "needs_attention") {
-      if (i === Math.floor(segmentCount * 0.3)) {
-        status = "flag";
-      } else if (i < segmentCount * 0.5) {
-        status = "done";
-      }
-    }
-
-    items.push({
-      idx: i,
-      kind: isFixed ? "scene" : (i % 3 === 0 ? "dialogue" : "narration"),
-      status,
-      isFixed,
-    });
+  if (LIVE_PHASES.some((p) => raw.startsWith(p))) {
+    return runActive ? "running" : "paused";
   }
-
-  return items;
+  return "pending";
 }
+
+function nowHHMM(): string {
+  return new Date().toLocaleTimeString(i18n.language || "id", {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  });
+}
+
+function errorMessage(err: unknown): string {
+  if (err && typeof err === "object" && "code" in err) {
+    const e = err as { code: string; params?: Record<string, unknown> };
+    return i18n.t(e.code, { ...(e.params ?? {}), defaultValue: e.code });
+  }
+  return String(err);
+}
+
+/** Builds real ruler cells from persisted segments and current translations. */
+function buildSegmentItems(
+  detail: ChapterDetail,
+  activePart: ActivePart | null,
+  runActive: boolean
+): SegmentItem[] {
+  const covered = new Set<number>();
+  for (const t of detail.translations) {
+    for (let i = t.seg_from; i <= t.seg_to; i++) covered.add(i);
+  }
+  const liveRange =
+    activePart && activePart.chapterId === detail.chapter.id
+      ? detail.parts.find((p) => p.part_index === activePart.current)
+      : undefined;
+  const failed = detail.chapter.status === "needs_attention";
+
+  return detail.segments
+    .filter((s) => s.kind !== "title")
+    .map((s) => {
+      const isFixed = s.kind === "scene" || s.kind === "image" || s.kind === "image_missing";
+      let status: SegmentItem["status"] = "pending";
+      if (isFixed || covered.has(s.idx) || detail.chapter.status === "done") {
+        status = "done";
+      } else if (liveRange && s.idx >= liveRange.seg_from && s.idx <= liveRange.seg_to) {
+        status = runActive ? "live" : "paused";
+      } else if (failed) {
+        status = "fail";
+      }
+      return { idx: s.idx, kind: s.kind, status, isFixed };
+    });
+}
+
+let unlistenEngine: UnlistenFn | null = null;
 
 export const useWorkspaceStore = create<WorkspaceState>((set, get) => ({
   projectPath: "",
   projectConfig: null,
   chapters: [],
+  chapterPhase: {},
   selectedChapterId: null,
   chapterSegments: {},
+  chapterParts: {},
+  imagePageIds: {},
   runState: {
     state: "idle",
     active: false,
     current_chapter_id: null,
     latest_run: null,
   },
+  activePart: null,
+  streamChars: 0,
+  callStartedAt: null,
+  runError: null,
   preflight: null,
-  inputTokens: 12480,
-  outputTokens: 9120,
-  cachedTokens: 2048,
+  inputTokens: null,
+  outputTokens: null,
+  cachedTokens: null,
   activeTab: "run",
   railWidth: 300,
   railCollapsed: false,
   logDrawerOpen: false,
   logDrawerHeight: 132,
   logFilter: "all",
-  logs: [
-    {
-      id: "log_1",
-      timestamp: "10:30",
-      scope: "run",
-      level: "info",
-      message: "Proyek dibuka dan diverifikasi.",
-    },
-    {
-      id: "log_2",
-      timestamp: "10:31",
-      scope: "ch01",
-      level: "info",
-      message: "Bab 01 berhasil diproses.",
-    },
-  ],
-  docxStatus: { status: "rendered", lastRenderedTime: "10:32" },
-  providerStatus: {
-    name: "Anthropic",
-    model: "claude-3-5-sonnet",
-    connected: true,
-  },
-  glossaryCount: 42,
-  qaFindingsCount: 3,
+  logs: [],
+  docxStatus: { status: "unknown" },
+  providerStatus: { name: "", model: "", connected: false },
+  glossaryCount: null,
+  qaFindingsCount: null,
+  qaPhase: null,
 
   initWorkspace: async (path: string) => {
+    if (unlistenEngine) {
+      unlistenEngine();
+      unlistenEngine = null;
+    }
+    set({
+      projectPath: path,
+      logs: [],
+      runError: null,
+      activePart: null,
+      streamChars: 0,
+      callStartedAt: null,
+      chapterSegments: {},
+      chapterParts: {},
+      imagePageIds: {},
+    });
+
     try {
       const openResult = await ipc.openProject(path);
       const runState = await ipc.getRunState(path);
-
-      const segmentsMap: Record<string, SegmentItem[]> = {};
-      for (const ch of openResult.chapters) {
-        segmentsMap[ch.id] = synthesizeSegmentsForChapter(ch);
-      }
-
-      const activeChapId =
-        runState.current_chapter_id ||
-        (openResult.chapters.length > 0 ? openResult.chapters[0].id : null);
+      const runActive = runState.active;
+      const phases: Record<string, string> = {};
+      for (const ch of openResult.chapters) phases[ch.id] = ch.status;
 
       set({
-        projectPath: path,
         projectConfig: openResult.config,
-        chapters: openResult.chapters,
-        selectedChapterId: activeChapId,
-        chapterSegments: segmentsMap,
+        chapters: openResult.chapters.map((ch) => ({
+          ...ch,
+          status: normalizeChapterStatus(ch.status, runActive),
+        })),
+        chapterPhase: phases,
+        selectedChapterId:
+          runState.current_chapter_id ?? openResult.chapters[0]?.id ?? null,
         runState,
         preflight: openResult.preflight,
       });
 
-      // Try loading detailed segments for the selected chapter if available
-      if (activeChapId) {
-        try {
-          const detail = await ipc.getChapter(path, activeChapId);
-          if (detail && detail.segments.length > 0) {
-            const mapped: SegmentItem[] = detail.segments.map((s) => ({
-              idx: s.idx,
-              kind: s.kind,
-              status: detail.chapter.status === "done" ? "done" : "pending",
-              isFixed: s.kind === "scene" || s.kind === "image" || s.kind === "image_missing",
-            }));
-            set((state) => ({
-              chapterSegments: {
-                ...state.chapterSegments,
-                [activeChapId]: mapped,
-              },
-            }));
-          }
-        } catch {
-          // Keep synthesized segments
-        }
-      }
+      unlistenEngine = await ipc.onEngineEvent((event) => get().handleEngineEvent(event));
 
-      // Listen to engine events
-      ipc.onEngineEvent((event) => {
-        get().handleEngineEvent(event);
+      await Promise.all(openResult.chapters.map((ch) => get().refreshChapter(ch.id)));
+      await Promise.all([get().refreshUsage(), get().refreshCounts()]);
+
+      const settings = await ipc.getGlobalSettings();
+      const primary = settings.roles.translator.primary;
+      const provider = settings.providers.find((p) => p.id === primary.provider);
+      const modelItem = openResult.preflight.items.find(
+        (i) => i.id === "translator_model_configured"
+      );
+      set({
+        providerStatus: {
+          name: provider?.name ?? primary.provider,
+          model: primary.model_id,
+          connected: modelItem?.status === "pass",
+        },
+      });
+    } catch (err) {
+      set({ runError: errorMessage(err) });
+    }
+  },
+
+  refreshChapter: async (chapterId: string) => {
+    const { projectPath, runState, activePart } = get();
+    if (!projectPath) return;
+    try {
+      const detail = await ipc.getChapter(projectPath, chapterId);
+      const textSegments = detail.segments.filter(
+        (s) => s.kind === "narration" || s.kind === "dialogue"
+      );
+      set((state) => ({
+        chapterSegments: {
+          ...state.chapterSegments,
+          [chapterId]: buildSegmentItems(detail, activePart, runState.active),
+        },
+        chapterParts: { ...state.chapterParts, [chapterId]: detail.parts },
+        imagePageIds: {
+          ...state.imagePageIds,
+          [chapterId]: detail.segments.length > 0 && textSegments.length === 0,
+        },
+      }));
+    } catch {
+      // A chapter that cannot be read keeps its previous ruler; the error surfaces in the Bab tab.
+    }
+  },
+
+  refreshUsage: async () => {
+    const { projectPath, runState } = get();
+    if (!projectPath) return;
+    try {
+      const usage = await ipc.getProjectUsage(projectPath, runState.latest_run?.id);
+      set({
+        inputTokens: usage.summary.total_input_tokens,
+        outputTokens: usage.summary.total_output_tokens,
+        cachedTokens: usage.summary.total_cached_tokens,
       });
     } catch {
-      // Error handling
+      set({ inputTokens: null, outputTokens: null, cachedTokens: null });
     }
+  },
+
+  refreshCounts: async () => {
+    const { projectPath } = get();
+    if (!projectPath) return;
+    const [glossary, qa] = await Promise.allSettled([
+      ipc.listGlossary(projectPath),
+      ipc.getQaSummary(projectPath),
+    ]);
+    set({
+      glossaryCount: glossary.status === "fulfilled" ? glossary.value.length : null,
+      qaFindingsCount: qa.status === "fulfilled" ? qa.value.remaining_findings : null,
+    });
   },
 
   selectChapter: (id: string) => {
@@ -258,59 +339,86 @@ export const useWorkspaceStore = create<WorkspaceState>((set, get) => ({
     set({ logFilter: filter });
   },
 
-  startRun: async (chapterId?: string) => {
-    const { projectPath, chapters } = get();
+  startRun: async () => {
+    const { projectPath } = get();
     if (!projectPath) return;
-
-    set((state) => ({
-      runState: {
-        ...state.runState,
-        state: "running",
-        active: true,
-        current_chapter_id: chapterId ?? state.selectedChapterId ?? (chapters[0]?.id ?? null),
-      },
-    }));
-
-    get().addLog({
-      timestamp: new Date().toLocaleTimeString("id", { hour: "2-digit", minute: "2-digit" }),
-      scope: "run",
-      level: "info",
-      message: chapterId ? `Run dimulai untuk bab ${chapterId}` : "Run volume dimulai.",
-    });
-
+    set({ runError: null });
     try {
       await ipc.startRun(projectPath);
-    } catch {
-      // In mock/preview, keep updated state
+    } catch (err) {
+      const message = errorMessage(err);
+      set({ runError: message });
+      get().addLog({ timestamp: nowHHMM(), scope: "run", level: "error", message });
+    }
+  },
+
+  translateChapterOnly: async (chapterId: string) => {
+    const { projectPath } = get();
+    if (!projectPath) return;
+    set({ runError: null, selectedChapterId: chapterId });
+    try {
+      await ipc.retranslateChapter(projectPath, chapterId);
+    } catch (err) {
+      const message = errorMessage(err);
+      set({ runError: message });
+      get().addLog({ timestamp: nowHHMM(), scope: "run", level: "error", message });
+    }
+  },
+
+  startQa: async () => {
+    const { projectPath } = get();
+    if (!projectPath) return;
+    set({ runError: null });
+    try {
+      await ipc.startQa(projectPath);
+    } catch (err) {
+      const message = errorMessage(err);
+      set({ runError: message });
+      get().addLog({ timestamp: nowHHMM(), scope: "QA", level: "error", message });
+    }
+  },
+
+  retryDocxRender: async () => {
+    const { projectPath } = get();
+    if (!projectPath) return;
+    try {
+      await ipc.renderDocx(projectPath);
+    } catch (err) {
+      const message = errorMessage(err);
+      get().addLog({ timestamp: nowHHMM(), scope: "docx", level: "error", message });
+    }
+  },
+
+  openDocx: async () => {
+    const { projectPath } = get();
+    if (!projectPath) return;
+    try {
+      await ipc.openPath(`${projectPath.replace(/[\\/]+$/, "")}/Translations.docx`);
+    } catch (err) {
+      const message = errorMessage(err);
+      get().addLog({ timestamp: nowHHMM(), scope: "docx", level: "error", message });
     }
   },
 
   pauseRun: async () => {
     const { projectPath } = get();
-    set((state) => ({
-      runState: { ...state.runState, state: "pausing" },
-    }));
+    set((state) => ({ runState: { ...state.runState, state: "pausing" } }));
     try {
       await ipc.pauseRun(projectPath);
-      set((state) => ({
-        runState: { ...state.runState, state: "paused", active: false },
-      }));
-    } catch {
-      set((state) => ({
-        runState: { ...state.runState, state: "paused", active: false },
-      }));
+    } catch (err) {
+      const message = errorMessage(err);
+      get().addLog({ timestamp: nowHHMM(), scope: "run", level: "error", message });
     }
   },
 
   resumeRun: async () => {
     const { projectPath } = get();
-    set((state) => ({
-      runState: { ...state.runState, state: "running", active: true },
-    }));
     try {
       await ipc.resumeRun(projectPath);
-    } catch {
-      // preview
+    } catch (err) {
+      const message = errorMessage(err);
+      set({ runError: message });
+      get().addLog({ timestamp: nowHHMM(), scope: "run", level: "error", message });
     }
   },
 
@@ -318,63 +426,111 @@ export const useWorkspaceStore = create<WorkspaceState>((set, get) => ({
     const { projectPath } = get();
     try {
       await ipc.stopRun(projectPath);
-    } catch {
-      // preview
+    } catch (err) {
+      const message = errorMessage(err);
+      get().addLog({ timestamp: nowHHMM(), scope: "run", level: "error", message });
     }
-    set((state) => ({
-      runState: { ...state.runState, state: "idle", active: false },
-    }));
   },
 
   addLog: (entry: Omit<LogEntry, "id">) => {
     const newEntry: LogEntry = {
       ...entry,
-      id: `log_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
+      id: `log_${Date.now()}_${get().logs.length}`,
     };
-    set((state) => ({
-      logs: [...state.logs, newEntry],
-    }));
+    set((state) => ({ logs: [...state.logs, newEntry] }));
   },
 
   handleEngineEvent: (event: EngineEvent) => {
     if (event.event === "run:state") {
+      const state = event.data.state;
+      const active = state === "running" || state === "qa_running";
       const priorState = get().runState.state;
-      set((state) => ({
+      set((s) => ({
         runState: {
-          ...state.runState,
-          state: event.data.state,
-          active: event.data.state === "running" || event.data.state === "qa_running",
+          ...s.runState,
+          state,
+          active,
+          latest_run: event.data.run_id
+            ? {
+                id: event.data.run_id,
+                kind: state === "qa_running" ? "qa" : "translation",
+                status: state,
+                started_at: new Date().toISOString(),
+                ended_at: null,
+                settings_snapshot: "",
+              }
+            : s.runState.latest_run,
         },
+        chapters: s.chapters.map((ch) => ({
+          ...ch,
+          status: normalizeChapterStatus(s.chapterPhase[ch.id] ?? ch.status, active),
+        })),
+        activePart: active ? s.activePart : null,
+        callStartedAt: active ? s.callStartedAt : null,
+        qaPhase: state === "qa_running" ? s.qaPhase : null,
       }));
-
-      if (event.data.state === "completed" && priorState !== "completed") {
+      if (!active) {
+        void get().refreshUsage();
+        void get().refreshCounts();
+      }
+      if (state === "completed" && priorState !== "completed") {
         void notifyOS({
           title: i18n.t("notifications.run_completed_title"),
           body: i18n.t("notifications.run_completed_body"),
         });
       }
     } else if (event.event === "chapter:status") {
-      set((state) => ({
-        chapters: state.chapters.map((ch) =>
-          ch.id === event.data.chapter_id ? { ...ch, status: event.data.status } : ch
+      const { chapter_id: chapterId, status, part_current, part_total } = event.data;
+      const runActive = get().runState.active || status !== "done";
+      const isLive = LIVE_PHASES.some((p) => status.startsWith(p));
+      set((s) => ({
+        chapterPhase: { ...s.chapterPhase, [chapterId]: status },
+        chapters: s.chapters.map((ch) =>
+          ch.id === chapterId
+            ? { ...ch, status: normalizeChapterStatus(status, runActive) }
+            : ch
         ),
+        runState: isLive ? { ...s.runState, current_chapter_id: chapterId } : s.runState,
+        activePart:
+          isLive && part_current && part_total
+            ? { chapterId, current: part_current, total: part_total }
+            : s.activePart,
+        streamChars:
+          status.startsWith("translating") &&
+          (s.activePart?.chapterId !== chapterId || s.activePart?.current !== part_current)
+            ? 0
+            : s.streamChars,
+        callStartedAt: status.startsWith("translating") ? Date.now() : s.callStartedAt,
       }));
-
-      if (event.data.status === "blocked" || event.data.status === "needs_attention") {
+      void get().refreshChapter(chapterId);
+      if (status === "done") void get().refreshUsage();
+      if (status === "needs_attention" || status === "blocked") {
         void notifyOS({
           title: i18n.t("notifications.blocker_title"),
-          body: i18n.t("notifications.blocker_body", { chapterId: event.data.chapter_id }),
+          body: i18n.t("notifications.blocker_body", { chapterId }),
         });
       }
+    } else if (event.event === "call:progress") {
+      set((s) => ({
+        streamChars: s.streamChars + event.data.delta.length,
+        callStartedAt: s.callStartedAt ?? Date.now(),
+      }));
     } else if (event.event === "log:line") {
       const level =
         event.data.level === "error"
           ? "error"
           : event.data.level === "warn" || event.data.level === "warning"
-          ? "warning"
-          : "info";
+            ? "warning"
+            : "info";
+      const ts = new Date(event.data.timestamp);
       get().addLog({
-        timestamp: event.data.timestamp.substring(11, 16) || "12:00",
+        timestamp: Number.isNaN(ts.getTime())
+          ? nowHHMM()
+          : ts.toLocaleTimeString(i18n.language || "id", {
+              hour: "2-digit",
+              minute: "2-digit",
+              hour12: false,
+            }),
         scope: "run",
         level,
         message: event.data.message,
@@ -383,18 +539,15 @@ export const useWorkspaceStore = create<WorkspaceState>((set, get) => ({
       set({
         docxStatus: {
           status: event.data.status,
-          lastRenderedTime: new Date().toLocaleTimeString("id", {
-            hour: "2-digit",
-            minute: "2-digit",
-          }),
+          lastRenderedTime: event.data.status === "rendered" ? nowHHMM() : undefined,
         },
       });
+    } else if (event.event === "glossary:changed") {
+      void get().refreshCounts();
     } else if (event.event === "qa:progress") {
-      set({
-        qaFindingsCount: event.data.findings_count,
-      });
-
-      if (event.data.phase === "done" || event.data.phase === "completed") {
+      set({ qaFindingsCount: event.data.findings_count, qaPhase: event.data.phase });
+      if (event.data.phase === "done") {
+        void get().refreshCounts();
         void notifyOS({
           title: i18n.t("notifications.qa_done_title"),
           body: i18n.t("notifications.qa_done_body", { count: event.data.findings_count }),

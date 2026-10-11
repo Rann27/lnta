@@ -34,7 +34,12 @@
     "blocked": "blocked",
     "failed": "failed",
     "frozen": "frozen",
-    "source_changed": "source changed"
+    "source_changed": "source changed",
+    "idle": "ready",
+    "pending": "queued",
+    "pausing": "pausing",
+    "qa_running": "QA running",
+    "completed": "completed"
   },
   "common": {
     "save": "Save",
@@ -116,7 +121,7 @@
   },
   "errors": {
     "file_not_found": "File not found.",
-    "instruction_missing": "Instruction file not found.",
+    "instruction_missing": "The instruction file is missing or empty. Put instruction.md in the project folder, or choose a file in the Project tab.",
     "duplicate_prefix": "Duplicate chapter prefix found.",
     "invalid_template": "Invalid docx template.",
     "docx_locked": "Translations.docx is open in another app. Close it, then render again.",
@@ -157,7 +162,9 @@
       "stop_qa": "Stop QA",
       "open_docx": "Open Translations.docx",
       "rerun_qa": "Run QA again",
-      "preflight_blocker_reason": "Preflight detected blockers. Resolve them first."
+      "preflight_blocker_reason": "Preflight detected blockers. Resolve them first.",
+      "translate_selected_only": "Translate selected chapter only",
+      "more_options": "More run options"
     },
     "plan_preview": {
       "title": "Chunk Plan & Token Estimate",
@@ -205,7 +212,12 @@
       "docx_rendered": "docx rendered {{time}}",
       "docx_locked": "docx locked",
       "glossary_entries": "{{count}} glossary entries",
-      "watcher_active": "Watcher active"
+      "watcher_active": "Watcher active",
+      "docx_not_rendered": "docx not rendered yet",
+      "docx_retry_title": "Click to render again",
+      "provider_settings_title": "Open provider settings",
+      "glossary_tab_title": "Open the Glossary tab",
+      "provider_none": "No translator model yet"
     },
     "log": {
       "title": "Log",
@@ -253,7 +265,28 @@
       "state_announcement_running": "Run is running.",
       "state_announcement_paused": "Run is paused.",
       "state_announcement_completed": "Run completed.",
-      "state_announcement_idle": "Run is in idle state."
+      "state_announcement_idle": "Run is in idle state.",
+      "role_label": "Role",
+      "model_label": "Model",
+      "phase_label": "Phase",
+      "received_chars": "Received {{chars}} characters · {{seconds}} s",
+      "image_pages_card": "{{ordinal}} · image pages, no model call",
+      "part_progress": "{{done}} of {{total}} segments",
+      "repairing_label_plain": "repairing segments",
+      "plan_pending": "The part plan is made when the chapter starts."
+    },
+    "position_chapter": "Chapter {{currentChap}}/{{totalChap}}",
+    "position_part": "part {{currentPart}}/{{totalPart}}",
+    "position_segments": "segments {{done}}/{{total}}",
+    "tokens_in": "Tokens in",
+    "tokens_out": "out",
+    "run_error_title": "The run could not start",
+    "qa_phase": {
+      "scan": "Scanning the volume",
+      "mechanical": "Mechanical fixes",
+      "ai_fix": "AI fixes",
+      "review": "Hotspot review",
+      "done": "Done"
     }
   },
   "model_picker": {
@@ -580,6 +613,8 @@
     "blocker_body": "Chapter {{chapterId}} encountered a blocker or needs attention.",
     "qa_done_title": "QA scan completed",
     "qa_done_body": "QA scan finished with {{count}} findings."
+  },
+  "qa_tab": {
+    "run_qa": "Run QA"
   }
 }
-

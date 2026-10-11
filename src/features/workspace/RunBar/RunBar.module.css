@@ -17,12 +17,20 @@
   gap: var(--space-4);
   min-width: 0;
   max-width: 22.5rem;
+  overflow: hidden;
+}
+
+/* The tooltip wrapper around the path must be allowed to shrink, or the path spills over
+   the status in the center column. */
+.left > * {
+  min-width: 0;
 }
 
 .projectName {
   font: var(--text-subtitle);
   color: var(--color-text);
   white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .profileBadge {
@@ -34,6 +42,7 @@
   font: var(--text-mono);
   color: var(--color-text);
   white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .folderPath {

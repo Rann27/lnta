@@ -66,3 +66,13 @@
   background: var(--color-border);
   margin: var(--space-1) 0;
 }
+
+/* Keeps the disabled reason available to screen readers while it is shown as a tooltip. */
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}

@@ -34,7 +34,12 @@
     "blocked": "terblokir",
     "failed": "gagal",
     "frozen": "beku",
-    "source_changed": "sumber berubah"
+    "source_changed": "sumber berubah",
+    "idle": "siap",
+    "pending": "antri",
+    "pausing": "menjeda",
+    "qa_running": "QA berjalan",
+    "completed": "selesai"
   },
   "common": {
     "save": "Simpan",
@@ -116,7 +121,7 @@
   },
   "errors": {
     "file_not_found": "File tidak ditemukan.",
-    "instruction_missing": "File instruction tidak ditemukan.",
+    "instruction_missing": "File instruction tidak ditemukan atau kosong. Taruh instruction.md di folder proyek, atau pilih file di tab Proyek.",
     "duplicate_prefix": "Prefix nomor bab duplikat ditemukan.",
     "invalid_template": "Template docx tidak valid.",
     "docx_locked": "Translations.docx sedang dibuka di aplikasi lain. Tutup file itu, lalu render lagi.",
@@ -157,7 +162,9 @@
       "stop_qa": "Hentikan QA",
       "open_docx": "Buka Translations.docx",
       "rerun_qa": "Jalankan QA lagi",
-      "preflight_blocker_reason": "Preflight mendeteksi blocker. Selesaikan terlebih dahulu."
+      "preflight_blocker_reason": "Preflight mendeteksi blocker. Selesaikan terlebih dahulu.",
+      "translate_selected_only": "Terjemahkan bab terpilih saja",
+      "more_options": "Pilihan run lainnya"
     },
     "plan_preview": {
       "title": "Rencana Chunk & Estimasi Token",
@@ -205,7 +212,12 @@
       "docx_rendered": "docx dirender {{time}}",
       "docx_locked": "docx terkunci",
       "glossary_entries": "{{count}} entri glosarium",
-      "watcher_active": "Pengawas aktif"
+      "watcher_active": "Pengawas aktif",
+      "docx_not_rendered": "docx belum dirender",
+      "docx_retry_title": "Klik untuk render ulang",
+      "provider_settings_title": "Buka pengaturan provider",
+      "glossary_tab_title": "Buka tab Glosarium",
+      "provider_none": "Belum ada model penerjemah"
     },
     "log": {
       "title": "Log",
@@ -253,7 +265,28 @@
       "state_announcement_running": "Run sedang berjalan.",
       "state_announcement_paused": "Run dijeda.",
       "state_announcement_completed": "Run selesai.",
-      "state_announcement_idle": "Run berada dalam keadaan idle."
+      "state_announcement_idle": "Run berada dalam keadaan idle.",
+      "role_label": "Peran",
+      "model_label": "Model",
+      "phase_label": "Fase",
+      "received_chars": "Diterima {{chars}} karakter · {{seconds}} d",
+      "image_pages_card": "{{ordinal}} · halaman gambar, tanpa panggilan model",
+      "part_progress": "{{done}} dari {{total}} segmen",
+      "repairing_label_plain": "memperbaiki segmen",
+      "plan_pending": "Rencana bagian dibuat saat bab mulai diproses."
+    },
+    "position_chapter": "Bab {{currentChap}}/{{totalChap}}",
+    "position_part": "bagian {{currentPart}}/{{totalPart}}",
+    "position_segments": "segmen {{done}}/{{total}}",
+    "tokens_in": "Token masuk",
+    "tokens_out": "keluar",
+    "run_error_title": "Run tidak bisa dimulai",
+    "qa_phase": {
+      "scan": "Memindai volume",
+      "mechanical": "Perbaikan mekanis",
+      "ai_fix": "Perbaikan AI",
+      "review": "Tinjauan titik rawan",
+      "done": "Selesai"
     }
   },
   "model_picker": {
@@ -580,6 +613,8 @@
     "blocker_body": "Bab {{chapterId}} mengalami kendala atau membutuhkan perhatian.",
     "qa_done_title": "Pemindaian QA selesai",
     "qa_done_body": "QA selesai dengan {{count}} temuan."
+  },
+  "qa_tab": {
+    "run_qa": "Jalankan QA"
   }
 }
-

@@ -479,6 +479,7 @@ export class PreviewTransport implements IpcTransport {
       chapter: ch,
       segments: [],
       translations: [],
+      parts: [],
     };
   }
 
@@ -727,6 +728,19 @@ export class PreviewTransport implements IpcTransport {
   async undoQaRun(path: string, runId: string): Promise<void> {
     void path;
     void runId;
+  }
+
+  async startQa(path: string): Promise<string> {
+    void path;
+    return "started";
+  }
+
+  async renderDocx(path: string): Promise<void> {
+    void path;
+  }
+
+  async openPath(path: string): Promise<void> {
+    void path;
   }
 
   async retranslateChapter(

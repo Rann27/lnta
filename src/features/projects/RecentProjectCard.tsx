@@ -3,7 +3,6 @@ import { Folder } from "@phosphor-icons/react";
 import { useTranslation } from "react-i18next";
 import type { RecentProjectEntry } from "../../lib/bindings";
 import { ProgressBar } from "../../components/ui/ProgressBar";
-import { StatusTag } from "../../components/ui/StatusTag";
 import { formatDateTime } from "../../lib/format";
 import styles from "./RecentProjectCard.module.css";
 
@@ -25,9 +24,6 @@ export const RecentProjectCard: React.FC<RecentProjectCardProps> = ({
     }
   };
 
-  const isCompleted =
-    project.chapters_total > 0 && project.chapters_done >= project.chapters_total;
-
   return (
     <div
       role="button"
@@ -42,10 +38,10 @@ export const RecentProjectCard: React.FC<RecentProjectCardProps> = ({
           <Folder size={18} aria-hidden="true" />
           <h3 className={styles.name}>{project.name}</h3>
         </div>
-        <StatusTag
-          status={isCompleted ? "done" : "running"}
-          label={project.profile}
-        />
+        {/* A profile badge, not a status: nothing is running on the home screen. */}
+        <span className={styles.profileBadge}>
+          {project.profile === "ja-en" ? "JP→EN" : "JP→ID"}
+        </span>
       </div>
 
       <div className={styles.path} title={project.path}>

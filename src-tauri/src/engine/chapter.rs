@@ -281,7 +281,7 @@ pub async fn execute_single_chapter(
         });
 
         // Re-render Translations.docx so image pages are included in output
-        render_docx_after_chapter(conn, layout, settings, event_emitter)?;
+        render_docx_or_defer(conn, layout, settings, event_emitter)?;
 
         return Ok(ChapterExecutionResult::Done {
             parts_count: 0,
@@ -584,7 +584,7 @@ pub async fn execute_single_chapter(
     });
 
     // 5. Re-render Translations.docx
-    render_docx_after_chapter(conn, layout, settings, event_emitter)?;
+    render_docx_or_defer(conn, layout, settings, event_emitter)?;
 
     // 6. Log line in start.md / start-en.md format
     let is_en = settings.target_language == "en";
@@ -949,6 +949,26 @@ async fn translate_part_with_truncation_depth(
         call_records,
         new_glossary_count,
     ))
+}
+
+/// Renders the docx, but treats a file held open by Word as "try again later" (FR-DOC-11):
+/// the translation is already saved, so the chapter must stay done and the run continue.
+pub fn render_docx_or_defer(
+    conn: &Connection,
+    layout: &ProjectLayout,
+    settings: &EffectiveSettings,
+    event_emitter: &dyn EventEmitter,
+) -> Result<(), AppError> {
+    match render_docx_after_chapter(conn, layout, settings, event_emitter) {
+        Err(AppError::DocxLocked) => {
+            event_emitter.emit(EngineEvent::DocxRender {
+                status: "locked".to_string(),
+                path: layout.docx_output.display().to_string(),
+            });
+            Ok(())
+        }
+        other => other,
+    }
 }
 
 /// Re-renders Translations.docx with all chapters currently marked as `done` or `frozen`.

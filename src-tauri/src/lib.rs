@@ -53,6 +53,8 @@ pub fn run() {
             commands::run::stop_run,
             commands::run::get_run_state,
             commands::run::retranslate_chapter,
+            commands::run::start_qa,
+            commands::chapters::render_docx,
             commands::chapters::list_chapters,
             commands::chapters::get_chapter,
             commands::chapters::list_segments,

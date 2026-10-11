@@ -89,7 +89,7 @@ describe("Project Wizard and Preflight UI", () => {
     expect(screen.getByText(/1 blocker/i)).toBeInTheDocument();
     expect(screen.getByText(/1 peringatan|1 warning/i)).toBeInTheDocument();
 
-    const actionButton = screen.getByText(/Pilih|Browse/i);
+    const actionButton = screen.getByRole("button", { name: /Pilih|Browse/i });
     expect(actionButton).toBeInTheDocument();
     fireEvent.click(actionButton);
     expect(onAction).toHaveBeenCalledWith("browse_inst", expect.anything());

@@ -1,6 +1,7 @@
 import { invoke, isTauri } from "@tauri-apps/api/core";
 import { PreviewTransport } from "./preview/transport";
 import { listen, type UnlistenFn } from "@tauri-apps/api/event";
+import { openPath as openWithDefaultApp } from "@tauri-apps/plugin-opener";
 import type {
   AppInfo,
   Chapter,
@@ -74,6 +75,9 @@ export interface IpcTransport {
   resumeRun(path: string): Promise<void>;
   stopRun(path: string): Promise<void>;
   getRunState(path: string): Promise<RunStateResponse>;
+  startQa(path: string): Promise<string>;
+  renderDocx(path: string): Promise<void>;
+  openPath(path: string): Promise<void>;
   retranslateChapter(
     path: string,
     chapterId: string,
@@ -252,6 +256,18 @@ export class TauriTransport implements IpcTransport {
 
   getRunState(path: string): Promise<RunStateResponse> {
     return invoke<RunStateResponse>("get_run_state", { path });
+  }
+
+  startQa(path: string): Promise<string> {
+    return invoke<string>("start_qa", { path });
+  }
+
+  renderDocx(path: string): Promise<void> {
+    return invoke<void>("render_docx", { path });
+  }
+
+  openPath(path: string): Promise<void> {
+    return openWithDefaultApp(path);
   }
 
   retranslateChapter(

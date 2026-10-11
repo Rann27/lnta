@@ -2,9 +2,11 @@
   display: grid;
   grid-template-rows: var(--runbar-height) 1fr var(--statusbar-height);
   width: 100%;
-  height: 100vh;
+  /* Fills the space under the shell header; 100vh here made the page 32px taller than the
+     window and gave the workspace a scrollbar. The window itself enforces 1024 x 640. */
+  flex: 1;
+  min-height: 0;
   min-width: 64rem; /* 1024px minimum window width */
-  min-height: 40rem; /* 640px minimum window height */
   overflow: hidden;
   background: var(--color-canvas);
   color: var(--color-text);

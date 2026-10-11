@@ -275,6 +275,7 @@ function buildSyntheticChapterDetails(): {
   for (const ch of chapters) {
     details[ch.id] = {
       chapter: ch,
+      parts: [],
       segments: [
         {
           id: `${ch.id}_s001`,

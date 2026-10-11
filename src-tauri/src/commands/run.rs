@@ -461,3 +461,74 @@ pub async fn retranslate_chapter(
 
     Ok("started".to_string())
 }
+
+/// Runs the QA phase on demand (QA tab), e.g. after manual segment edits.
+#[tauri::command]
+pub async fn start_qa(app: tauri::AppHandle, path: String) -> Result<String, AppError> {
+    let p = Path::new(&path);
+    if !p.exists() || !p.is_dir() {
+        return Err(AppError::FileNotFound {
+            path: format!("Directory not found: {path}"),
+        });
+    }
+    let manager = RunManager::global();
+    if manager.get(&path).is_some() {
+        return Err(AppError::Internal {
+            message: "A run is already active for this project".to_string(),
+        });
+    }
+
+    let layout = ProjectLayout::new(p);
+    let config = if layout.config_file.exists() {
+        ProjectConfig::load_from_file(&layout.config_file)?
+    } else {
+        ProjectConfig::for_profile("ja-id")
+    };
+    crate::project::instruction::load_instruction_text(
+        p,
+        &config.profile,
+        config.instruction_file.as_deref(),
+    )?;
+    let global = GlobalSettings::load_from_app_data().unwrap_or_default();
+    let effective = EffectiveSettings::merge(&global, &config, None);
+
+    let control = Arc::new(RunControl::new());
+    manager.insert(&path, control);
+    let path_clone = path.clone();
+
+    std::thread::spawn(move || {
+        let Ok(rt) = tokio::runtime::Builder::new_current_thread()
+            .enable_all()
+            .build()
+        else {
+            RunManager::global().remove(&path_clone);
+            return;
+        };
+        rt.block_on(async move {
+            if let Ok(mut conn) = open_path(&layout.db_file) {
+                if migrate(&mut conn).is_ok() {
+                    let emitter = TauriEventEmitter { app };
+                    let resolver = DynamicProviderResolver::new(global);
+                    let result = crate::engine::qa_phase::run_qa_phase(
+                        &conn, &layout, &effective, &resolver, &emitter,
+                    )
+                    .await;
+                    if let Err(e) = result {
+                        emitter.emit(EngineEvent::LogLine {
+                            level: "error".to_string(),
+                            message: format!("QA: {e}"),
+                            timestamp: chrono::Utc::now().to_rfc3339(),
+                        });
+                    }
+                    emitter.emit(EngineEvent::RunState {
+                        state: "completed".to_string(),
+                        run_id: None,
+                    });
+                }
+            }
+            RunManager::global().remove(&path_clone);
+        });
+    });
+
+    Ok("started".to_string())
+}

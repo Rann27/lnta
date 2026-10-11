@@ -9,6 +9,39 @@ import { WaitingCounter } from "./WaitingCounter";
 import { useWorkspaceStore } from "../store";
 
 describe("ActiveChapterCard states", () => {
+  const twoParts = [
+    {
+      id: "ch_01_part_1",
+      chapter_id: "ch_01",
+      part_index: 1,
+      seg_from: 1,
+      seg_to: 4,
+      line_from: 1,
+      line_to: 425,
+      est_in: 0,
+      est_out: 0,
+      status: "planned",
+    },
+    {
+      id: "ch_01_part_2",
+      chapter_id: "ch_01",
+      part_index: 2,
+      seg_from: 5,
+      seg_to: 8,
+      line_from: 426,
+      line_to: 850,
+      est_in: 0,
+      est_out: 0,
+      status: "planned",
+    },
+  ];
+  const cells = [1, 2, 3, 4, 5, 6, 7, 8].map((idx) => ({
+    idx,
+    kind: "narration",
+    status: (idx <= 2 ? "done" : idx <= 4 ? "live" : "pending") as "done" | "live" | "pending",
+    isFixed: false,
+  }));
+
   beforeEach(() => {
     useWorkspaceStore.setState({
       chapters: [
@@ -29,6 +62,13 @@ describe("ActiveChapterCard states", () => {
         },
       ],
       selectedChapterId: "ch_01",
+      chapterParts: { ch_01: twoParts },
+      chapterSegments: {},
+      chapterPhase: {},
+      imagePageIds: {},
+      activePart: null,
+      callStartedAt: null,
+      streamChars: 0,
       runState: {
         state: "idle",
         active: false,
@@ -37,6 +77,7 @@ describe("ActiveChapterCard states", () => {
       },
       preflight: { can_run: true, items: [] },
       qaFindingsCount: 0,
+      qaPhase: null,
     });
   });
 
@@ -44,46 +85,53 @@ describe("ActiveChapterCard states", () => {
     cleanup();
   });
 
-  it("renders idle state with next chapter preview and helper text", () => {
+  it("renders idle state with the next chapter and its real part count", () => {
     render(<ActiveChapterCard />);
     expect(
       screen.getByText(/Belum ada run\. Bab berikutnya: 01 · 第1話 出会い \(2 bagian\)\./i)
     ).toBeInTheDocument();
   });
 
-  it("renders planning state with planning progress indicator", () => {
+  it("explains that the plan is made later when the chapter has no parts yet", () => {
     useWorkspaceStore.setState({
-      runState: { state: "planning", active: true, current_chapter_id: "ch_01", latest_run: null },
-    });
-
-    render(<ActiveChapterCard />);
-    expect(
-      screen.getByText(/Merencanakan bagian untuk 01 · 第1話 出会い/i)
-    ).toBeInTheDocument();
-  });
-
-  it("renders translating (running) state with parts progress, live meter, and waiting counter", () => {
-    useWorkspaceStore.setState({
+      chapterParts: {},
+      chapterPhase: { ch_01: "planned" },
       runState: { state: "running", active: true, current_chapter_id: "ch_01", latest_run: null },
     });
 
     render(<ActiveChapterCard />);
-    expect(screen.getByText(/Bab 01 · 第1話 出会い/i)).toBeInTheDocument();
-    expect(screen.getByText(/2 bagian · 850 baris/i)).toBeInTheDocument();
-    expect(screen.getByText(/Bagian 1/i)).toBeInTheDocument();
-    expect(screen.getByRole("timer")).toBeInTheDocument();
+    expect(screen.getByText(/Rencana bagian dibuat saat bab mulai diproses/i)).toBeInTheDocument();
   });
 
-  it("renders validating / repairing state with warning tags", () => {
+  it("renders the running chapter from real parts, segments, and the call start time", () => {
     useWorkspaceStore.setState({
-      runState: { state: "repairing", active: true, current_chapter_id: "ch_01", latest_run: null },
+      chapterSegments: { ch_01: cells },
+      chapterPhase: { ch_01: "translating(part 1/2)" },
+      activePart: { chapterId: "ch_01", current: 1, total: 2 },
+      callStartedAt: Date.now() - 5_000,
+      runState: { state: "running", active: true, current_chapter_id: "ch_01", latest_run: null },
     });
 
     render(<ActiveChapterCard />);
-    expect(screen.getByText(/Memperbaiki 3 segmen/i)).toBeInTheDocument();
+    expect(screen.getByText(/01 · 第1話 出会い/i)).toBeInTheDocument();
+    expect(screen.getByText(/2 bagian · 850 baris/i)).toBeInTheDocument();
+    expect(screen.getByText(/Bagian 1/i)).toBeInTheDocument();
+    expect(screen.getByRole("progressbar", { name: /2 dari 4 segmen/i })).toBeInTheDocument();
+    expect(screen.getByRole("timer")).toBeInTheDocument();
   });
 
-  it("renders paused state with paused tag and dimmed progress", () => {
+  it("shows the repairing tag when the engine reports the repair phase", () => {
+    useWorkspaceStore.setState({
+      chapterSegments: { ch_01: cells },
+      chapterPhase: { ch_01: "repairing" },
+      runState: { state: "running", active: true, current_chapter_id: "ch_01", latest_run: null },
+    });
+
+    render(<ActiveChapterCard />);
+    expect(screen.getByText(/memperbaiki segmen/i)).toBeInTheDocument();
+  });
+
+  it("renders paused state with paused tag", () => {
     useWorkspaceStore.setState({
       runState: { state: "paused", active: false, current_chapter_id: "ch_01", latest_run: null },
     });
@@ -182,16 +230,23 @@ describe("WaitingCounter component", () => {
     cleanup();
   });
 
-  it("renders waiting response before tokens received without spinners", () => {
-    const { container } = render(<WaitingCounter initialSeconds={12} tokensReceived={0} />);
+  it("renders waiting response before any text arrives, without spinners", () => {
+    const { container } = render(<WaitingCounter startedAt={Date.now() - 12_000} charsReceived={0} />);
     expect(screen.getByText(/Menunggu respons, 12 d|Waiting for response, 12 s/i)).toBeInTheDocument();
     // Verify zero svg/spinners in WaitingCounter
     expect(container.querySelector("svg")).toBeNull();
   });
 
-  it("renders token count and seconds during streaming", () => {
-    render(<WaitingCounter initialSeconds={48} tokensReceived={6204} />);
-    expect(screen.getByText(/Diterima 6\.204 token · 48 d|Received 6,204 tokens · 48 s/i)).toBeInTheDocument();
+  it("renders streamed characters and elapsed seconds", () => {
+    render(<WaitingCounter startedAt={Date.now() - 48_000} charsReceived={6204} />);
+    expect(
+      screen.getByText(/Diterima 6\.204 karakter · 48 d|Received 6,204 characters · 48 s/i)
+    ).toBeInTheDocument();
+  });
+
+  it("renders nothing when no call is running", () => {
+    const { container } = render(<WaitingCounter startedAt={null} />);
+    expect(container.textContent).toBe("");
   });
 });
 

@@ -19,6 +19,8 @@ pub struct ChapterDetail {
     pub chapter: Chapter,
     pub segments: Vec<Segment>,
     pub translations: Vec<Translation>,
+    /// Planned parts of the chapter (empty until the chapter is planned).
+    pub parts: Vec<crate::store::repo::ChunkPlan>,
 }
 
 #[tauri::command]
@@ -47,12 +49,31 @@ pub fn get_chapter(path: String, chapter_id: String) -> Result<ChapterDetail, Ap
 
     let segments = SegmentRepo::new(&conn).list_by_chapter(&chapter_id)?;
     let translations = TranslationRepo::new(&conn).get_current_by_chapter(&chapter_id)?;
+    let parts = crate::store::repo::ChunkPlanRepo::new(&conn).list_by_chapter(&chapter_id)?;
 
     Ok(ChapterDetail {
         chapter,
         segments,
         translations,
+        parts,
     })
+}
+
+/// Renders Translations.docx again on demand, e.g. after Word released the file.
+#[tauri::command]
+pub fn render_docx(app: tauri::AppHandle, path: String) -> Result<(), AppError> {
+    let p = Path::new(&path);
+    let layout = ProjectLayout::new(p);
+    let config = if layout.config_file.exists() {
+        crate::project::config::ProjectConfig::load_from_file(&layout.config_file)?
+    } else {
+        crate::project::config::ProjectConfig::for_profile("ja-id")
+    };
+    let global = crate::project::settings::GlobalSettings::load_from_app_data().unwrap_or_default();
+    let settings = crate::project::settings::EffectiveSettings::merge(&global, &config, None);
+    let conn = open_path(&layout.db_file)?;
+    let emitter = crate::commands::run::TauriEventEmitter { app };
+    crate::engine::chapter::render_docx_after_chapter(&conn, &layout, &settings, &emitter)
 }
 
 #[tauri::command]

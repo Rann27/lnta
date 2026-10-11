@@ -2,6 +2,7 @@ import React from "react";
 import { useTranslation } from "react-i18next";
 import { TallyLamp } from "../../../components/ui/TallyLamp";
 import { Tooltip } from "../../../components/ui/Tooltip";
+import { formatNumber } from "../../../lib/format";
 import { RunControl } from "./RunControl";
 import { useWorkspaceStore } from "../store";
 import styles from "./RunBar.module.css";
@@ -12,8 +13,9 @@ export const RunBar: React.FC = () => {
     projectPath,
     projectConfig,
     chapters,
-    selectedChapterId,
+    chapterSegments,
     runState,
+    activePart,
     inputTokens,
     outputTokens,
   } = useWorkspaceStore();
@@ -24,30 +26,43 @@ export const RunBar: React.FC = () => {
     : "LNTA";
   const profileLabel = projectConfig?.profile === "ja-en" ? "JP→EN" : "JP→ID";
 
-  const totalChapters = chapters.length;
-  const currentChapterIndex =
-    chapters.findIndex((c) => c.id === (runState.current_chapter_id || selectedChapterId)) + 1;
-  const chapIndexText = currentChapterIndex > 0 ? String(currentChapterIndex).padStart(2, "0") : "01";
-  const totalChaptersText = String(totalChapters || 1).padStart(2, "0");
-
-  const positionSummaryText = t("workspace.position_summary", {
-    currentChap: chapIndexText,
-    totalChap: totalChaptersText,
-    currentPart: "1",
-    totalPart: "2",
-    currentSeg: "41",
-    totalSeg: "88",
-  });
-
-  const formattedInput = inputTokens.toLocaleString();
-  const formattedOutput = outputTokens.toLocaleString();
+  // Position is only shown for a chapter the engine actually reported; nothing is guessed.
+  const currentChapterId = runState.current_chapter_id;
+  const currentIndex = chapters.findIndex((c) => c.id === currentChapterId);
+  const positionParts: string[] = [];
+  if (currentIndex >= 0 && runState.state !== "idle") {
+    positionParts.push(
+      t("workspace.position_chapter", {
+        currentChap: String(currentIndex + 1).padStart(2, "0"),
+        totalChap: String(chapters.length).padStart(2, "0"),
+      })
+    );
+    if (activePart && activePart.chapterId === currentChapterId && activePart.total > 1) {
+      positionParts.push(
+        t("workspace.position_part", {
+          currentPart: activePart.current,
+          totalPart: activePart.total,
+        })
+      );
+    }
+    const cells = (chapterSegments[currentChapterId ?? ""] ?? []).filter((s) => !s.isFixed);
+    if (cells.length > 0) {
+      positionParts.push(
+        t("workspace.position_segments", {
+          done: cells.filter((s) => s.status === "done").length,
+          total: cells.length,
+        })
+      );
+    }
+  }
+  const positionSummaryText = positionParts.join(" · ");
+  const hasUsage = (inputTokens ?? 0) > 0 || (outputTokens ?? 0) > 0;
 
   return (
     <header className={styles.runBar} role="banner">
-      {/* Left zone: max 360px */}
       <div className={styles.left}>
         <strong className={styles.projectName}>{projectName}</strong>
-        <span className={styles.profileBadge} title={`Profil: ${profileLabel}`}>
+        <span className={styles.profileBadge} title={profileLabel}>
           {profileLabel}
         </span>
         <Tooltip content={t("workspace.folder_path_tooltip", { path: projectPath })}>
@@ -57,27 +72,31 @@ export const RunBar: React.FC = () => {
         </Tooltip>
       </div>
 
-      {/* Center zone: flexible, truncated */}
       <div className={styles.center} aria-live="polite">
         {isLive && <TallyLamp />}
         <span className={styles.statusLabel}>
           {t(`status.${runState.state}`, runState.state)}
         </span>
-        <Tooltip content={positionSummaryText}>
-          <span className={styles.positionSummary} tabIndex={0}>
-            {positionSummaryText}
-          </span>
-        </Tooltip>
+        {positionSummaryText && (
+          <Tooltip content={positionSummaryText}>
+            <span className={styles.positionSummary} tabIndex={0}>
+              {positionSummaryText}
+            </span>
+          </Tooltip>
+        )}
       </div>
 
-      {/* Right zone: tokens counter and RunControl */}
       <div className={styles.right}>
-        <Tooltip content={t("workspace.tokens_tooltip")}>
-          <span className={styles.counter} tabIndex={0}>
-            Token masuk <b className={styles.counterBold}>{formattedInput}</b> · keluar{" "}
-            <b className={styles.counterBold}>{formattedOutput}</b>
-          </span>
-        </Tooltip>
+        {hasUsage && (
+          <Tooltip content={t("workspace.tokens_tooltip")}>
+            <span className={styles.counter} tabIndex={0}>
+              {t("workspace.tokens_in")}{" "}
+              <b className={styles.counterBold}>{formatNumber(inputTokens ?? 0)}</b> ·{" "}
+              {t("workspace.tokens_out")}{" "}
+              <b className={styles.counterBold}>{formatNumber(outputTokens ?? 0)}</b>
+            </span>
+          </Tooltip>
+        )}
 
         <RunControl />
       </div>

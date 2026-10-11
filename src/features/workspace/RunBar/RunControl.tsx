@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useId } from "react";
 import { useTranslation } from "react-i18next";
 import {
   Play,
@@ -8,6 +8,7 @@ import {
 } from "@phosphor-icons/react";
 import { Button } from "../../../components/ui/Button";
 import { Popover } from "../../../components/ui/Popover";
+import { Tooltip } from "../../../components/ui/Tooltip";
 import { PlanPreviewDialog } from "../PlanPreview/PlanPreviewDialog";
 import { useWorkspaceStore } from "../store";
 import styles from "./RunControl.module.css";
@@ -19,6 +20,9 @@ export const RunControl: React.FC = () => {
     preflight,
     selectedChapterId,
     startRun,
+    translateChapterOnly,
+    startQa,
+    openDocx,
     pauseRun,
     resumeRun,
     stopRun,
@@ -26,6 +30,7 @@ export const RunControl: React.FC = () => {
   } = useWorkspaceStore();
 
   const [menuOpen, setMenuOpen] = useState(false);
+  const reasonId = useId();
   const [planPreviewOpen, setPlanPreviewOpen] = useState(false);
 
   const state = runState.state;
@@ -36,8 +41,8 @@ export const RunControl: React.FC = () => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.ctrlKey && e.shiftKey && e.code === "KeyR") {
         e.preventDefault();
-        if (state === "idle" && !hasBlockers) {
-          startRun();
+        if ((state === "idle" || state === "failed") && !hasBlockers) {
+          void startRun();
         } else if (state === "paused") {
           resumeRun();
         }
@@ -62,7 +67,7 @@ export const RunControl: React.FC = () => {
   let disabledReason: string | undefined = undefined;
   let showMenuButton = true;
 
-  if (state === "idle" && hasBlockers) {
+  if ((state === "idle" || state === "failed") && hasBlockers) {
     mainVariant = "secondary";
     mainDisabled = true;
     disabledReason = t("workspace.run_control.preflight_blocker_reason");
@@ -91,34 +96,23 @@ export const RunControl: React.FC = () => {
     mainLabel = t("workspace.run_control.open_docx");
     mainVariant = "secondary";
     mainIcon = <ArrowSquareOut size={16} />;
-    mainAction = () => {
-      // In dev/tauri, opens docx or triggers open
-    };
+    mainAction = () => openDocx();
   }
 
   const renderMenuItems = () => {
-    if (state === "idle" && !hasBlockers) {
+    if ((state === "idle" || state === "failed") && !hasBlockers) {
       return (
         <>
           <button
             type="button"
             className={styles.menuItem}
+            disabled={!selectedChapterId}
             onClick={() => {
               setMenuOpen(false);
-              startRun(selectedChapterId ?? undefined);
+              if (selectedChapterId) void translateChapterOnly(selectedChapterId);
             }}
           >
-            {t("workspace.run_control.start_from_selected")}
-          </button>
-          <button
-            type="button"
-            className={styles.menuItem}
-            onClick={() => {
-              setMenuOpen(false);
-              startRun(selectedChapterId ?? undefined);
-            }}
-          >
-            {t("workspace.run_control.selected_only")}
+            {t("workspace.run_control.translate_selected_only")}
           </button>
           <div className={styles.divider} />
           <button
@@ -135,7 +129,7 @@ export const RunControl: React.FC = () => {
       );
     }
 
-    if (state === "idle" && hasBlockers) {
+    if ((state === "idle" || state === "failed") && hasBlockers) {
       return (
         <button
           type="button"
@@ -203,6 +197,7 @@ export const RunControl: React.FC = () => {
           onClick={() => {
             setMenuOpen(false);
             setActiveTab("qa");
+            void startQa();
           }}
         >
           {t("workspace.run_control.rerun_qa")}
@@ -215,16 +210,35 @@ export const RunControl: React.FC = () => {
 
   return (
     <div className={styles.runControl}>
-      <Button
-        variant={mainVariant}
-        disabled={mainDisabled}
-        disabledReason={disabledReason}
-        icon={mainIcon}
-        className={styles.mainBtn}
-        onClick={mainAction}
-      >
-        {mainLabel}
-      </Button>
+      {disabledReason ? (
+        // The reason lives in a tooltip: inline text would overflow the 48 px run bar.
+        <Tooltip content={disabledReason}>
+          <span tabIndex={0} aria-label={`${mainLabel}. ${disabledReason}`}>
+            <Button
+              variant={mainVariant}
+              disabled
+              icon={mainIcon}
+              className={styles.mainBtn}
+              aria-describedby={reasonId}
+            >
+              {mainLabel}
+            </Button>
+            <span id={reasonId} className={styles.srOnly}>
+              {disabledReason}
+            </span>
+          </span>
+        </Tooltip>
+      ) : (
+        <Button
+          variant={mainVariant}
+          disabled={mainDisabled}
+          icon={mainIcon}
+          className={styles.mainBtn}
+          onClick={mainAction}
+        >
+          {mainLabel}
+        </Button>
+      )}
 
       {showMenuButton && (
         <Popover
@@ -233,7 +247,7 @@ export const RunControl: React.FC = () => {
           trigger={
             <Button
               variant={mainVariant}
-              aria-label="Pilihan run lainnya"
+              aria-label={t("workspace.run_control.more_options")}
               aria-haspopup="menu"
               aria-expanded={menuOpen}
               className={styles.menuTrigger}

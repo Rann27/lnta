@@ -10,7 +10,10 @@ import styles from "./QaTab.module.css";
 
 export const QaTab: React.FC = () => {
   const { t } = useTranslation();
-  const { projectPath, selectChapter, setActiveTab } = useWorkspaceStore();
+  const { projectPath, selectChapter, setActiveTab, startQa, runState, qaPhase, chapters } =
+    useWorkspaceStore();
+  const runBusy = runState.active || runState.state === "pausing";
+  const hasFinishedChapter = chapters.some((c) => c.status === "done");
   const {
     findingsSummary,
     fixLog,
@@ -32,6 +35,13 @@ export const QaTab: React.FC = () => {
     }
   }, [projectPath, loadQaData]);
 
+  // Reload once a QA phase finishes so findings and the fix log show the new run.
+  useEffect(() => {
+    if (projectPath && qaPhase === "done") {
+      loadQaData(projectPath);
+    }
+  }, [projectPath, qaPhase, loadQaData]);
+
   const isEmpty =
     (!findingsSummary || findingsSummary.total_findings === 0) &&
     fixLog.length === 0;
@@ -45,10 +55,8 @@ export const QaTab: React.FC = () => {
           action={
             <Button
               variant="primary"
-              onClick={() => {
-                if (projectPath) loadQaData(projectPath);
-              }}
-              disabled={loading}
+              onClick={() => void startQa()}
+              disabled={loading || runBusy || !hasFinishedChapter}
             >
               {t("qa.empty.action")}
             </Button>
@@ -78,6 +86,14 @@ export const QaTab: React.FC = () => {
           <h2 className={styles.title}>{t("qa.title")}</h2>
           <p className={styles.description}>{t("qa.description")}</p>
         </div>
+
+        <Button
+          variant="secondary"
+          onClick={() => void startQa()}
+          disabled={runBusy || !hasFinishedChapter}
+        >
+          {t("qa_tab.run_qa")}
+        </Button>
 
         <div className={styles.statsBar}>
           <div className={styles.statItem}>

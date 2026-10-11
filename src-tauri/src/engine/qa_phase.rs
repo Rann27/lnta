@@ -32,7 +32,7 @@ use crate::store::repo::{
     Call, CallRepo, Chapter, Finding, FindingRepo, Run, RunRepo, TranslationRepo,
 };
 
-use super::chapter::render_docx_after_chapter;
+use super::chapter::render_docx_or_defer;
 use super::events::{EngineEvent, EventEmitter};
 use super::repair::ProviderResolver;
 
@@ -169,7 +169,7 @@ pub async fn run_qa_phase(
         }
     }
 
-    render_docx_after_chapter(conn, layout, settings, emitter)?;
+    render_docx_or_defer(conn, layout, settings, emitter)?;
     RunRepo::new(conn).finish_run(&run_id, "completed")?;
 
     let summary = build_qa_summary_log(
