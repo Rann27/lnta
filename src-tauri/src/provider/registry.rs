@@ -468,6 +468,17 @@ pub fn default_known_models() -> Vec<ModelEntry> {
             true,
             plain(),
         ),
+        // Context not published officially; a conservative window keeps chunk plans safe.
+        entry(
+            "xiaomi",
+            "mimo-v2.6-flash",
+            "MiMo V2.6 Flash",
+            256_000,
+            32_768,
+            None,
+            true,
+            plain(),
+        ),
         // Moonshot Kimi. K3 fixes its own sampling settings.
         entry(
             "moonshot",
