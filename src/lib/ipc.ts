@@ -79,6 +79,7 @@ export interface IpcTransport {
   getRunState(path: string): Promise<RunStateResponse>;
   startQa(path: string): Promise<string>;
   renderDocx(path: string): Promise<void>;
+  docxModifiedAt(path: string): Promise<string | null>;
   openPath(path: string): Promise<void>;
   revealPath(path: string): Promise<void>;
   retranslateChapter(
@@ -276,6 +277,10 @@ export class TauriTransport implements IpcTransport {
 
   renderDocx(path: string): Promise<void> {
     return invoke<void>("render_docx", { path });
+  }
+
+  docxModifiedAt(path: string): Promise<string | null> {
+    return invoke<string | null>("docx_modified_at", { path });
   }
 
   openPath(path: string): Promise<void> {

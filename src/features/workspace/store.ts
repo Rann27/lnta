@@ -4,6 +4,7 @@ import { ipc } from "../../lib/ipc";
 import { notifyOS } from "../../lib/notifications";
 import { errorMessage } from "../../lib/errors";
 import i18n from "../../lib/i18n";
+import { formatDateTime } from "../../lib/format";
 import type {
   Chapter,
   ChapterDetail,
@@ -109,6 +110,19 @@ export function normalizeChapterStatus(raw: string, runActive: boolean): string 
   return "pending";
 }
 
+/** Render time for the status bar: the clock time today, the date and time before that. */
+function renderedLabel(iso: string): string {
+  const when = new Date(iso);
+  if (Number.isNaN(when.getTime())) return iso;
+  const sameDay = when.toDateString() === new Date().toDateString();
+  if (!sameDay) return formatDateTime(when);
+  return when.toLocaleTimeString(i18n.language || "id", {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  });
+}
+
 function nowHHMM(): string {
   return new Date().toLocaleTimeString(i18n.language || "id", {
     hour: "2-digit",
@@ -211,6 +225,7 @@ export const useWorkspaceStore = create<WorkspaceState>((set, get) => ({
       chapterSegments: {},
       chapterParts: {},
       imagePageIds: {},
+      docxStatus: { status: "unknown" },
     });
 
     try {
@@ -235,6 +250,15 @@ export const useWorkspaceStore = create<WorkspaceState>((set, get) => ({
 
       await Promise.all(openResult.chapters.map((ch) => get().refreshChapter(ch.id)));
       await Promise.all([get().refreshUsage(), get().refreshCounts()]);
+
+      // Translations.docx is rendered after each chapter, so with finished chapters its
+      // write time is the last render. Before that it is still the user's template.
+      if (openResult.chapters.some((ch) => ch.status === "done")) {
+        const modified = await ipc.docxModifiedAt(path).catch(() => null);
+        if (modified && get().docxStatus.status === "unknown") {
+          set({ docxStatus: { status: "rendered", lastRenderedTime: renderedLabel(modified) } });
+        }
+      }
 
       const settings = await ipc.getGlobalSettings();
       const primary = settings.roles.translator.primary;

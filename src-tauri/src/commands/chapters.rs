@@ -59,6 +59,17 @@ pub fn get_chapter(path: String, chapter_id: String) -> Result<ChapterDetail, Ap
     })
 }
 
+/// Last write time of Translations.docx (RFC 3339), so the status bar can show the real
+/// render time after the app restarts.
+#[tauri::command]
+pub fn docx_modified_at(path: String) -> Option<String> {
+    let layout = ProjectLayout::new(Path::new(&path));
+    std::fs::metadata(&layout.docx_output)
+        .and_then(|m| m.modified())
+        .ok()
+        .map(|t| chrono::DateTime::<chrono::Utc>::from(t).to_rfc3339())
+}
+
 /// Renders Translations.docx again on demand, e.g. after Word released the file.
 #[tauri::command]
 pub fn render_docx(app: tauri::AppHandle, path: String) -> Result<(), AppError> {

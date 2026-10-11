@@ -754,6 +754,11 @@ export class PreviewTransport implements IpcTransport {
     void path;
   }
 
+  async docxModifiedAt(path: string): Promise<string | null> {
+    void path;
+    return null;
+  }
+
   async openPath(path: string): Promise<void> {
     void path;
   }
