@@ -94,8 +94,8 @@ pub struct RolesConfig {
 
 impl Default for RolesConfig {
     fn default() -> Self {
-        let default_primary = ModelReference::new("anthropic", "claude-3-7-sonnet-20250219");
-        let default_fallback = ModelReference::new("openai_compat", "gpt-4o");
+        let default_primary = ModelReference::new("anthropic", "claude-sonnet-5-5");
+        let default_fallback = ModelReference::new("gemini", "gemini-3.8-flash");
 
         let role_cfg = RoleConfig {
             primary: default_primary,
@@ -161,6 +161,110 @@ pub struct GlobalSettings {
     pub recent_projects: Vec<String>,
 }
 
+/// A provider LNTA knows out of the box: (id, display name, type, base URL).
+/// OpenAI-compatible APIs share one adapter; the base URL picks the service.
+const BUILTIN_PROVIDERS: &[(&str, &str, &str, &str)] = &[
+    (
+        "anthropic",
+        "Anthropic (Claude)",
+        "anthropic",
+        "https://api.anthropic.com",
+    ),
+    (
+        "openai",
+        "OpenAI (GPT)",
+        "openai_compat",
+        "https://api.openai.com/v1",
+    ),
+    (
+        "gemini",
+        "Google (Gemini)",
+        "gemini",
+        "https://generativelanguage.googleapis.com",
+    ),
+    ("xai", "xAI (Grok)", "openai_compat", "https://api.x.ai/v1"),
+    (
+        "deepseek",
+        "DeepSeek",
+        "openai_compat",
+        "https://api.deepseek.com",
+    ),
+    (
+        "zai",
+        "Z.ai (GLM)",
+        "openai_compat",
+        "https://api.z.ai/api/paas/v4",
+    ),
+    (
+        "qwen",
+        "Alibaba (Qwen)",
+        "openai_compat",
+        "https://dashscope-intl.aliyuncs.com/compatible-mode/v1",
+    ),
+    (
+        "minimax",
+        "MiniMax",
+        "openai_compat",
+        "https://api.minimax.io/v1",
+    ),
+    (
+        "xiaomi",
+        "Xiaomi (MiMo)",
+        "openai_compat",
+        "https://api.xiaomimimo.com/v1",
+    ),
+    (
+        "moonshot",
+        "Moonshot (Kimi)",
+        "openai_compat",
+        "https://api.moonshot.ai/v1",
+    ),
+    (
+        "mistral",
+        "Mistral",
+        "openai_compat",
+        "https://api.mistral.ai/v1",
+    ),
+    (
+        "openrouter",
+        "OpenRouter (gateway)",
+        "openai_compat",
+        "https://openrouter.ai/api/v1",
+    ),
+    (
+        "cli_claude",
+        "Claude Code CLI (langganan Claude)",
+        "cli_claude",
+        "local://claude",
+    ),
+    (
+        "cli_codex",
+        "Codex CLI (langganan ChatGPT)",
+        "cli_codex",
+        "local://codex",
+    ),
+    (
+        "cli_antigravity",
+        "Antigravity CLI (langganan Google AI)",
+        "cli_antigravity",
+        "local://agy",
+    ),
+];
+
+/// Built-in providers in catalogue order.
+pub fn builtin_providers() -> Vec<ProviderConfigEntry> {
+    BUILTIN_PROVIDERS
+        .iter()
+        .map(|(id, name, provider_type, base_url)| ProviderConfigEntry {
+            id: id.to_string(),
+            name: name.to_string(),
+            provider_type: provider_type.to_string(),
+            base_url: base_url.to_string(),
+            active: true,
+        })
+        .collect()
+}
+
 impl Default for GlobalSettings {
     fn default() -> Self {
         Self {
@@ -169,29 +273,7 @@ impl Default for GlobalSettings {
             notifications_enabled: true,
             roles: RolesConfig::default(),
             recent_projects: Vec::new(),
-            providers: vec![
-                ProviderConfigEntry {
-                    id: "anthropic".to_string(),
-                    name: "Anthropic".to_string(),
-                    provider_type: "anthropic".to_string(),
-                    base_url: "https://api.anthropic.com".to_string(),
-                    active: true,
-                },
-                ProviderConfigEntry {
-                    id: "gemini".to_string(),
-                    name: "Google Gemini".to_string(),
-                    provider_type: "gemini".to_string(),
-                    base_url: "https://generativelanguage.googleapis.com".to_string(),
-                    active: true,
-                },
-                ProviderConfigEntry {
-                    id: "openai_compat".to_string(),
-                    name: "OpenAI Compatible".to_string(),
-                    provider_type: "openai_compat".to_string(),
-                    base_url: "https://api.openai.com/v1".to_string(),
-                    active: true,
-                },
-            ],
+            providers: builtin_providers(),
             custom_models: Vec::new(),
         }
     }
@@ -207,9 +289,65 @@ impl GlobalSettings {
         let content = fs::read_to_string(path_ref).map_err(|e| AppError::Internal {
             message: format!("Failed to read settings from {}: {e}", path_ref.display()),
         })?;
-        serde_json::from_str(&content).map_err(|e| AppError::Internal {
-            message: format!("Failed to parse global settings: {e}"),
-        })
+        let mut settings: Self =
+            serde_json::from_str(&content).map_err(|e| AppError::Internal {
+                message: format!("Failed to parse global settings: {e}"),
+            })?;
+        if settings.rename_legacy_openai_entry() {
+            // The key follows the entry; a failure only means re-entering it once.
+            if let Ok(Some(key)) = crate::secrets::get_api_key("openai_compat") {
+                if crate::secrets::set_api_key("openai", &key).is_ok() {
+                    let _ = crate::secrets::delete_api_key("openai_compat");
+                }
+            }
+        }
+        settings.add_missing_builtin_providers();
+        Ok(settings)
+    }
+
+    /// Older settings named the OpenAI entry `openai_compat`. Renames it to `openai`, along
+    /// with role and custom-model references, so a saved choice keeps working.
+    /// Returns true when it renamed something (the caller moves the stored key).
+    pub fn rename_legacy_openai_entry(&mut self) -> bool {
+        let is_legacy = |p: &ProviderConfigEntry| {
+            p.id == "openai_compat"
+                && p.base_url.trim_end_matches('/') == "https://api.openai.com/v1"
+        };
+        if !self.providers.iter().any(is_legacy) || self.providers.iter().any(|p| p.id == "openai")
+        {
+            return false;
+        }
+        for p in self.providers.iter_mut().filter(|p| is_legacy(p)) {
+            p.id = "openai".to_string();
+            p.name = "OpenAI (GPT)".to_string();
+        }
+        for role in Role::ALL {
+            let cfg = self.roles.for_role_mut(role);
+            for model in std::iter::once(&mut cfg.primary).chain(cfg.fallbacks.iter_mut()) {
+                if model.provider == "openai_compat" {
+                    model.provider = "openai".to_string();
+                }
+            }
+        }
+        for model in &mut self.custom_models {
+            if model.provider == "openai_compat" {
+                model.provider = "openai".to_string();
+            }
+        }
+        true
+    }
+
+    /// Adds built-in providers that an older settings file does not list yet, and retires
+    /// entries that can no longer work. User-added and edited entries are kept as they are.
+    pub fn add_missing_builtin_providers(&mut self) {
+        // Gemini CLI stopped serving personal Google AI subscriptions on 2026-06-18;
+        // Antigravity CLI replaces it.
+        self.providers.retain(|p| p.provider_type != "cli_gemini");
+        for builtin in builtin_providers() {
+            if !self.providers.iter().any(|p| p.id == builtin.id) {
+                self.providers.push(builtin);
+            }
+        }
     }
 
     /// Saves global settings atomically to a specific JSON file path.
@@ -396,11 +534,79 @@ mod tests {
         for role in Role::ALL {
             let cfg = roles.for_role(role);
             assert_eq!(cfg.primary.provider, "anthropic");
-            assert_eq!(cfg.primary.model_id, "claude-3-7-sonnet-20250219");
+            assert_eq!(cfg.primary.model_id, "claude-sonnet-5-5");
             assert_eq!(cfg.fallbacks.len(), 1);
-            assert_eq!(cfg.fallbacks[0].provider, "openai_compat");
-            assert_eq!(cfg.fallbacks[0].model_id, "gpt-4o");
+            assert_eq!(cfg.fallbacks[0].provider, "gemini");
+            assert_eq!(cfg.fallbacks[0].model_id, "gemini-3.8-flash");
         }
+    }
+
+    #[test]
+    fn test_default_providers_cover_the_catalogue() {
+        let ids: Vec<String> = GlobalSettings::default()
+            .providers
+            .into_iter()
+            .map(|p| p.id)
+            .collect();
+        for id in [
+            "anthropic",
+            "openai",
+            "gemini",
+            "xai",
+            "deepseek",
+            "zai",
+            "qwen",
+            "minimax",
+            "xiaomi",
+            "moonshot",
+            "openrouter",
+            "cli_claude",
+            "cli_codex",
+            "cli_antigravity",
+        ] {
+            assert!(ids.iter().any(|i| i == id), "{id}");
+        }
+    }
+
+    #[test]
+    fn test_old_settings_gain_new_providers_and_lose_dead_ones() {
+        let mut settings = GlobalSettings {
+            providers: vec![
+                ProviderConfigEntry {
+                    id: "openai_compat".to_string(),
+                    name: "OpenAI Compatible".to_string(),
+                    provider_type: "openai_compat".to_string(),
+                    base_url: "https://api.openai.com/v1".to_string(),
+                    active: true,
+                },
+                ProviderConfigEntry {
+                    id: "my_gemini_cli".to_string(),
+                    name: "Gemini CLI".to_string(),
+                    provider_type: "cli_gemini".to_string(),
+                    base_url: "local://gemini".to_string(),
+                    active: true,
+                },
+                ProviderConfigEntry {
+                    id: "local_llm".to_string(),
+                    name: "LM Studio".to_string(),
+                    provider_type: "openai_compat".to_string(),
+                    base_url: "http://127.0.0.1:1234/v1".to_string(),
+                    active: true,
+                },
+            ],
+            ..GlobalSettings::default()
+        };
+        settings.roles.translator.primary = ModelReference::new("openai_compat", "gpt-6.1-sol");
+        assert!(settings.rename_legacy_openai_entry());
+        settings.add_missing_builtin_providers();
+        let ids: Vec<&str> = settings.providers.iter().map(|p| p.id.as_str()).collect();
+        assert!(ids.contains(&"local_llm"));
+        assert_eq!(ids.iter().filter(|i| **i == "openai").count(), 1);
+        assert!(!ids.contains(&"openai_compat"));
+        assert!(!ids.contains(&"my_gemini_cli"));
+        assert_eq!(settings.roles.translator.primary.provider, "openai");
+        // A second pass changes nothing.
+        assert!(!settings.rename_legacy_openai_entry());
     }
 
     #[test]
@@ -454,7 +660,7 @@ mod tests {
         assert!(effective1.normalize_ruby);
         assert_eq!(
             effective1.roles.translator.primary.model_id,
-            "claude-3-7-sonnet-20250219"
+            "claude-sonnet-5-5"
         );
 
         // Merge with explicit project overrides (e.g. custom roles and strip_title_brackets = false)

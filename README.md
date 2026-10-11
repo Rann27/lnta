@@ -12,7 +12,8 @@ In traditional agentic pipelines, significant tokens and time are lost having AI
 
 - **Deterministic Pipeline:** Parses raw chapters, normalizes furigana ruby markup, extracts titles, plans token-safe chunk parts, and tracks translation state in an embedded SQLite database.
 - **DOCX Generation:** Directly generates and updates `Translations.docx` matching standard layout conventions (Letter page size, margins, paragraph breaks, heading styles, and standalone full-page illustration layout).
-- **Multi-Role AI Execution:** Dispatches translation, repair, QA review, and QA fixing to separate configurable models across multiple providers (Anthropic, OpenAI, Google Gemini, and CLI tools).
+- **Multi-Role AI Execution:** Dispatches translation, repair, QA review, and QA fixing to separate configurable models, each with ordered fallbacks.
+- **Providers:** Anthropic, OpenAI, Google Gemini, xAI Grok, DeepSeek, Z.ai GLM, Alibaba Qwen, MiniMax, Xiaomi MiMo, Moonshot Kimi, Mistral, the OpenRouter gateway, and any other OpenAI-compatible endpoint (including local servers). Subscriptions work through their official CLIs: Claude Code (Claude Pro/Max), Codex CLI (ChatGPT Plus/Pro), and Antigravity CLI (Google AI Pro/Ultra), each signed in once in a terminal.
 - **Comprehensive QA Scanner:** Performs dozens of profile-specific QA checks across Indonesian (`ja-id`) and English (`ja-en`) profiles, applying mechanical fixes with full versioned undo support.
 - **Privacy & Security:** Runs entirely locally; API keys are kept in the OS credential manager and network traffic is restricted solely to AI model provider endpoints.
 

@@ -35,7 +35,7 @@ impl CliCodexProvider {
     pub fn new() -> Self {
         Self {
             executable: "codex".to_string(),
-            timeout: Duration::from_secs(180),
+            timeout: crate::provider::cli_common::CLI_TIMEOUT,
         }
     }
 
@@ -81,6 +81,14 @@ impl Provider for CliCodexProvider {
         if !model_arg.is_empty() && model_arg != "default" {
             args.push("-m");
             args.push(model_arg);
+        }
+        let effort_arg = req
+            .reasoning_effort
+            .as_deref()
+            .map(|e| format!("model_reasoning_effort=\"{e}\""));
+        if let Some(effort) = effort_arg.as_deref() {
+            args.push("-c");
+            args.push(effort);
         }
 
         let full_prompt = if req.system_prompt.trim().is_empty() {

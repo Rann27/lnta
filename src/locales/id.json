@@ -355,7 +355,7 @@
     },
     "providers": {
       "title": "Provider API",
-      "subtitle": "Kelola koneksi model OpenAI-compat, Anthropic, dan Google Gemini.",
+      "subtitle": "Kunci API disimpan di keyring sistem. Provider CLI memakai login langganan di terminal, tanpa kunci.",
       "add_button": "Tambah provider",
       "empty_text": "Belum ada provider yang dikonfigurasi.",
       "active_toggle": "Aktif",
@@ -371,7 +371,27 @@
       "id_label": "ID unik",
       "id_hint": "Digunakan sebagai referensi model (misal: openai, groq, openrouter)",
       "base_url_label": "Base URL endpoint",
-      "name_placeholder": "misal: OpenAI / OpenRouter"
+      "name_placeholder": "misal: OpenAI / OpenRouter",
+      "types": {
+        "openai_compat": "API kompatibel OpenAI",
+        "anthropic": "API Anthropic",
+        "gemini": "API Gemini",
+        "cli_claude": "Claude Code CLI",
+        "cli_codex": "Codex CLI",
+        "cli_antigravity": "Antigravity CLI"
+      },
+      "cli_hint": {
+        "cli_claude": "Memakai langganan Claude Pro atau Max. Pasang Claude Code, jalankan claude sekali di terminal, lalu masuk dengan akun Claude.",
+        "cli_codex": "Memakai langganan ChatGPT Plus atau Pro. Pasang Codex CLI, jalankan codex login, lalu pilih masuk dengan ChatGPT.",
+        "cli_antigravity": "Memakai langganan Google AI Pro atau Ultra. Pasang Antigravity CLI, jalankan agy sekali, lalu masuk dengan akun Google. Kuotanya dipakai bersama aplikasi Antigravity."
+      },
+      "cli_check": "Periksa CLI",
+      "cli_found": "CLI ditemukan.",
+      "cli_install": "Cara memasang",
+      "get_key": "Dapatkan kunci API",
+      "needs_key": "Simpan kunci API dulu.",
+      "fetched_models_one": "{{count}} model diambil.",
+      "fetched_models_other": "{{count}} model diambil."
     },
     "models": {
       "title": "Registri Model",
@@ -415,7 +435,13 @@
       "select_fallback_placeholder": "Pilih model fallback...",
       "add_fallback_button": "Tambah Fallback",
       "move_up": "Pindahkan ke atas",
-      "move_down": "Pindahkan ke bawah"
+      "move_down": "Pindahkan ke bawah",
+      "effort_label": "Reasoning effort",
+      "effort_default": "Bawaan model ({{value}})",
+      "temperature_label": "Temperature",
+      "temperature_fixed": "Model ini mengatur temperature sendiri.",
+      "temperature_recommended": "Disarankan provider: {{value}}",
+      "temperature_default": "Kosongkan untuk memakai bawaan provider."
     }
   },
   "glossary": {

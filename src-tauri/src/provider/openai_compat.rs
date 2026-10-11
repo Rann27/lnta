@@ -45,9 +45,24 @@ struct ChatCompletionRequestBody<'a> {
     temperature: Option<f32>,
     #[serde(skip_serializing_if = "Option::is_none")]
     max_tokens: Option<u32>,
+    /// OpenAI's own API rejects `max_tokens` on reasoning models and takes this instead.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    max_completion_tokens: Option<u32>,
     #[serde(skip_serializing_if = "Option::is_none")]
     reasoning_effort: Option<&'a str>,
     stream_options: ChatCompletionStreamOptions,
+}
+
+/// Service-specific request details for the APIs that share this adapter.
+fn host_of(base_url: &str) -> String {
+    base_url
+        .split("://")
+        .nth(1)
+        .unwrap_or(base_url)
+        .split(['/', ':'])
+        .next()
+        .unwrap_or_default()
+        .to_ascii_lowercase()
 }
 
 #[derive(Debug, Serialize)]
@@ -256,12 +271,15 @@ impl Provider for OpenAiCompatProvider {
             },
         ];
 
+        let host = host_of(&self.config.base_url);
+        let openai_native = host == "api.openai.com";
         let body = ChatCompletionRequestBody {
             model: &req.model,
             messages,
             stream: true,
             temperature: req.temperature,
-            max_tokens: req.max_output_tokens,
+            max_tokens: (!openai_native).then_some(req.max_output_tokens).flatten(),
+            max_completion_tokens: openai_native.then_some(req.max_output_tokens).flatten(),
             reasoning_effort: req.reasoning_effort.as_deref(),
             stream_options: ChatCompletionStreamOptions {
                 include_usage: true,
@@ -272,6 +290,16 @@ impl Provider for OpenAiCompatProvider {
 
         if let Some(ref key) = self.config.api_key {
             request_builder = request_builder.header("Authorization", format!("Bearer {key}"));
+            // Xiaomi MiMo documents its own `api-key` header.
+            if host.ends_with("xiaomimimo.com") {
+                request_builder = request_builder.header("api-key", key);
+            }
+        }
+        if host == "openrouter.ai" {
+            // OpenRouter's optional app attribution.
+            request_builder = request_builder
+                .header("HTTP-Referer", "https://github.com/Rann27/lnta")
+                .header("X-Title", "LNTA");
         }
 
         for (k, v) in &self.config.extra_headers {
@@ -305,6 +333,13 @@ impl Provider for OpenAiCompatProvider {
 #[allow(clippy::unwrap_used, clippy::panic)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_host_of_extracts_the_service_host() {
+        assert_eq!(host_of("https://api.openai.com/v1"), "api.openai.com");
+        assert_eq!(host_of("https://OpenRouter.ai/api/v1"), "openrouter.ai");
+        assert_eq!(host_of("http://127.0.0.1:8799/v1"), "127.0.0.1");
+    }
 
     #[test]
     fn test_parse_recorded_sse_stream_success_and_usage() {

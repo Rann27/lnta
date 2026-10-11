@@ -77,6 +77,15 @@ pub struct AnthropicRequestBody<'a> {
     pub stream: bool,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub temperature: Option<f32>,
+    /// Effort steers adaptive thinking on current models (`output_config.effort`).
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub output_config: Option<AnthropicOutputConfig<'a>>,
+}
+
+/// `output_config` block of a Messages request.
+#[derive(Debug, Serialize)]
+pub struct AnthropicOutputConfig<'a> {
+    pub effort: &'a str,
 }
 
 // Internal SSE deserialization structures.
@@ -103,6 +112,9 @@ enum AnthropicStreamEvent {
     Ping,
     #[serde(rename = "error")]
     Error { error: AnthropicStreamError },
+    /// Event types added after this adapter was written are skipped, not fatal.
+    #[serde(other)]
+    Other,
 }
 
 #[derive(Debug, Deserialize)]
@@ -231,7 +243,8 @@ pub fn parse_recorded_anthropic_sse(
             AnthropicStreamEvent::ContentBlockStart
             | AnthropicStreamEvent::ContentBlockStop
             | AnthropicStreamEvent::MessageStop
-            | AnthropicStreamEvent::Ping => {}
+            | AnthropicStreamEvent::Ping
+            | AnthropicStreamEvent::Other => {}
         }
     }
 
@@ -284,7 +297,8 @@ impl AnthropicProvider {
 
         AnthropicRequestBody {
             model: &req.model,
-            max_tokens: req.max_output_tokens.unwrap_or(4096),
+            // Thinking counts toward max_tokens, so a small default would cut replies short.
+            max_tokens: req.max_output_tokens.unwrap_or(32_000),
             system,
             messages: vec![AnthropicMessage {
                 role: "user",
@@ -292,6 +306,10 @@ impl AnthropicProvider {
             }],
             stream: true,
             temperature: req.temperature,
+            output_config: req
+                .reasoning_effort
+                .as_deref()
+                .map(|effort| AnthropicOutputConfig { effort }),
         }
     }
 }

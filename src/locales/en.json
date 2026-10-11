@@ -355,7 +355,7 @@
     },
     "providers": {
       "title": "API Providers",
-      "subtitle": "Manage OpenAI-compatible, Anthropic, and Google Gemini connections.",
+      "subtitle": "API keys live in the system keyring. CLI providers use your subscription login in the terminal, with no key.",
       "add_button": "Add provider",
       "empty_text": "No providers configured yet.",
       "active_toggle": "Active",
@@ -371,7 +371,27 @@
       "id_label": "Unique ID",
       "id_hint": "Used as provider reference (e.g. openai, groq, openrouter)",
       "base_url_label": "Endpoint base URL",
-      "name_placeholder": "for example: OpenAI / OpenRouter"
+      "name_placeholder": "for example: OpenAI / OpenRouter",
+      "types": {
+        "openai_compat": "OpenAI-compatible API",
+        "anthropic": "Anthropic API",
+        "gemini": "Gemini API",
+        "cli_claude": "Claude Code CLI",
+        "cli_codex": "Codex CLI",
+        "cli_antigravity": "Antigravity CLI"
+      },
+      "cli_hint": {
+        "cli_claude": "Uses a Claude Pro or Max subscription. Install Claude Code, run claude once in a terminal, and sign in with your Claude account.",
+        "cli_codex": "Uses a ChatGPT Plus or Pro subscription. Install Codex CLI, run codex login, and choose to sign in with ChatGPT.",
+        "cli_antigravity": "Uses a Google AI Pro or Ultra subscription. Install Antigravity CLI, run agy once, and sign in with your Google account. Its quota is shared with the Antigravity app."
+      },
+      "cli_check": "Check CLI",
+      "cli_found": "CLI found.",
+      "cli_install": "How to install",
+      "get_key": "Get an API key",
+      "needs_key": "Save an API key first.",
+      "fetched_models_one": "{{count}} model fetched.",
+      "fetched_models_other": "{{count}} models fetched."
     },
     "models": {
       "title": "Model Registry",
@@ -415,7 +435,13 @@
       "select_fallback_placeholder": "Select a fallback model...",
       "add_fallback_button": "Add Fallback",
       "move_up": "Move up",
-      "move_down": "Move down"
+      "move_down": "Move down",
+      "effort_label": "Reasoning effort",
+      "effort_default": "Model default ({{value}})",
+      "temperature_label": "Temperature",
+      "temperature_fixed": "This model sets its own temperature.",
+      "temperature_recommended": "Provider recommends: {{value}}",
+      "temperature_default": "Leave empty to use the provider default."
     }
   },
   "glossary": {

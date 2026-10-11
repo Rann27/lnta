@@ -144,9 +144,9 @@ impl ProviderResolver for DynamicProviderResolver {
             "cli_claude" => {
                 AnyProvider::CliClaude(Arc::new(crate::provider::CliClaudeProvider::new()))
             }
-            "cli_gemini" => {
-                AnyProvider::CliGemini(Arc::new(crate::provider::CliGeminiProvider::new()))
-            }
+            "cli_antigravity" => AnyProvider::CliAntigravity(Arc::new(
+                crate::provider::CliAntigravityProvider::new(),
+            )),
             "cli_codex" => {
                 AnyProvider::CliCodex(Arc::new(crate::provider::CliCodexProvider::new()))
             }

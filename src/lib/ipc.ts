@@ -1,7 +1,11 @@
 import { invoke, isTauri } from "@tauri-apps/api/core";
 import { PreviewTransport } from "./preview/transport";
 import { listen, type UnlistenFn } from "@tauri-apps/api/event";
-import { openPath as openWithDefaultApp, revealItemInDir } from "@tauri-apps/plugin-opener";
+import {
+  openPath as openWithDefaultApp,
+  openUrl as openExternalUrl,
+  revealItemInDir,
+} from "@tauri-apps/plugin-opener";
 import type {
   AppInfo,
   Chapter,
@@ -65,11 +69,9 @@ export interface IpcTransport {
   // Models
   listModels(): Promise<ModelEntry[]>;
   registerModel(entry: ModelEntry): Promise<void>;
-  fetchProviderModels(
-    providerType: string,
-    baseUrl: string,
-    apiKey?: string
-  ): Promise<ModelEntry[]>;
+  /** Fetches a configured provider's current models with its stored key and keeps new ones. */
+  fetchProviderModels(providerId: string): Promise<ModelEntry[]>;
+  openUrl(url: string): Promise<void>;
 
   // Run
   startRun(path: string): Promise<string>;
@@ -239,15 +241,13 @@ export class TauriTransport implements IpcTransport {
     return invoke<void>("register_model", { entry });
   }
 
-  fetchProviderModels(
-    providerType: string,
-    baseUrl: string,
-    apiKey?: string
-  ): Promise<ModelEntry[]> {
+  openUrl(url: string): Promise<void> {
+    return openExternalUrl(url);
+  }
+
+  fetchProviderModels(providerId: string): Promise<ModelEntry[]> {
     return invoke<ModelEntry[]>("fetch_provider_models", {
-      providerType,
-      baseUrl,
-      apiKey: apiKey ?? null,
+      providerId,
     });
   }
 

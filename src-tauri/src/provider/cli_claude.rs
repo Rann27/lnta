@@ -1,11 +1,16 @@
 //! Anthropic Claude Code CLI adapter per FR-PRV-05, Story G2, and PRD §10.5.
 //!
-//! Note on tool/flag verification:
-//! Claude Code CLI flags derived from official Claude Code documentation (v0.2.x+ headless mode):
-//! - `-p` (print mode: non-interactive headless invocation; prompts passed via stdin)
-//! - `--output-format json` (emits structured JSON payload containing result text and token usage)
-//! - `--model <model>` (explicit model selector)
-//! - Tools are not triggered during single-turn headless translation runs.
+//! Flags follow the Claude Code CLI reference (checked October 2026):
+//! - `-p` with the user prompt on stdin (capped at 10 MB, far above a chapter part)
+//! - `--system-prompt-file`: the contract and instruction replace Claude Code's coding persona;
+//!   a file avoids the Windows command-line length limit
+//! - `--tools ""` plus `--disallowedTools "mcp__*"`: translation needs no tools at all
+//! - `--strict-mcp-config`, `--disable-slash-commands`, `--no-session-persistence`: nothing from
+//!   the user's Claude Code setup leaks into the call, and no transcript is kept
+//! - `--output-format json`: the reply is in `result`, token counts in `usage`
+//!
+//! It runs on the user's own Claude login (Pro or Max); `--bare` is avoided because it reads
+//! only an API key.
 
 use std::time::Duration;
 
@@ -31,7 +36,7 @@ impl CliClaudeProvider {
     pub fn new() -> Self {
         Self {
             executable: "claude".to_string(),
-            timeout: Duration::from_secs(180),
+            timeout: crate::provider::cli_common::CLI_TIMEOUT,
         }
     }
 
@@ -62,25 +67,42 @@ impl Provider for CliClaudeProvider {
 
         let temp_guard = TempDirGuard::new()?;
 
-        let mut args: Vec<&str> = vec!["-p", "--output-format", "json"];
+        let system_file = temp_guard.path.join("system-prompt.md");
+        std::fs::write(&system_file, &req.system_prompt).map_err(|e| AppError::Internal {
+            message: format!("Failed to write the system prompt for Claude Code: {e}"),
+        })?;
+        let system_path = system_file.to_string_lossy().to_string();
+
+        let mut args: Vec<&str> = vec![
+            "-p",
+            "--output-format",
+            "json",
+            "--system-prompt-file",
+            &system_path,
+            "--tools",
+            "",
+            "--disallowedTools",
+            "mcp__*",
+            "--strict-mcp-config",
+            "--disable-slash-commands",
+            "--no-session-persistence",
+        ];
 
         let model_arg = req.model.trim();
         if !model_arg.is_empty() && model_arg != "default" {
             args.push("--model");
             args.push(model_arg);
         }
-
-        let full_prompt = if req.system_prompt.trim().is_empty() {
-            req.user_prompt.clone()
-        } else {
-            format!("{}\n\n{}", req.system_prompt, req.user_prompt)
-        };
+        if let Some(effort) = req.reasoning_effort.as_deref() {
+            args.push("--effort");
+            args.push(effort);
+        }
 
         let output = execute_cli_command(
             &bin_path,
             &args,
             &temp_guard.path,
-            &full_prompt,
+            &req.user_prompt,
             self.timeout,
         )
         .await?;

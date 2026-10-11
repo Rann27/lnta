@@ -230,9 +230,10 @@ pub fn run_preflight_on_folder(
         .map(|p| p.provider_type.as_str())
         .unwrap_or(trans_role.primary.provider.as_str());
     let has_key = match provider_kind {
-        "cli_claude" => crate::provider::cli_common::resolve_cli_path("claude").is_some(),
-        "cli_gemini" => crate::provider::cli_common::resolve_cli_path("gemini").is_some(),
-        "cli_codex" => crate::provider::cli_common::resolve_cli_path("codex").is_some(),
+        "cli_claude" | "cli_codex" | "cli_antigravity" => {
+            let bin = crate::provider::cli_common::cli_binary_for(provider_kind);
+            crate::provider::cli_common::resolve_cli_path(bin).is_some()
+        }
         "mock" => true,
         "openai_compat" if provider_cfg.is_some_and(|p| is_local_url(&p.base_url)) => true,
         _ => crate::secrets::get_api_key(&trans_role.primary.provider)

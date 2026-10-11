@@ -219,8 +219,8 @@ export class PreviewTransport implements IpcTransport {
     }));
 
     return {
-      model_id: model?.model_id ?? "claude-3-5-sonnet",
-      model_name: model?.model_id ?? "Claude 3.5 Sonnet",
+      model_id: model?.model_id ?? "claude-sonnet-5-5",
+      model_name: model?.model_id ?? "Claude Sonnet 5.5",
       provider: model?.provider ?? "anthropic",
       total_chapters: chapters.length,
       total_parts: chapters.reduce((acc, c) => acc + c.part_count, 0),
@@ -267,29 +267,29 @@ export class PreviewTransport implements IpcTransport {
       notifications_enabled: true,
       roles: {
         translator: {
-          primary: { provider: "anthropic", model_id: "claude-3-5-sonnet" },
-          fallbacks: [{ provider: "openai", model_id: "gpt-4o" }],
+          primary: { provider: "anthropic", model_id: "claude-sonnet-5-5" },
+          fallbacks: [{ provider: "openai", model_id: "gpt-6.1-sol" }],
           temperature: 0.3,
           max_output_tokens: 4096,
           reasoning_effort: null,
         },
         repair: {
-          primary: { provider: "anthropic", model_id: "claude-3-5-sonnet" },
-          fallbacks: [{ provider: "openai", model_id: "gpt-4o" }],
+          primary: { provider: "anthropic", model_id: "claude-sonnet-5-5" },
+          fallbacks: [{ provider: "openai", model_id: "gpt-6.1-sol" }],
           temperature: 0.2,
           max_output_tokens: 4096,
           reasoning_effort: null,
         },
         qa_reviewer: {
-          primary: { provider: "openai", model_id: "gpt-4o" },
-          fallbacks: [{ provider: "gemini", model_id: "gemini-1.5-pro" }],
+          primary: { provider: "openai", model_id: "gpt-6.1-sol" },
+          fallbacks: [{ provider: "gemini", model_id: "gemini-3.8-flash" }],
           temperature: 0.1,
           max_output_tokens: 4096,
           reasoning_effort: null,
         },
         qa_fixer: {
-          primary: { provider: "anthropic", model_id: "claude-3-5-sonnet" },
-          fallbacks: [{ provider: "openai", model_id: "gpt-4o" }],
+          primary: { provider: "anthropic", model_id: "claude-sonnet-5-5" },
+          fallbacks: [{ provider: "openai", model_id: "gpt-6.1-sol" }],
           temperature: 0.2,
           max_output_tokens: 4096,
           reasoning_effort: null,
@@ -374,15 +374,12 @@ export class PreviewTransport implements IpcTransport {
     }
   }
 
-  async fetchProviderModels(
-    providerType: string,
-    baseUrl: string,
-    apiKey?: string
-  ): Promise<ModelEntry[]> {
-    void providerType;
-    void baseUrl;
-    void apiKey;
-    return this.inMemoryModels;
+  async openUrl(url: string): Promise<void> {
+    window.open(url, "_blank", "noopener,noreferrer");
+  }
+
+  async fetchProviderModels(providerId: string): Promise<ModelEntry[]> {
+    return this.inMemoryModels.filter((m) => m.provider === providerId);
   }
 
   // Run

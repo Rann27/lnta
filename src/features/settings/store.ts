@@ -30,11 +30,7 @@ export interface SettingsState {
   clearApiKey: (providerId: string) => Promise<void>;
   testProvider: (providerId: string) => Promise<ProviderTestResult>;
   registerModel: (entry: ModelEntry) => Promise<void>;
-  fetchProviderModels: (
-    providerType: string,
-    baseUrl: string,
-    apiKey?: string
-  ) => Promise<ModelEntry[]>;
+  fetchProviderModels: (providerId: string) => Promise<ModelEntry[]>;
   updateRolePrimary: (roleName: keyof RolesConfig, primary: ModelReference) => Promise<void>;
   addRoleFallback: (roleName: keyof RolesConfig, fallback: ModelReference) => Promise<void>;
   removeRoleFallback: (roleName: keyof RolesConfig, index: number) => Promise<void>;
@@ -174,12 +170,8 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
     set({ models: updatedModels });
   },
 
-  fetchProviderModels: async (
-    providerType: string,
-    baseUrl: string,
-    apiKey?: string
-  ) => {
-    const fetched = await ipc.fetchProviderModels(providerType, baseUrl, apiKey);
+  fetchProviderModels: async (providerId: string) => {
+    const fetched = await ipc.fetchProviderModels(providerId);
     const current = await ipc.listModels();
     set({ models: current });
     return fetched;

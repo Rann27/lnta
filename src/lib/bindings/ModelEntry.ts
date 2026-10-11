@@ -5,4 +5,20 @@ import type { ValueSource } from "./ValueSource";
 /**
  * Entry representing a specific model within the registry.
  */
-export type ModelEntry = { provider: string, model_id: string, display_name: string, context_window: number, max_output_tokens: number, pricing: ModelPricing, value_source: ValueSource, supports_reasoning: boolean, };
+export type ModelEntry = { provider: string, model_id: string, display_name: string, context_window: number, max_output_tokens: number, pricing: ModelPricing, value_source: ValueSource, supports_reasoning: boolean, 
+/**
+ * Reasoning effort values the model accepts; requests with any other value drop it.
+ */
+reasoning_efforts?: Array<string>, 
+/**
+ * The provider's default effort, shown as the starting choice.
+ */
+default_reasoning_effort?: string, 
+/**
+ * `Some(false)` when the model rejects or ignores `temperature` (most reasoning models).
+ */
+supports_temperature?: boolean, 
+/**
+ * Temperature the provider recommends, offered as the default in role settings.
+ */
+recommended_temperature?: number, };

@@ -329,7 +329,7 @@ describe("SettingsPage navigation", () => {
     // Default tab is Provider & Kunci - wait for loadSettings to complete
     await waitFor(() => {
       expect(
-        screen.getByText(/Kelola koneksi model OpenAI-compat/i)
+        screen.getByText(/Kunci API disimpan di keyring sistem/i)
       ).toBeInTheDocument();
     });
 
@@ -360,5 +360,42 @@ describe("SettingsPage navigation", () => {
     fireEvent.click(screen.getByText("Tentang LNTA"));
     expect(screen.getByText(/LNTA oleh Rann27/i)).toBeInTheDocument();
     expect(screen.getByText("MIT + Commons Clause")).toBeInTheDocument();
+  });
+});
+
+describe("RolesSection parameters", () => {
+  afterEach(() => cleanup());
+
+  it("offers effort levels and hides temperature for models that set their own", async () => {
+    const { RolesSection } = await import("./RolesSection");
+    const { PREVIEW_MODELS } = await import("../../lib/preview/scenarios");
+    const role = {
+      primary: { provider: "anthropic", model_id: "claude-sonnet-5-5" },
+      fallbacks: [],
+      temperature: null,
+      max_output_tokens: null,
+      reasoning_effort: null,
+    };
+    const gemini = { ...role, primary: { provider: "gemini", model_id: "gemini-3.8-flash" } };
+    useSettingsStore.setState({
+      models: PREVIEW_MODELS,
+      globalSettings: {
+        theme: "system",
+        ui_language: "id",
+        notifications_enabled: true,
+        roles: { translator: role, repair: gemini, qa_reviewer: role, qa_fixer: role },
+        providers: [],
+        custom_models: [],
+        recent_projects: [],
+      },
+    });
+
+    render(<RolesSection />);
+
+    expect(screen.getAllByText("Model ini mengatur temperature sendiri.")).toHaveLength(3);
+    expect(screen.getByText("Disarankan provider: 1")).toBeInTheDocument();
+    const effortSelects = screen.getAllByRole("combobox", { name: "Reasoning effort" });
+    expect(effortSelects).toHaveLength(4);
+    expect(effortSelects[0]).toHaveTextContent("Bawaan model (high)");
   });
 });

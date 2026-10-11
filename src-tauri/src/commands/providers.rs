@@ -69,6 +69,7 @@ pub async fn test_provider(provider_id: String) -> Result<ProviderTestResult, Ap
     let start = std::time::Instant::now();
 
     match fetch_models_from_provider(
+        &provider.id,
         &provider.provider_type,
         &provider.base_url,
         api_key.as_deref(),

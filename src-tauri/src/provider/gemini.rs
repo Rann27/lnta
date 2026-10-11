@@ -92,6 +92,15 @@ pub struct GeminiGenerationConfig {
     pub temperature: Option<f32>,
     #[serde(rename = "maxOutputTokens", skip_serializing_if = "Option::is_none")]
     pub max_output_tokens: Option<u32>,
+    #[serde(rename = "thinkingConfig", skip_serializing_if = "Option::is_none")]
+    pub thinking_config: Option<GeminiThinkingConfig>,
+}
+
+/// Gemini 3 thinking depth (`low`, `medium`, `high`); not combinable with a token budget.
+#[derive(Debug, Serialize)]
+pub struct GeminiThinkingConfig {
+    #[serde(rename = "thinkingLevel")]
+    pub thinking_level: String,
 }
 
 /// Request body for `POST /v1beta/models/{model}:streamGenerateContent?alt=sse`.
@@ -297,10 +306,19 @@ impl GeminiProvider {
             })
         };
 
-        let generation_config = if req.temperature.is_some() || req.max_output_tokens.is_some() {
+        let generation_config = if req.temperature.is_some()
+            || req.max_output_tokens.is_some()
+            || req.reasoning_effort.is_some()
+        {
             Some(GeminiGenerationConfig {
                 temperature: req.temperature,
                 max_output_tokens: req.max_output_tokens,
+                thinking_config: req
+                    .reasoning_effort
+                    .as_ref()
+                    .map(|level| GeminiThinkingConfig {
+                        thinking_level: level.clone(),
+                    }),
             })
         } else {
             None

@@ -3,6 +3,8 @@ import { CaretUp, CaretDown, Trash, Plus } from "@phosphor-icons/react";
 import { useTranslation } from "react-i18next";
 import { Button } from "../../components/ui/Button";
 import { ModelPicker } from "../../components/ui/ModelPicker";
+import { NumberField } from "../../components/ui/NumberField";
+import { Select } from "../../components/ui/Select";
 import { useSettingsStore } from "./store";
 import type { ModelReference, RolesConfig } from "../../lib/bindings";
 import styles from "./RolesSection.module.css";
@@ -23,6 +25,7 @@ export const RolesSection: React.FC = () => {
     addRoleFallback,
     removeRoleFallback,
     reorderRoleFallback,
+    updateRoleConfig,
   } = useSettingsStore();
 
   const [pendingFallback, setPendingFallback] = useState<
@@ -75,6 +78,67 @@ export const RolesSection: React.FC = () => {
                   onChange={(val) => updateRolePrimary(roleKey, val)}
                 />
               </div>
+
+              {/* Parameters the primary model accepts; fallbacks get what applies to them. */}
+              {(() => {
+                const entry = models.find(
+                  (m) =>
+                    m.provider === roleConfig.primary.provider &&
+                    m.model_id === roleConfig.primary.model_id
+                );
+                const efforts = entry?.reasoning_efforts ?? [];
+                const fixedTemperature = entry?.supports_temperature === false;
+                return (
+                  <div className={styles.paramsRow}>
+                    {efforts.length > 0 && (
+                      <Select
+                        label={t("settings.roles.effort_label")}
+                        value={roleConfig.reasoning_effort ?? ""}
+                        options={[
+                          {
+                            value: "",
+                            label: t("settings.roles.effort_default", {
+                              value: entry?.default_reasoning_effort ?? "-",
+                            }),
+                          },
+                          ...efforts.map((e) => ({ value: e, label: e })),
+                        ]}
+                        onChange={(e) =>
+                          void updateRoleConfig(roleKey, {
+                            reasoning_effort: e.target.value || null,
+                          })
+                        }
+                      />
+                    )}
+                    {fixedTemperature ? (
+                      <p className={styles.paramNote}>{t("settings.roles.temperature_fixed")}</p>
+                    ) : (
+                      <NumberField
+                        label={t("settings.roles.temperature_label")}
+                        value={roleConfig.temperature ?? undefined}
+                        step={0.1}
+                        min={0}
+                        max={2}
+                        placeholder={
+                          entry?.recommended_temperature !== undefined
+                            ? String(entry.recommended_temperature)
+                            : undefined
+                        }
+                        hint={
+                          entry?.recommended_temperature !== undefined
+                            ? t("settings.roles.temperature_recommended", {
+                                value: entry.recommended_temperature,
+                              })
+                            : t("settings.roles.temperature_default")
+                        }
+                        onChange={(v) =>
+                          void updateRoleConfig(roleKey, { temperature: v ?? null })
+                        }
+                      />
+                    )}
+                  </div>
+                );
+              })()}
 
               {/* Fallback Models List */}
               <div className={styles.sectionBlock}>

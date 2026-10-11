@@ -46,22 +46,55 @@ impl Drop for TempDirGuard {
     }
 }
 
+/// How long one CLI call may run. A chapter part with thinking can take several minutes.
+pub const CLI_TIMEOUT: Duration = Duration::from_secs(20 * 60);
+
+/// Executable name for each subscription CLI provider type.
+pub fn cli_binary_for(provider_type: &str) -> &'static str {
+    match provider_type {
+        "cli_claude" => "claude",
+        "cli_codex" => "codex",
+        "cli_antigravity" => "agy",
+        _ => "",
+    }
+}
+
+/// Install locations that are often missing from the PATH a desktop app inherits:
+/// the native installers' `~/.local/bin` and npm's global folder on Windows.
+fn extra_search_dirs() -> Vec<PathBuf> {
+    let mut dirs = Vec::new();
+    if let Some(home) = std::env::var_os("USERPROFILE").or_else(|| std::env::var_os("HOME")) {
+        dirs.push(PathBuf::from(&home).join(".local").join("bin"));
+    }
+    if let Some(app_data) = std::env::var_os("APPDATA") {
+        dirs.push(PathBuf::from(app_data).join("npm"));
+    }
+    dirs
+}
+
 /// Resolves the executable path of a command across system PATH entries,
-/// taking into account Windows extensions (.cmd, .exe, .bat).
+/// taking into account Windows extensions (.exe, .cmd, .bat).
 pub fn resolve_cli_path(bin_name: &str) -> Option<PathBuf> {
+    if bin_name.is_empty() {
+        return None;
+    }
     if let Ok(meta) = std::fs::metadata(bin_name) {
         if meta.is_file() {
             return Some(PathBuf::from(bin_name));
         }
     }
 
-    let path_var = std::env::var_os("PATH")?;
-    let search_dirs = std::env::split_paths(&path_var);
+    let mut search_dirs: Vec<PathBuf> = std::env::var_os("PATH")
+        .map(|p| std::env::split_paths(&p).collect())
+        .unwrap_or_default();
+    search_dirs.extend(extra_search_dirs());
 
+    // A native .exe beats an npm .cmd shim: .cmd files go through cmd.exe, which mangles
+    // some arguments.
     #[cfg(windows)]
     let candidates = [
-        format!("{bin_name}.cmd"),
         format!("{bin_name}.exe"),
+        format!("{bin_name}.cmd"),
         format!("{bin_name}.bat"),
         bin_name.to_string(),
     ];
@@ -92,6 +125,7 @@ pub async fn detect_cli_version(bin_name: &str) -> Result<String, AppError> {
     let mut cmd = Command::new(&resolved);
     cmd.arg("--version");
     cmd.current_dir(&temp_guard.path);
+    hide_console_window(&mut cmd);
 
     let output = tokio::time::timeout(Duration::from_secs(10), cmd.output())
         .await
@@ -118,6 +152,17 @@ pub async fn detect_cli_version(bin_name: &str) -> Result<String, AppError> {
     }
 }
 
+/// Keeps a release build (a GUI app) from flashing a console window for every call.
+fn hide_console_window(cmd: &mut Command) {
+    #[cfg(windows)]
+    {
+        const CREATE_NO_WINDOW: u32 = 0x0800_0000;
+        cmd.creation_flags(CREATE_NO_WINDOW);
+    }
+    #[cfg(not(windows))]
+    let _ = cmd;
+}
+
 /// Executes a CLI command with stdin piping in an isolated directory.
 pub async fn execute_cli_command(
     bin_path: &Path,
@@ -131,6 +176,9 @@ pub async fn execute_cli_command(
     let mut cmd = Command::new(bin_path);
     cmd.args(args);
     cmd.current_dir(cwd);
+    hide_console_window(&mut cmd);
+    // A run killed by the timeout must not leave the CLI behind.
+    cmd.kill_on_drop(true);
     cmd.stdin(std::process::Stdio::piped());
     cmd.stdout(std::process::Stdio::piped());
     cmd.stderr(std::process::Stdio::piped());
