@@ -151,14 +151,22 @@ pub async fn run_engine(
         {
             let msg = match reason {
                 crate::usage::BudgetExceeded::TokenLimit { limit, current } => {
-                    format!(
-                        "Run dijeda: batas anggaran {limit} token tercapai (terpakai: {current})"
-                    )
+                    if settings.ui_language == "en" {
+                        format!("Run paused: budget of {limit} tokens reached (used: {current})")
+                    } else {
+                        format!(
+                            "Run dijeda: batas anggaran {limit} token tercapai (terpakai: {current})"
+                        )
+                    }
                 }
                 crate::usage::BudgetExceeded::CostLimit { limit, current } => {
-                    format!(
-                        "Run dijeda: batas anggaran ${limit:.2} tercapai (terpakai: ${current:.2})"
-                    )
+                    if settings.ui_language == "en" {
+                        format!("Run paused: budget of ${limit:.2} reached (used: ${current:.2})")
+                    } else {
+                        format!(
+                            "Run dijeda: batas anggaran ${limit:.2} tercapai (terpakai: ${current:.2})"
+                        )
+                    }
                 }
             };
             run_repo.update_status(&run_id, "paused")?;
@@ -202,7 +210,11 @@ pub async fn run_engine(
                     });
                     event_emitter.emit(EngineEvent::LogLine {
                         level: "error".to_string(),
-                        message: "Run dijeda: provider gagal 5 kali berturut-turut".to_string(),
+                        message: if settings.ui_language == "en" {
+                            "Run paused: 5 chapters in a row need attention".to_string()
+                        } else {
+                            "Run dijeda: 5 bab berturut-turut perlu perhatian".to_string()
+                        },
                         timestamp: chrono::Utc::now().to_rfc3339(),
                     });
                     return Ok(RunState::Paused);
@@ -227,7 +239,11 @@ pub async fn run_engine(
                     });
                     event_emitter.emit(EngineEvent::LogLine {
                         level: "error".to_string(),
-                        message: format!("Run dijeda: provider gagal 5 kali berturut-turut: {e}"),
+                        message: if settings.ui_language == "en" {
+                            format!("Run paused after 5 failures in a row: {e}")
+                        } else {
+                            format!("Run dijeda setelah 5 kegagalan berturut-turut: {e}")
+                        },
                         timestamp: chrono::Utc::now().to_rfc3339(),
                     });
                     return Ok(RunState::Paused);

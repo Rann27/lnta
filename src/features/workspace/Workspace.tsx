@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
+import { useNavigate } from "react-router-dom";
+import { isTauri } from "@tauri-apps/api/core";
 import { RunBar } from "./RunBar";
 import { ChapterRail } from "./Rail";
 import { StatusBar } from "./StatusBar";
@@ -9,6 +11,7 @@ import { ChapterTab } from "../chapters";
 import { GlossaryTab } from "../glossary";
 import { QaTab } from "../qa";
 import { UsageTab } from "../usage";
+import { ProjectTab } from "../project";
 import { useWorkspaceStore, type WorkspaceTab } from "./store";
 import { useProjectsStore } from "../projects/store";
 import styles from "./Workspace.module.css";
@@ -24,6 +27,7 @@ export const Workspace: React.FC = () => {
     initWorkspace,
   } = useWorkspaceStore();
   const { activeProject } = useProjectsStore();
+  const navigate = useNavigate();
 
   const [windowWidth, setWindowWidth] = useState<number>(() =>
     typeof window !== "undefined" ? window.innerWidth : 1280
@@ -51,12 +55,18 @@ export const Workspace: React.FC = () => {
     : styles.layoutRegular;
 
   // Initialize workspace if not initialized yet
+  // The browser preview has no folder dialog, so it falls back to its synthetic volume.
   useEffect(() => {
-    const targetPath = activeProject?.path || projectPath || "D:/LN/Synthetic-Volume-1";
+    const targetPath =
+      activeProject?.path || projectPath || (isTauri() ? "" : "D:/LN/Synthetic-Volume-1");
+    if (!targetPath) {
+      navigate("/");
+      return;
+    }
     if (!projectPath || projectPath !== targetPath) {
       initWorkspace(targetPath);
     }
-  }, [activeProject, projectPath, initWorkspace]);
+  }, [activeProject, projectPath, initWorkspace, navigate]);
 
   // Tab navigation shortcuts (Ctrl+1 to Ctrl+6)
   useEffect(() => {
@@ -153,7 +163,7 @@ export const Workspace: React.FC = () => {
           <nav
             className={styles.tabs}
             role="tablist"
-            aria-label="Workspace tabs"
+            aria-label={t("a11y.workspace_tabs")}
           >
             {tabs.map((tab) => {
               const isSelected = activeTab === tab.id;
@@ -193,16 +203,7 @@ export const Workspace: React.FC = () => {
             {activeTab === "glossary" && <GlossaryTab />}
             {activeTab === "qa" && <QaTab />}
             {activeTab === "usage" && <UsageTab />}
-            {activeTab === "project" && (
-              <div className={styles.placeholderCard}>
-                <h3 style={{ margin: 0, font: "var(--text-title)" }}>
-                  {t("workspace.tabs.project")}
-                </h3>
-                <p style={{ margin: 0, color: "var(--color-text-2)" }}>
-                  Tab Proyek menampilkan konfigurasi project.toml dan daftar cek preflight.
-                </p>
-              </div>
-            )}
+            {activeTab === "project" && <ProjectTab />}
           </div>
 
           {/* Bottom Log Drawer (when not in wide layout) */}

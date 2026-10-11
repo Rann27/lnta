@@ -126,7 +126,6 @@
 
 .groupCount {
   font: var(--text-mono);
-  font-size: var(--text-small);
   background: var(--color-surface);
   padding: 0 var(--space-1);
   border-radius: var(--radius-1);
@@ -171,7 +170,6 @@
 
 .codeBadge {
   font: var(--text-mono);
-  font-size: var(--text-small);
   padding: 0 var(--space-2);
   background: var(--color-raised);
   border: 1px solid var(--color-border-strong);
@@ -199,7 +197,6 @@
 .matchedText {
   margin: 0;
   font: var(--text-mono);
-  font-size: var(--text-small);
   background: var(--color-sunken);
   padding: var(--space-1) var(--space-2);
   border-radius: var(--radius-1);

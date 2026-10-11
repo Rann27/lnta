@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { HandPalm, Warning, Info, Check, ArrowsClockwise } from "@phosphor-icons/react";
 import { useTranslation } from "react-i18next";
 import type { PreflightItem, PreflightReport } from "../../lib/bindings";
@@ -11,6 +11,19 @@ export interface PreflightChecklistProps {
   isLoading?: boolean;
   onRerun: () => void;
   onAction?: (actionId: string, item: PreflightItem) => void;
+  /** Actions the host screen can carry out; others are hidden. All are shown when omitted. */
+  availableActions?: ReadonlySet<string>;
+}
+
+const PROFILE_LABELS: Record<string, string> = { "ja-id": "JP→ID", "ja-en": "JP→EN" };
+
+/** Shows profile ids in params the way the rest of the UI names them. */
+function displayParams(params: Record<string, string>): Record<string, string> {
+  const out: Record<string, string> = {};
+  for (const [key, value] of Object.entries(params)) {
+    out[key] = key.endsWith("_profile") ? (PROFILE_LABELS[value] ?? value) : value;
+  }
+  return out;
 }
 
 export const PreflightChecklist: React.FC<PreflightChecklistProps> = ({
@@ -18,8 +31,10 @@ export const PreflightChecklist: React.FC<PreflightChecklistProps> = ({
   isLoading = false,
   onRerun,
   onAction,
+  availableActions,
 }) => {
   const { t } = useTranslation();
+  const [dismissed, setDismissed] = useState<ReadonlySet<string>>(new Set());
 
   if (isLoading) {
     return <div className={styles.checklist}>{t("wizard.preflight_checking")}</div>;
@@ -29,12 +44,17 @@ export const PreflightChecklist: React.FC<PreflightChecklistProps> = ({
     return null;
   }
 
-  const blockers = report.items.filter((i) => i.status === "blocker");
-  const warnings = report.items.filter((i) => i.status === "warning");
-  const infos = report.items.filter((i) => i.status === "info");
-  const passed = report.items.filter((i) => i.status === "pass");
+  // A dismissed warning stays out of sight until the next preflight report.
+  const visible = report.items.filter((i) => i.status === "blocker" || !dismissed.has(i.id));
+  const blockers = visible.filter((i) => i.status === "blocker");
+  const warnings = visible.filter((i) => i.status === "warning");
+  const infos = visible.filter((i) => i.status === "info");
+  const passed = visible.filter((i) => i.status === "pass");
 
   const renderItem = (item: PreflightItem) => {
+    const actions = item.actions.filter(
+      (a) => a.id === "dismiss" || !availableActions || availableActions.has(a.id)
+    );
     let icon = <Check size={18} />;
     let iconClass = styles.iconPass;
     let itemClass = "";
@@ -59,21 +79,29 @@ export const PreflightChecklist: React.FC<PreflightChecklistProps> = ({
             {icon}
           </span>
           <div className={styles.content}>
-            <span className={styles.itemTitle}>{item.id}</span>
+            <span className={styles.itemTitle}>
+              {t(`preflight_titles.${item.id}`, { defaultValue: item.id })}
+            </span>
             <p className={styles.itemMessage}>
-              {t(item.message_code, item.params as Record<string, string>)}
+              {t(item.message_code, displayParams(item.params as Record<string, string>))}
             </p>
           </div>
         </div>
 
-        {item.actions.length > 0 && (
+        {actions.length > 0 && (
           <div className={styles.actions}>
-            {item.actions.map((act) => (
+            {actions.map((act) => (
               <Button
                 key={act.id}
                 size="sm"
                 variant="secondary"
-                onClick={() => onAction?.(act.id, item)}
+                onClick={() => {
+                  if (act.id === "dismiss") {
+                    setDismissed((prev) => new Set(prev).add(item.id));
+                    return;
+                  }
+                  onAction?.(act.id, item);
+                }}
               >
                 {t(act.label_code, act.id)}
               </Button>
@@ -99,7 +127,7 @@ export const PreflightChecklist: React.FC<PreflightChecklistProps> = ({
             </span>
           )}
           {infos.length > 0 && (
-            <span style={{ color: "var(--color-text-muted)" }}>
+            <span style={{ color: "var(--color-text-3)" }}>
               {t("wizard.preflight_infos_count", { count: infos.length })}
             </span>
           )}

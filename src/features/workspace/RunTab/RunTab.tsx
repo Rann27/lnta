@@ -42,7 +42,7 @@ export const RunTab: React.FC = () => {
       <div
         className={styles.srOnly}
         role="status"
-        aria-label="Pengumuman status run"
+        aria-label={t("a11y.run_status")}
         aria-live="polite"
         aria-atomic="true"
       >

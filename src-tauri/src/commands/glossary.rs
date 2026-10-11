@@ -9,7 +9,7 @@ use ts_rs::TS;
 use crate::error::AppError;
 use crate::glossary::merge::{apply_glossary_merge, compare_glossaries};
 use crate::glossary::parse::{infer_tier, parse_glossary, GlossaryEntryItem, GlossaryLine};
-use crate::glossary::write::write_glossary_file;
+use crate::glossary::write::{fix_macrons_in_place, write_glossary_file};
 use crate::profiles::load_profile;
 use crate::project::config::ProjectConfig;
 use crate::project::layout::ProjectLayout;
@@ -208,6 +208,46 @@ pub fn update_glossary_entry(path: String, entry: GlossaryEntryInput) -> Result<
     }
 
     Ok(())
+}
+
+/// Replaces macrons with digraphs in every glossary entry (FR-GLO-06), keeping a backup.
+/// Returns how many entries changed.
+#[tauri::command]
+pub fn fix_glossary_macrons(path: String) -> Result<usize, AppError> {
+    let layout = ProjectLayout::new(Path::new(&path));
+    if !layout.glossary_file.exists() {
+        return Ok(0);
+    }
+    let config = if layout.config_file.exists() {
+        ProjectConfig::load_from_file(&layout.config_file)?
+    } else {
+        ProjectConfig::default()
+    };
+    let content = fs::read_to_string(&layout.glossary_file).unwrap_or_default();
+    let mut file = parse_glossary(&content, &get_gender_keywords(&config.profile));
+    let changed = fix_macrons_in_place(&mut file);
+    if changed == 0 {
+        return Ok(0);
+    }
+    write_glossary_file(&layout.glossary_file, &file, Some(&layout.backups_dir))?;
+
+    if layout.db_file.exists() {
+        let conn = open_path(&layout.db_file)?;
+        let repo = GlossaryRepo::new(&conn);
+        for line in &file.lines {
+            if let GlossaryLine::Entry(item) = line {
+                if let Some(mut existing) = repo.get_by_source(&item.source)? {
+                    let note = (!item.note.is_empty()).then(|| item.note.clone());
+                    if existing.translation != item.translation || existing.note != note {
+                        existing.translation = item.translation.clone();
+                        existing.note = note;
+                        repo.update(&existing)?;
+                    }
+                }
+            }
+        }
+    }
+    Ok(changed)
 }
 
 #[tauri::command]
@@ -486,5 +526,24 @@ mod tests {
 
         let _ = std::fs::remove_dir_all(&target_dir);
         let _ = std::fs::remove_dir_all(&source_dir);
+    }
+
+    #[test]
+    fn test_fix_glossary_macrons_rewrites_file() {
+        let dir = std::env::temp_dir().join(format!("lnta_test_glo_mac_{}", uuid::Uuid::new_v4()));
+        std::fs::create_dir_all(&dir).unwrap();
+        std::fs::write(
+            dir.join("glossary.md"),
+            "\u{592a}\u{90ce} === Tar\u{014d} === laki-laki\n",
+        )
+        .unwrap();
+        let path = dir.to_string_lossy().to_string();
+
+        assert_eq!(fix_glossary_macrons(path.clone()).unwrap(), 1);
+        let text = std::fs::read_to_string(dir.join("glossary.md")).unwrap();
+        assert!(text.contains("Tarou"), "{text}");
+        assert_eq!(fix_glossary_macrons(path).unwrap(), 0);
+
+        let _ = std::fs::remove_dir_all(&dir);
     }
 }

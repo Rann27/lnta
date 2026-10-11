@@ -2,11 +2,26 @@ import React, { useEffect, useState } from "react";
 import { Outlet, Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { ipc } from "../lib/ipc";
+import type { GlobalSettings } from "../lib/bindings";
 import { Gear } from "@phosphor-icons/react";
 import { setTheme, getTheme, type Theme } from "./theme";
 import { setLanguage, getLanguage, type SupportedLanguage } from "../lib/i18n";
 import { PreviewBanner } from "./PreviewBanner";
 import styles from "./Shell.module.css";
+
+// Theme and language saves run one after another: each reads the current settings and
+// writes them back, so two at once would undo each other.
+let settingsSave: Promise<void> = Promise.resolve();
+function saveSettingsPatch(patch: Partial<GlobalSettings>): void {
+  settingsSave = settingsSave
+    .then(async () => {
+      const settings = await ipc.getGlobalSettings();
+      await ipc.saveGlobalSettings({ ...settings, ...patch });
+    })
+    .catch(() => {
+      // ignore in mock/fallback
+    });
+}
 
 export const Shell: React.FC = () => {
   const { t } = useTranslation();
@@ -35,24 +50,14 @@ export const Shell: React.FC = () => {
     const nextTheme = e.target.value as Theme;
     setTheme(nextTheme);
     setCurrentThemeState(nextTheme);
-    try {
-      const settings = await ipc.getGlobalSettings();
-      await ipc.saveGlobalSettings({ ...settings, theme: nextTheme });
-    } catch {
-      // ignore in mock/fallback
-    }
+    saveSettingsPatch({ theme: nextTheme });
   };
 
   const handleLanguageChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
     const nextLang = e.target.value as SupportedLanguage;
     await setLanguage(nextLang);
     setCurrentLangState(nextLang);
-    try {
-      const settings = await ipc.getGlobalSettings();
-      await ipc.saveGlobalSettings({ ...settings, ui_language: nextLang });
-    } catch {
-      // ignore in mock/fallback
-    }
+    saveSettingsPatch({ ui_language: nextLang });
   };
 
   return (
@@ -81,9 +86,9 @@ export const Shell: React.FC = () => {
             value={currentTheme}
             onChange={handleThemeChange}
           >
-            <option value="system">System</option>
-            <option value="light">Light</option>
-            <option value="dark">Dark</option>
+            <option value="system">{t("app.theme_system")}</option>
+            <option value="light">{t("app.theme_light")}</option>
+            <option value="dark">{t("app.theme_dark")}</option>
           </select>
 
           <Link

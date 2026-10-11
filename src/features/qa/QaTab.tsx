@@ -168,7 +168,9 @@ export const QaTab: React.FC = () => {
                 ].join(" ")}
                 onClick={() => setSelectedGroupCode(group.check_code)}
               >
-                <span>{group.check_code}</span>
+                <span>
+                  {group.check_code} · {t(`qa.checks.${group.check_code}`, group.check_code)}
+                </span>
                 <span className={styles.groupCount}>{group.count}</span>
               </button>
             ))}
@@ -179,7 +181,6 @@ export const QaTab: React.FC = () => {
             {displayedFindings.length === 0 ? (
               <StateBlock
                 title={t("qa.findingsList.empty")}
-                description={t("qa.groups.all")}
               />
             ) : (
               displayedFindings.map((finding) => {
@@ -197,7 +198,9 @@ export const QaTab: React.FC = () => {
                       <div className={styles.findingMeta}>
                         <span className={styles.codeBadge}>{finding.check_code}</span>
                         <span className={styles.locationLabel}>{locationLabel}</span>
-                        <span className={styles.codeBadge}>{finding.status}</span>
+                        <span className={styles.codeBadge}>
+                          {t(`qa.findingsList.status.${finding.status}`, finding.status)}
+                        </span>
                       </div>
 
                       {finding.chapter_id && (
@@ -212,9 +215,11 @@ export const QaTab: React.FC = () => {
                     </div>
 
                     <div className={styles.findingBody}>
-                      {finding.message && (
-                        <p className={styles.findingMessage}>{finding.message}</p>
-                      )}
+                      {/* The check name is localized; the raw detail text is English and
+                          refers to internal ids, so it stays in the tooltip. */}
+                      <p className={styles.findingMessage} title={finding.message || undefined}>
+                        {t(`qa.checks.${finding.check_code}`, finding.check_code)}
+                      </p>
                       {finding.matched_text && (
                         <code className={styles.matchedText}>{finding.matched_text}</code>
                       )}

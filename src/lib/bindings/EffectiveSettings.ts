@@ -5,4 +5,4 @@ import type { RolesConfig } from "./RolesConfig";
  * Computed effective settings for an active project run, combining global settings
  * with project-level configuration and overrides.
  */
-export type EffectiveSettings = { profile: string, target_language: string, instruction_file: string | null, roles: RolesConfig, chunk_threshold_lines: number, context_k_segments: number, send_full_glossary: boolean, title_source: string, strip_title_brackets: boolean, normalize_ruby: boolean, template_treatment: string, budget_token_limit: bigint | null, budget_cost_limit: number | null, theme: string, ui_language: string, notifications_enabled: boolean, };
+export type EffectiveSettings = { profile: string, target_language: string, instruction_file: string | null, roles: RolesConfig, chunk_threshold_lines: number, context_k_segments: number, send_full_glossary: boolean, title_source: string, strip_title_brackets: boolean, normalize_ruby: boolean, template_treatment: string, budget_token_limit: number | null, budget_cost_limit: number | null, theme: string, ui_language: string, notifications_enabled: boolean, };

@@ -130,13 +130,16 @@ pub fn get_qa_summary(path: String) -> Result<QaFindingsSummary, AppError> {
         // Parse detail_json for message / matched text if JSON is present
         let mut message = String::new();
         let mut matched_text = String::new();
+        // Checks write {"msg", "matched"}; older rows used the long key names.
         if let Ok(val) = serde_json::from_str::<serde_json::Value>(&detail_json) {
-            if let Some(m) = val.get("message").and_then(|v| v.as_str()) {
-                message = m.to_string();
-            }
-            if let Some(m) = val.get("matched_text").and_then(|v| v.as_str()) {
-                matched_text = m.to_string();
-            }
+            let text = |keys: [&str; 2]| {
+                keys.iter()
+                    .find_map(|k| val.get(*k).and_then(|v| v.as_str()))
+                    .unwrap_or_default()
+                    .to_string()
+            };
+            message = text(["msg", "message"]);
+            matched_text = text(["matched", "matched_text"]);
         }
 
         all_findings.push(QaFindingItem {

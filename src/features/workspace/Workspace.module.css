@@ -93,7 +93,6 @@
   background: var(--color-warn-subtle);
   color: var(--color-warn);
   font: var(--text-mono);
-  font-size: var(--text-small);
   line-height: 1;
 }
 
@@ -111,13 +110,4 @@
 .tabPanel:focus-visible {
   outline: var(--focus-width) solid var(--color-focus);
   outline-offset: calc(-1 * var(--focus-offset));
-}
-
-.placeholderCard {
-  background: var(--color-surface);
-  border: var(--hairline) solid var(--color-border);
-  border-radius: var(--radius-2);
-  padding: var(--space-6);
-  display: grid;
-  gap: var(--space-4);
 }

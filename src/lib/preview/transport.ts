@@ -240,6 +240,16 @@ export class PreviewTransport implements IpcTransport {
     void path;
   }
 
+  async importTemplate(path: string, source: string): Promise<void> {
+    void path;
+    void source;
+  }
+
+  async listInstructionCandidates(path: string, profile: string): Promise<string[]> {
+    void path;
+    return profile === "ja-en" ? ["instruction-en.md"] : ["instruction.md"];
+  }
+
   // Preflight
   async runPreflight(path: string): Promise<PreflightReport> {
     void path;
@@ -517,6 +527,11 @@ export class PreviewTransport implements IpcTransport {
     return newEntry;
   }
 
+  async fixGlossaryMacrons(path: string): Promise<number> {
+    void path;
+    return 0;
+  }
+
   async updateGlossaryEntry(path: string, entry: GlossaryEntryInput): Promise<void> {
     void path;
     const existing = this.activeScenario.glossary.find((g) => g.source === entry.source);
@@ -740,6 +755,10 @@ export class PreviewTransport implements IpcTransport {
   }
 
   async openPath(path: string): Promise<void> {
+    void path;
+  }
+
+  async revealPath(path: string): Promise<void> {
     void path;
   }
 

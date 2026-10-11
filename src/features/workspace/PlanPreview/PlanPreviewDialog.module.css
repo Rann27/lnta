@@ -5,7 +5,7 @@
   max-height: 70vh;
   overflow-y: auto;
   color: var(--color-text);
-  font-family: var(--font-ui);
+  font-family: var(--font-sans);
 }
 
 .topSection {
@@ -25,14 +25,14 @@
 }
 
 .ratioBanner {
+  font: var(--text-small);
   display: flex;
   align-items: center;
   gap: var(--space-2);
   padding: var(--space-2) var(--space-3);
   background-color: var(--color-surface);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-sm);
-  font-size: var(--text-meta);
+  border-radius: var(--radius-1);
   color: var(--color-text-2);
 }
 
@@ -49,23 +49,23 @@
   padding: var(--space-2) var(--space-3);
   background-color: var(--color-surface);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-1);
 }
 
 .metricLabel {
-  font-size: var(--text-meta);
+  font: var(--text-small);
   color: var(--color-text-3);
 }
 
 .metricValue {
+  font: var(--text-body);
   font-family: var(--font-mono);
-  font-size: var(--text-body);
   font-weight: 600;
   color: var(--color-text);
 }
 
 .metricEstimateTag {
-  font-size: var(--text-meta);
+  font: var(--text-small);
   font-weight: normal;
   color: var(--color-text-3);
   margin-left: var(--space-1);
@@ -73,14 +73,14 @@
 
 .tableWrapper {
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-1);
   overflow-x: auto;
 }
 
 .table {
+  font: var(--text-small);
   width: 100%;
   border-collapse: collapse;
-  font-size: var(--text-meta);
   text-align: left;
 }
 
@@ -116,8 +116,8 @@
 }
 
 .tagEstimate {
+  font: var(--text-small);
   display: inline-block;
-  font-size: var(--text-meta);
   color: var(--color-text-3);
   margin-left: var(--space-1);
 }
@@ -132,10 +132,10 @@
 }
 
 .partRow {
+  font: var(--text-small);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  font-size: var(--text-meta);
   color: var(--color-text-2);
   padding-left: var(--space-4);
 }

@@ -136,7 +136,7 @@ export const LogDrawer: React.FC<LogDrawerProps> = ({ isPanel = false }) => {
             onChange={(e) =>
               setLogFilter(e.target.value as "all" | "warn_error" | "selected_chapter")
             }
-            aria-label="Filter log"
+            aria-label={t("a11y.filter_log")}
           >
             <option value="all">{t("workspace.log.filter_all")}</option>
             <option value="warn_error">{t("workspace.log.filter_warn_error")}</option>

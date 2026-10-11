@@ -6,8 +6,11 @@ import { Button } from "../../components/ui/Button";
 import { useWorkspaceStore } from "../workspace/store";
 import { useUsageStore } from "./store";
 import { formatNumber } from "../../lib/format";
-import type { UsageGrouping } from "./types";
+import type { UsageGrouping, UsageScope } from "./types";
 import styles from "./UsageTab.module.css";
+
+/** Row id for calls that span several chapters; matches `usage::VOLUME_ROW_ID` in Rust. */
+const VOLUME_ROW_ID = "volume";
 
 function formatCost(cost: number | null | undefined): string {
   if (cost === null || cost === undefined) return "";
@@ -19,15 +22,24 @@ function formatCost(cost: number | null | undefined): string {
 export const UsageTab: React.FC = () => {
   const { t } = useTranslation();
   const { projectPath, runState } = useWorkspaceStore();
-  const { grouping, usageData, loading, error, setGrouping, fetchUsage } = useUsageStore();
+  const { grouping, scope, usageData, loading, error, setGrouping, setScope, fetchUsage } =
+    useUsageStore();
 
-  const currentRunId = runState.latest_run?.id;
+  const latestRunId = runState.latest_run?.id;
+  const runFilter = scope === "latest_run" ? (latestRunId ?? undefined) : undefined;
+  // Refetch when a run changes state so totals follow the engine.
+  const runStatus = runState.latest_run?.status;
 
   useEffect(() => {
     if (projectPath) {
-      void fetchUsage(projectPath, currentRunId ?? undefined);
+      void fetchUsage(projectPath, runFilter);
     }
-  }, [projectPath, currentRunId, fetchUsage]);
+  }, [projectPath, runFilter, runStatus, fetchUsage]);
+
+  const scopeOptions: SegmentOption<UsageScope>[] = [
+    { value: "project", label: t("usage.scope.project") },
+    { value: "latest_run", label: t("usage.scope.latest_run") },
+  ];
 
   const groupingOptions: SegmentOption<UsageGrouping>[] = [
     { value: "chapter", label: t("usage.grouping.chapter") },
@@ -55,7 +67,7 @@ export const UsageTab: React.FC = () => {
             action={
               <Button
                 variant="secondary"
-                onClick={() => projectPath && fetchUsage(projectPath, currentRunId ?? undefined)}
+                onClick={() => projectPath && fetchUsage(projectPath, runFilter)}
               >
                 {t("chapters.retry")}
               </Button>
@@ -89,16 +101,24 @@ export const UsageTab: React.FC = () => {
     <div className={styles.container}>
       {/* Top Bar: Grouping selector & Summary metrics */}
       <div className={styles.topBar}>
-        <SegmentedControl<UsageGrouping>
-          options={groupingOptions}
-          value={grouping}
-          onChange={setGrouping}
-          label="Pengelompokan pemakaian"
-        />
+        <div className={styles.controls}>
+          <SegmentedControl<UsageScope>
+            options={scopeOptions}
+            value={scope}
+            onChange={setScope}
+            label={t("usage.scope_label")}
+          />
+          <SegmentedControl<UsageGrouping>
+            options={groupingOptions}
+            value={grouping}
+            onChange={setGrouping}
+            label={t("usage.grouping_label")}
+          />
+        </div>
 
         <div className={styles.summaryGroup}>
           <span className={styles.summaryMetric}>
-            {t("usage.summary.total_calls", { count: formatNumber(summary.total_calls) })}
+            {t("usage.summary.total_calls", { count: summary.total_calls })}
           </span>
           <span>·</span>
           <span className={styles.summaryMetric}>
@@ -208,7 +228,13 @@ export const UsageTab: React.FC = () => {
                   <td className={[styles.td, styles.tdNumeric].join(" ")}>
                     {row.chapter_ordinal < 9999 ? row.chapter_ordinal : "-"}
                   </td>
-                  <td className={styles.td}>{row.chapter_title}</td>
+                  <td className={[styles.td, styles.tdTitle].join(" ")}>
+                    {row.chapter_id === VOLUME_ROW_ID ? (
+                      <span className={styles.crossChapter}>{t("usage.cross_chapter")}</span>
+                    ) : (
+                      <span title={row.chapter_title}>{row.chapter_title}</span>
+                    )}
+                  </td>
                   <td className={[styles.td, styles.tdNumeric].join(" ")}>
                     {formatNumber(row.call_count)}
                   </td>

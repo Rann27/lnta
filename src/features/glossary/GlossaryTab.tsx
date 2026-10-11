@@ -25,6 +25,16 @@ import styles from "./GlossaryTab.module.css";
 export const GlossaryTab: React.FC = () => {
   const { t } = useTranslation();
   const projectPath = useWorkspaceStore((s) => s.projectPath);
+  const chapters = useWorkspaceStore((s) => s.chapters);
+  const chapterOrdinal = useMemo(
+    () => new Map(chapters.map((c) => [c.id, c.ordinal])),
+    [chapters]
+  );
+  const chapterLabel = (id: string | null): string => {
+    if (!id) return "-";
+    const ordinal = chapterOrdinal.get(id);
+    return ordinal === undefined ? id : String(ordinal).padStart(2, "0");
+  };
 
   const {
     entries,
@@ -116,8 +126,8 @@ export const GlossaryTab: React.FC = () => {
           valB = b.tier;
           break;
         case "first_chapter_id":
-          valA = a.first_chapter_id ?? "";
-          valB = b.first_chapter_id ?? "";
+          valA = chapterOrdinal.get(a.first_chapter_id ?? "") ?? Number.MAX_SAFE_INTEGER;
+          valB = chapterOrdinal.get(b.first_chapter_id ?? "") ?? Number.MAX_SAFE_INTEGER;
           break;
         case "occurrences":
         default:
@@ -135,7 +145,7 @@ export const GlossaryTab: React.FC = () => {
         ? strA.localeCompare(strB)
         : strB.localeCompare(strA);
     });
-  }, [entries, searchQuery, sortColumn, sortDirection]);
+  }, [entries, searchQuery, sortColumn, sortDirection, chapterOrdinal]);
 
   // Virtualizer for smooth scrolling over large sets (e.g. 5,000 entries)
   const isLargeList = filteredAndSorted.length > 200;
@@ -340,6 +350,7 @@ export const GlossaryTab: React.FC = () => {
                     >
                       <GlossaryRow
                         entry={entry}
+                        chapterLabel={chapterLabel(entry.first_chapter_id)}
                         allEntries={entries}
                         projectPath={projectPath}
                         isEditing={editingId === entry.id}
@@ -355,6 +366,7 @@ export const GlossaryTab: React.FC = () => {
                 <GlossaryRow
                   key={entry.id}
                   entry={entry}
+                  chapterLabel={chapterLabel(entry.first_chapter_id)}
                   allEntries={entries}
                   projectPath={projectPath}
                   isEditing={editingId === entry.id}

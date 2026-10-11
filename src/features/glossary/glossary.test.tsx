@@ -156,6 +156,7 @@ describe("GlossaryRow", () => {
     render(
       <GlossaryRow
         entry={SAMPLE_ENTRIES[1]}
+        chapterLabel="02"
         allEntries={SAMPLE_ENTRIES}
         projectPath="/dummy/path"
         isEditing={false}
@@ -175,6 +176,7 @@ describe("GlossaryRow", () => {
     render(
       <GlossaryRow
         entry={SAMPLE_ENTRIES[3]}
+        chapterLabel="02"
         allEntries={SAMPLE_ENTRIES}
         projectPath="/dummy/path"
         isEditing={false}
@@ -193,6 +195,7 @@ describe("GlossaryRow", () => {
     render(
       <GlossaryRow
         entry={SAMPLE_ENTRIES[0]}
+        chapterLabel="02"
         allEntries={SAMPLE_ENTRIES}
         projectPath="/dummy/path"
         isEditing={true}

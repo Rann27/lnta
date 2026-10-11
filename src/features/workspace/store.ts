@@ -2,6 +2,7 @@ import { create } from "zustand";
 import type { UnlistenFn } from "@tauri-apps/api/event";
 import { ipc } from "../../lib/ipc";
 import { notifyOS } from "../../lib/notifications";
+import { errorMessage } from "../../lib/errors";
 import i18n from "../../lib/i18n";
 import type {
   Chapter,
@@ -116,14 +117,6 @@ function nowHHMM(): string {
   });
 }
 
-function errorMessage(err: unknown): string {
-  if (err && typeof err === "object" && "code" in err) {
-    const e = err as { code: string; params?: Record<string, unknown> };
-    return i18n.t(e.code, { ...(e.params ?? {}), defaultValue: e.code });
-  }
-  return String(err);
-}
-
 /** Builds real ruler cells from persisted segments and current translations. */
 function buildSegmentItems(
   detail: ChapterDetail,
@@ -156,7 +149,11 @@ function buildSegmentItems(
     });
 }
 
-let unlistenEngine: UnlistenFn | null = null;
+// Each initWorkspace call gets a generation number. Listeners from an older generation
+// ignore events, because unlisten resolves asynchronously and React StrictMode (and
+// reopening a project) can start a second init before the first listener is registered.
+let engineListener: Promise<UnlistenFn> | null = null;
+let initGeneration = 0;
 
 export const useWorkspaceStore = create<WorkspaceState>((set, get) => ({
   projectPath: "",
@@ -195,10 +192,15 @@ export const useWorkspaceStore = create<WorkspaceState>((set, get) => ({
   qaPhase: null,
 
   initWorkspace: async (path: string) => {
-    if (unlistenEngine) {
-      unlistenEngine();
-      unlistenEngine = null;
+    const generation = ++initGeneration;
+    if (engineListener) {
+      const previous = engineListener;
+      engineListener = null;
+      void previous.then((unlisten) => unlisten()).catch(() => undefined);
     }
+    engineListener = ipc.onEngineEvent((event) => {
+      if (generation === initGeneration) get().handleEngineEvent(event);
+    });
     set({
       projectPath: path,
       logs: [],
@@ -230,8 +232,6 @@ export const useWorkspaceStore = create<WorkspaceState>((set, get) => ({
         runState,
         preflight: openResult.preflight,
       });
-
-      unlistenEngine = await ipc.onEngineEvent((event) => get().handleEngineEvent(event));
 
       await Promise.all(openResult.chapters.map((ch) => get().refreshChapter(ch.id)));
       await Promise.all([get().refreshUsage(), get().refreshCounts()]);

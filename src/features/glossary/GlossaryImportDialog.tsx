@@ -155,7 +155,7 @@ export const GlossaryImportDialog: React.FC<GlossaryImportDialogProps> = ({
 
           {preview.conflicts.length > 0 && (
             <div className={styles.conflictsList}>
-              <h3 style={{ fontSize: "var(--font-size-sm)", margin: 0 }}>
+              <h3 style={{ font: "var(--text-label)", margin: 0 }}>
                 {t("glossary.import_conflicts_title")}
               </h3>
               {preview.conflicts.map((c) => {

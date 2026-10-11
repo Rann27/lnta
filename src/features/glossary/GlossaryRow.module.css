@@ -6,7 +6,7 @@
 }
 
 .row:hover {
-  background: var(--color-hover);
+  background: var(--state-hover);
 }
 
 .rowEditing {
@@ -15,7 +15,7 @@
 
 .cellsGrid {
   display: grid;
-  grid-template-columns: minmax(11rem, 1.2fr) minmax(12rem, 1.4fr) minmax(14rem, 2fr) 5rem 6rem 5rem 6rem;
+  grid-template-columns: minmax(4rem, 1fr) minmax(5rem, 1.2fr) minmax(5rem, 2fr) 3.5rem 5.5rem 6.5rem 5rem;
   align-items: center;
   min-height: var(--row-regular);
   padding: var(--space-1) var(--space-3);
@@ -40,7 +40,7 @@
 }
 
 .cellNote {
-  font: var(--text-caption);
+  font: var(--text-small);
   color: var(--color-text-2);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -52,7 +52,7 @@
 }
 
 .tierBadge {
-  font: var(--text-caption);
+  font: var(--text-small);
   padding: 0 var(--space-2);
   border-radius: var(--radius-1);
   background: var(--color-field);
@@ -67,13 +67,11 @@
 
 .cellChapter {
   font: var(--text-mono);
-  font-size: var(--text-small);
   color: var(--color-text-3);
 }
 
 .cellOccurrences {
   font: var(--text-mono);
-  font-size: var(--text-small);
   color: var(--color-text-2);
   text-align: right;
   font-variant-numeric: tabular-nums;
@@ -98,7 +96,7 @@
   display: inline-flex;
   align-items: center;
   gap: var(--space-1);
-  font: var(--text-caption);
+  font: var(--text-small);
   color: var(--color-warn);
 }
 
@@ -110,7 +108,7 @@
   padding: var(--space-2) var(--space-3);
   background: var(--color-field);
   border-top: 1px dashed var(--color-border);
-  font: var(--text-caption);
+  font: var(--text-small);
 }
 
 .conflictInfo {

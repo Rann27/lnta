@@ -261,7 +261,7 @@ export const ProvidersSection: React.FC = () => {
             label={t("settings.providers.name_label")}
             value={newName}
             onChange={(e) => setNewName(e.target.value)}
-            placeholder="misal: OpenAI / OpenRouter"
+            placeholder={t("settings.providers.name_placeholder")}
           />
 
           <TextField

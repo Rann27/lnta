@@ -1,5 +1,6 @@
 .container {
-  max-width: 100%;
+  width: 100%;
+  max-width: 60rem;
   margin: 0 auto;
   padding: var(--space-8) var(--space-6);
   display: flex;
@@ -50,8 +51,8 @@
 
 .helper {
   margin: 0;
-  font: var(--text-caption);
-  color: var(--color-text-muted);
+  font: var(--text-small);
+  color: var(--color-text-3);
 }
 
 .suggestionBadge {
@@ -62,7 +63,7 @@
   background: var(--color-warn-subtle);
   color: var(--color-warn);
   border-radius: var(--radius-1);
-  font: var(--text-caption);
+  font: var(--text-small);
   width: fit-content;
 }
 
@@ -149,7 +150,7 @@
 .frozenTable {
   width: 100%;
   border-collapse: collapse;
-  font: var(--text-caption);
+  font: var(--text-small);
   text-align: left;
 }
 
@@ -157,9 +158,9 @@
   padding: var(--space-2) var(--space-3);
   background: var(--color-raised);
   border-bottom: 1px solid var(--color-border);
-  font: var(--text-caption);
+  font: var(--text-small);
   font-weight: 600;
-  color: var(--color-text-muted);
+  color: var(--color-text-3);
 }
 
 .frozenTable td {
@@ -170,4 +171,56 @@
 
 .frozenTable tr:last-child td {
   border-bottom: none;
+}
+
+.inlineActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.roleList {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-2);
+}
+
+.roleRow {
+  display: grid;
+  grid-template-columns: 9rem minmax(0, 1fr);
+  column-gap: var(--space-4);
+  row-gap: var(--space-1);
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.roleRow:last-child {
+  border-bottom: none;
+}
+
+.roleRow > .helper {
+  grid-column: 2;
+}
+
+.roleName {
+  font: var(--text-body-strong);
+  color: var(--color-text);
+}
+
+.roleModel {
+  font: var(--text-mono);
+  color: var(--color-text);
+  overflow-wrap: anywhere;
+}
+
+.roleMissing {
+  font: var(--text-body);
+  color: var(--color-danger);
+}
+
+.errorText {
+  margin: 0;
+  font: var(--text-small);
+  color: var(--color-danger);
 }

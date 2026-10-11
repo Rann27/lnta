@@ -176,7 +176,7 @@ pub async fn run_qa_phase(
         mechanical_total,
         ai_total,
         findings.len(),
-        settings.target_language != "en",
+        settings.ui_language != "en",
     );
     emitter.emit(EngineEvent::LogLine {
         level: "info".to_string(),
@@ -328,7 +328,10 @@ async fn run_ai_fixes(
                 glossary_text: &ctx.glossary_text,
                 items: batch,
             });
-            let Some(answer) = call_role(ctx, role_cfg, "qa_fixer", "qa_fix", &user).await? else {
+            let chapter = single_chapter(batch.iter().map(|i| i.chapter_id.as_str()));
+            let Some(answer) =
+                call_role(ctx, role_cfg, "qa_fixer", "qa_fix", chapter, &user).await?
+            else {
                 continue;
             };
             let responses = parse_qa_fix_response(&answer);
@@ -389,7 +392,9 @@ async fn review_hotspot(
             glossary_text: &ctx.glossary_text,
             pairs,
         });
-        let Some(answer) = call_role(ctx, role_cfg, "qa_reviewer", "qa_review", &user).await?
+        let chapter = single_chapter(pairs.iter().map(|p| p.chapter_id.as_str()));
+        let Some(answer) =
+            call_role(ctx, role_cfg, "qa_reviewer", "qa_review", chapter, &user).await?
         else {
             continue;
         };
@@ -414,12 +419,19 @@ async fn review_hotspot(
     Ok(applied)
 }
 
+/// The chapter a QA batch belongs to, or `None` when it spans several chapters.
+fn single_chapter<'a>(mut ids: impl Iterator<Item = &'a str>) -> Option<&'a str> {
+    let first = ids.next()?;
+    ids.all(|id| id == first).then_some(first)
+}
+
 /// Calls a QA role with its fallbacks, records each call, and returns the first usable answer.
 async fn call_role(
     ctx: &QaContext<'_>,
     role_cfg: &RoleConfig,
     role_name: &str,
     kind: &str,
+    chapter_id: Option<&str>,
     user_prompt: &str,
 ) -> Result<Option<String>, AppError> {
     let call_repo = CallRepo::new(ctx.conn);
@@ -480,7 +492,7 @@ async fn call_role(
             role: role_name.to_string(),
             provider: model.provider.clone(),
             model: model.model_id.clone(),
-            chapter_id: None,
+            chapter_id: chapter_id.map(str::to_string),
             part_index: None,
             kind: kind.to_string(),
             status: status.to_string(),
@@ -531,4 +543,19 @@ fn neighbor(chapter: &[SegmentForQa], index: usize, step: isize) -> Option<Strin
         i += step;
     }
     None
+}
+
+#[cfg(test)]
+mod tests {
+    use super::single_chapter;
+
+    #[test]
+    fn single_chapter_only_when_batch_is_uniform() {
+        assert_eq!(
+            single_chapter(["chap_2", "chap_2"].into_iter()),
+            Some("chap_2")
+        );
+        assert_eq!(single_chapter(["chap_2", "chap_3"].into_iter()), None);
+        assert_eq!(single_chapter(std::iter::empty()), None);
+    }
 }

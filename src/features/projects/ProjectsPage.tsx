@@ -8,6 +8,7 @@ import { Button } from "../../components/ui/Button";
 import { StateBlock } from "../../components/ui/StateBlock";
 import { RecentProjectCard } from "./RecentProjectCard";
 import { useProjectsStore } from "./store";
+import { ipc } from "../../lib/ipc";
 import styles from "./ProjectsPage.module.css";
 
 export const ProjectsPage: React.FC = () => {
@@ -30,8 +31,7 @@ export const ProjectsPage: React.FC = () => {
           title: t("actions.open_folder"),
         });
         if (selected && typeof selected === "string") {
-          await openProject(selected);
-          navigate("/workspace");
+          await handleSelectProject(selected);
         }
       } else {
         // Fallback for browser preview
@@ -45,12 +45,22 @@ export const ProjectsPage: React.FC = () => {
     }
   };
 
+  // A folder without .lnta/project.toml is new: set it up in the wizard first, so the
+  // profile is chosen before anything is created (Story A1, A3).
   const handleSelectProject = async (path: string) => {
+    const isProject = await ipc
+      .getProjectConfig(path)
+      .then(() => true)
+      .catch(() => false);
+    if (!isProject) {
+      navigate(`/wizard?path=${encodeURIComponent(path)}`);
+      return;
+    }
     try {
       await openProject(path);
       navigate("/workspace");
     } catch {
-      // handle error
+      // The store keeps the error.
     }
   };
 

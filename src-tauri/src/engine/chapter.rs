@@ -268,7 +268,7 @@ pub async fn execute_single_chapter(
             part_total: None,
         });
 
-        let msg = if settings.target_language == "en" {
+        let msg = if settings.ui_language == "en" {
             format!("Done: {} (image pages)", chapter.file_name)
         } else {
             format!("Selesai: {} (halaman gambar)", chapter.file_name)
@@ -543,14 +543,26 @@ pub async fn execute_single_chapter(
             {
                 let msg = match reason {
                     crate::usage::BudgetExceeded::TokenLimit { limit, current } => {
-                        format!(
-                            "Run dijeda: batas anggaran {limit} token tercapai (terpakai: {current})"
-                        )
+                        if settings.ui_language == "en" {
+                            format!(
+                                "Run paused: budget of {limit} tokens reached (used: {current})"
+                            )
+                        } else {
+                            format!(
+                                "Run dijeda: batas anggaran {limit} token tercapai (terpakai: {current})"
+                            )
+                        }
                     }
                     crate::usage::BudgetExceeded::CostLimit { limit, current } => {
-                        format!(
-                            "Run dijeda: batas anggaran ${limit:.2} tercapai (terpakai: ${current:.2})"
-                        )
+                        if settings.ui_language == "en" {
+                            format!(
+                                "Run paused: budget of ${limit:.2} reached (used: ${current:.2})"
+                            )
+                        } else {
+                            format!(
+                                "Run dijeda: batas anggaran ${limit:.2} tercapai (terpakai: ${current:.2})"
+                            )
+                        }
                     }
                 };
                 event_emitter.emit(EngineEvent::LogLine {
@@ -587,7 +599,7 @@ pub async fn execute_single_chapter(
     render_docx_or_defer(conn, layout, settings, event_emitter)?;
 
     // 6. Log line in start.md / start-en.md format
-    let is_en = settings.target_language == "en";
+    let is_en = settings.ui_language == "en";
     let log_msg = if part_count > 1 {
         if is_en {
             format!(

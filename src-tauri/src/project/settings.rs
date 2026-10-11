@@ -309,6 +309,7 @@ pub struct EffectiveSettings {
     pub strip_title_brackets: bool,
     pub normalize_ruby: bool,
     pub template_treatment: String,
+    #[ts(type = "number | null")]
     pub budget_token_limit: Option<u64>,
     pub budget_cost_limit: Option<f64>,
     pub theme: String,

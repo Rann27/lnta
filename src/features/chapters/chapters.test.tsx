@@ -475,7 +475,7 @@ describe("chapters feature", () => {
     it("renders search field, filter segmented control, and breadcrumb", () => {
       render(<ChapterTab />);
       expect(screen.getByRole("searchbox")).toBeDefined();
-      expect(screen.getByRole("radiogroup", { name: "Filter segments" })).toBeDefined();
+      expect(screen.getByRole("radiogroup", { name: /filter.segmen/i })).toBeDefined();
       expect(screen.getByText(/breadcrumb_chapter/)).toBeDefined();
     });
 

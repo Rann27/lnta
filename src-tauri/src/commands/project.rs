@@ -165,20 +165,26 @@ pub fn list_recent_projects() -> Result<Vec<RecentProjectEntry>, AppError> {
         }
 
         let layout = ProjectLayout::new(p);
+        // A folder whose .lnta was reset is no longer a project; opening it starts the wizard.
+        if !layout.config_file.exists() {
+            continue;
+        }
         let name = p
             .file_name()
             .map(|s| s.to_string_lossy().to_string())
             .unwrap_or_else(|| proj_path.clone());
 
-        let config = if layout.config_file.exists() {
-            ProjectConfig::load_from_file(&layout.config_file).unwrap_or_default()
-        } else {
-            ProjectConfig::default()
-        };
+        let config = ProjectConfig::load_from_file(&layout.config_file).unwrap_or_default();
 
         let mut chapters_done = 0usize;
         let mut chapters_total = 0usize;
-        let mut last_opened = chrono::Utc::now().to_rfc3339();
+        // Latest run start when there is one, otherwise the last write to the project files.
+        let mut last_opened = [&layout.db_file, &layout.config_file]
+            .iter()
+            .filter_map(|f| std::fs::metadata(f).and_then(|m| m.modified()).ok())
+            .max()
+            .map(|t| chrono::DateTime::<chrono::Utc>::from(t).to_rfc3339())
+            .unwrap_or_default();
 
         if layout.db_file.exists() {
             if let Ok(conn) = open_path(&layout.db_file) {
@@ -209,7 +215,15 @@ pub fn list_recent_projects() -> Result<Vec<RecentProjectEntry>, AppError> {
 pub fn reset_project(path: String) -> Result<(), AppError> {
     let p = Path::new(&path);
     let layout = ProjectLayout::new(p);
-    layout.reset_project()
+    layout.reset_project()?;
+    if let Ok(mut settings) = GlobalSettings::load_from_app_data() {
+        let before = settings.recent_projects.len();
+        settings.recent_projects.retain(|item| item != &path);
+        if settings.recent_projects.len() != before {
+            settings.save_to_app_data()?;
+        }
+    }
+    Ok(())
 }
 
 #[tauri::command]
@@ -618,6 +632,50 @@ pub fn create_default_template(path: String) -> Result<(), AppError> {
     Ok(())
 }
 
+/// Instruction files in the project root that fit `profile`, best candidate first (PRD §4.2).
+#[tauri::command]
+pub fn list_instruction_candidates(path: String, profile: String) -> Result<Vec<String>, AppError> {
+    match crate::project::instruction::resolve_instruction_candidates(Path::new(&path), &profile) {
+        Ok(paths) => Ok(paths
+            .iter()
+            .filter_map(|p| p.file_name())
+            .map(|n| n.to_string_lossy().to_string())
+            .collect()),
+        Err(AppError::InstructionMissing) => Ok(Vec::new()),
+        Err(e) => Err(e),
+    }
+}
+
+/// Uses a docx chosen by the user as the project template: it becomes `Translations.docx`
+/// (the previous file goes to backups) and the render template in `.lnta/`.
+#[tauri::command]
+pub fn import_template(path: String, source: String) -> Result<(), AppError> {
+    let layout = ProjectLayout::new(Path::new(&path));
+    let bytes = std::fs::read(&source).map_err(|_| AppError::FileNotFound {
+        path: source.clone(),
+    })?;
+    let pkg = crate::docx::template::DocxPackage::from_bytes(&bytes)?;
+    if pkg.get_text_entry("word/document.xml").is_none() {
+        return Err(AppError::InvalidTemplate {
+            reason: "word/document.xml is missing".to_string(),
+        });
+    }
+
+    let same_file =
+        std::fs::canonicalize(&source).ok() == std::fs::canonicalize(&layout.docx_output).ok();
+    if !same_file {
+        let backup_dir = layout
+            .lnta_dir
+            .exists()
+            .then_some(layout.backups_dir.as_path());
+        crate::docx::write_docx_package_atomically(&pkg, &layout.docx_output, backup_dir)?;
+    }
+    if layout.lnta_dir.exists() {
+        crate::docx::write_docx_package_atomically(&pkg, &layout.template_file, None)?;
+    }
+    Ok(())
+}
+
 #[cfg(test)]
 #[allow(clippy::unwrap_used, clippy::panic)]
 mod tests {
@@ -637,6 +695,29 @@ mod tests {
         let bytes = std::fs::read(&target_docx).unwrap();
         let pkg = crate::docx::template::DocxPackage::from_bytes(&bytes).unwrap();
         assert!(pkg.files.contains_key("word/document.xml"));
+
+        let _ = std::fs::remove_dir_all(&temp_dir);
+    }
+
+    #[test]
+    fn test_import_template_copies_valid_docx_and_rejects_others() {
+        let temp_dir = std::env::temp_dir().join(format!("lnta_test_imp_{}", uuid::Uuid::new_v4()));
+        std::fs::create_dir_all(temp_dir.join(".lnta")).unwrap();
+        let project_path = temp_dir.to_str().unwrap().to_string();
+
+        let source = temp_dir.join("chosen.docx");
+        let bytes = crate::docx::generate_default_template("Heading1")
+            .to_bytes()
+            .unwrap();
+        std::fs::write(&source, bytes).unwrap();
+        import_template(project_path.clone(), source.to_string_lossy().to_string()).unwrap();
+        assert!(temp_dir.join("Translations.docx").exists());
+        assert!(temp_dir.join(".lnta").join("template.docx").exists());
+
+        let bogus = temp_dir.join("bogus.docx");
+        std::fs::write(&bogus, b"not a zip").unwrap();
+        let err = import_template(project_path, bogus.to_string_lossy().to_string()).unwrap_err();
+        assert_eq!(err.code(), "errors.invalid_template");
 
         let _ = std::fs::remove_dir_all(&temp_dir);
     }

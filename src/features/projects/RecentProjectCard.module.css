@@ -16,7 +16,7 @@
 
 .card:hover {
   background: var(--color-raised);
-  border-color: var(--color-text-muted);
+  border-color: var(--color-text-3);
 }
 
 .card:focus-visible {
@@ -48,9 +48,9 @@
 }
 
 .path {
-  font: var(--text-caption);
+  font: var(--text-small);
   font-family: var(--font-mono);
-  color: var(--color-text-muted);
+  color: var(--color-text-3);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -67,8 +67,8 @@
   align-items: center;
   justify-content: space-between;
   gap: var(--space-3);
-  font: var(--text-caption);
-  color: var(--color-text-muted);
+  font: var(--text-small);
+  color: var(--color-text-3);
 }
 
 .profileBadge {

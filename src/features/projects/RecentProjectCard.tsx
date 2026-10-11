@@ -64,11 +64,13 @@ export const RecentProjectCard: React.FC<RecentProjectCardProps> = ({
               total: project.chapters_total,
             })}
           </span>
-          <span>
-            {t("projects.last_opened", {
-              time: formatDateTime(project.last_opened),
-            })}
-          </span>
+          {project.last_opened && (
+            <span>
+              {t("projects.last_opened", {
+                time: formatDateTime(project.last_opened),
+              })}
+            </span>
+          )}
         </div>
       </div>
     </div>

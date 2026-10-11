@@ -34,7 +34,7 @@
 }
 
 .countTag {
-  font: var(--text-caption);
+  font: var(--text-small);
   color: var(--color-text-3);
   white-space: nowrap;
 }
@@ -49,7 +49,7 @@
 
 .tableHeader {
   display: grid;
-  grid-template-columns: minmax(11rem, 1.2fr) minmax(12rem, 1.4fr) minmax(14rem, 2fr) 5rem 6rem 5rem 6rem;
+  grid-template-columns: minmax(4rem, 1fr) minmax(5rem, 1.2fr) minmax(5rem, 2fr) 3.5rem 5.5rem 6.5rem 5rem;
   align-items: center;
   min-height: var(--row-dense);
   padding: 0 var(--space-3);

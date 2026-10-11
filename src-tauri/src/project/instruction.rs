@@ -8,6 +8,18 @@ pub fn resolve_instruction_candidates<P: AsRef<Path>>(
     root: P,
     profile: &str,
 ) -> Result<Vec<PathBuf>, AppError> {
+    Ok(rank_instruction_candidates(root, profile)?
+        .into_iter()
+        .map(|(_, path)| path)
+        .collect())
+}
+
+/// Instruction candidates with their PRD §4.2 rank (lower is preferred), best first.
+/// Two candidates sharing the best rank are a tie the user has to settle (FR-PRJ-04).
+pub fn rank_instruction_candidates<P: AsRef<Path>>(
+    root: P,
+    profile: &str,
+) -> Result<Vec<(i32, PathBuf)>, AppError> {
     let root_path = root.as_ref();
     if !root_path.exists() {
         return Err(AppError::FileNotFound {
@@ -94,10 +106,10 @@ pub fn resolve_instruction_candidates<P: AsRef<Path>>(
         return Err(AppError::InstructionMissing);
     }
 
-    // Sort by rank ascending
-    ranked.sort_by_key(|item| item.0);
+    // Sort by rank, then by name so ties come out in a stable order
+    ranked.sort_by(|a, b| a.0.cmp(&b.0).then_with(|| a.1.cmp(&b.1)));
 
-    Ok(ranked.into_iter().map(|item| item.1).collect())
+    Ok(ranked)
 }
 
 /// Resolves the single highest-priority instruction file for the project root and profile.

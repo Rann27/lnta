@@ -42,7 +42,7 @@
 }
 
 .groupInfo .groupTitle {
-  color: var(--color-text-muted);
+  color: var(--color-text-3);
 }
 
 .groupPass .groupTitle {
@@ -99,7 +99,7 @@
 }
 
 .iconInfo {
-  color: var(--color-text-muted);
+  color: var(--color-text-3);
 }
 
 .iconPass {
@@ -120,8 +120,8 @@
 
 .itemMessage {
   margin: 0;
-  font: var(--text-caption);
-  color: var(--color-text-muted);
+  font: var(--text-small);
+  color: var(--color-text-3);
 }
 
 .actions {

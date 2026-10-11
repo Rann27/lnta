@@ -332,7 +332,7 @@ export const ChapterTab: React.FC = () => {
             options={filterOptions}
             value={filter}
             onChange={setFilter}
-            label="Filter segments"
+            label={t("a11y.filter_segments")}
           />
         </div>
       </div>

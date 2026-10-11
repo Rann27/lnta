@@ -8,6 +8,9 @@ use crate::project::settings::EffectiveSettings;
 use crate::provider::registry::{ModelPricing, ModelRegistry, ValueSource};
 use crate::store::repo::{Call, Chapter};
 
+/// Usage row for calls that cover several chapters (QA batches across the volume).
+pub const VOLUME_ROW_ID: &str = "volume";
+
 /// Overall token usage and cost summary for a project or run.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[ts(export, export_to = "../../src/lib/bindings/UsageSummary.ts")]
@@ -236,7 +239,7 @@ pub fn compute_project_usage(
     }
 
     for (c, cost) in calls.iter().zip(enriched_costs.iter()) {
-        let chap_id = c.chapter_id.as_deref().unwrap_or("unknown");
+        let chap_id = c.chapter_id.as_deref().unwrap_or(VOLUME_ROW_ID);
         let entry = chapter_map
             .entry(chap_id.to_string())
             .or_insert_with(|| ChapterUsage {

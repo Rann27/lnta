@@ -32,8 +32,11 @@
 .item:hover:not(:disabled),
 .item:focus-visible:not(:disabled) {
   background: var(--state-hover);
-  outline: none;
-  box-shadow: var(--focus-ring);
+}
+
+.item:focus-visible:not(:disabled) {
+  outline: var(--focus-width) solid var(--color-focus);
+  outline-offset: calc(-1 * var(--focus-width));
 }
 
 .item:disabled {
@@ -48,8 +51,11 @@
 .destructive:hover:not(:disabled),
 .destructive:focus-visible:not(:disabled) {
   background: var(--color-danger-subtle);
-  outline: none;
-  box-shadow: var(--focus-ring);
+}
+
+.destructive:focus-visible:not(:disabled) {
+  outline: var(--focus-width) solid var(--color-focus);
+  outline-offset: calc(-1 * var(--focus-width));
 }
 
 .separator {
@@ -61,7 +67,6 @@
 .shortcut {
   font: var(--text-mono);
   color: var(--color-text-3);
-  font-size: var(--text-small);
 }
 
 .left {

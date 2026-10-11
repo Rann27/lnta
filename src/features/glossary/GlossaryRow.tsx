@@ -16,6 +16,8 @@ import styles from "./GlossaryRow.module.css";
 
 export interface GlossaryRowProps {
   entry: GlossaryEntry;
+  /** First chapter as shown in the rail ("02"), or "-" when unknown. */
+  chapterLabel: string;
   allEntries: GlossaryEntry[];
   projectPath: string;
   isEditing: boolean;
@@ -25,6 +27,7 @@ export interface GlossaryRowProps {
 
 export const GlossaryRow: React.FC<GlossaryRowProps> = ({
   entry,
+  chapterLabel,
   allEntries,
   projectPath,
   isEditing,
@@ -134,7 +137,7 @@ export const GlossaryRow: React.FC<GlossaryRowProps> = ({
                 T{entry.tier}
               </span>
             </div>
-            <div className={styles.cellChapter}>{entry.first_chapter_id ?? "-"}</div>
+            <div className={styles.cellChapter}>{chapterLabel}</div>
             <div className={styles.cellOccurrences}>
               {entry.occurrences.toLocaleString()}
             </div>
@@ -178,7 +181,7 @@ export const GlossaryRow: React.FC<GlossaryRowProps> = ({
                 T{entry.tier}
               </span>
             </div>
-            <div className={styles.cellChapter}>{entry.first_chapter_id ?? "-"}</div>
+            <div className={styles.cellChapter}>{chapterLabel}</div>
             <div className={styles.cellOccurrences}>
               {entry.occurrences.toLocaleString()}
             </div>

@@ -111,7 +111,9 @@ describe("Project Wizard and Preflight UI", () => {
     );
 
     await vi.waitFor(() => {
-      const runBtn = screen.getByRole("button", { name: /Jalankan volume|Run volume/i });
+      const runBtn = screen.getByRole("button", {
+        name: /Simpan dan buka workspace|Save and open workspace/i,
+      });
       expect(runBtn).toBeDisabled();
       expect(runBtn).toHaveAttribute("aria-describedby");
     });
@@ -129,13 +131,16 @@ describe("Project Wizard and Preflight UI", () => {
     );
 
     await vi.waitFor(() => {
-      const runBtn = screen.getByRole("button", { name: /Jalankan volume|Run volume/i });
+      const runBtn = screen.getByRole("button", {
+        name: /Simpan dan buka workspace|Save and open workspace/i,
+      });
       expect(runBtn).not.toBeDisabled();
     });
   });
 
   it("shows profile suggestion and template treatment choices", async () => {
     setIpcTransport(new PreviewTransport("project-idle-blocker"));
+    await useWizardStore.getState().initWizard("D:/LN/Synthetic-Volume-1");
     useWizardStore.setState({ currentStep: 1 });
 
     const { rerender } = render(
@@ -154,13 +159,14 @@ describe("Project Wizard and Preflight UI", () => {
       </MemoryRouter>
     );
 
+    // The scenario template has old text, so the treatment choice is offered.
     expect(screen.getByText(/Pertahankan halaman depan|Keep front matter/i)).toBeInTheDocument();
     expect(screen.getByText(/Abaikan isi dokumen|Ignore document content/i)).toBeInTheDocument();
     expect(screen.getByText(/Impor bab sebagai bab beku|Import chapters as frozen/i)).toBeInTheDocument();
   });
 
-  it("allows user to trigger create default template action", async () => {
-    const transport = new PreviewTransport("project-idle-blocker");
+  it("offers the default template when Translations.docx is unusable", async () => {
+    const transport = new PreviewTransport("run-paused-blocker");
     const createTplSpy = vi.fn().mockResolvedValue(undefined);
     transport.createDefaultTemplate = createTplSpy;
     setIpcTransport(transport);
@@ -174,12 +180,74 @@ describe("Project Wizard and Preflight UI", () => {
       </MemoryRouter>
     );
 
-    const createBtn = screen.getByText(/Buat Translations\.docx bawaan|Generate default Translations\.docx/i);
+    // The wizard reads the folder again on mount, so the button appears after that.
+    const createBtn = await screen.findByText(
+      /Buat Translations\.docx bawaan|Generate default Translations\.docx/i
+    );
     expect(createBtn).toBeInTheDocument();
     fireEvent.click(createBtn);
 
     await vi.waitFor(() => {
       expect(createTplSpy).toHaveBeenCalledWith("D:/LN/Synthetic-Volume-1");
     });
+  });
+
+  it("lists the real roles on the model step instead of fixed model names", async () => {
+    setIpcTransport(new PreviewTransport("project-idle-blocker"));
+    await useWizardStore.getState().initWizard("D:/LN/Synthetic-Volume-1");
+    useWizardStore.setState({ currentStep: 3 });
+
+    render(
+      <MemoryRouter>
+        <WizardPage />
+      </MemoryRouter>
+    );
+
+    expect(screen.queryByText(/Claude 3\.5 Sonnet/)).not.toBeInTheDocument();
+    expect(screen.getByText(/Penerjemah|Translator/)).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /Buka Pengaturan|Open Settings/i })
+    ).toBeInTheDocument();
+  });
+
+  it("hides preflight actions the screen cannot carry out and dismisses warnings", () => {
+    const report: PreflightReport = {
+      can_run: true,
+      items: [
+        {
+          id: "instruction_language_match",
+          status: "warning",
+          message_code: "preflight.instruction_language_mismatch",
+          params: { detected_profile: "ja-en", selected_profile: "ja-id" },
+          actions: [
+            { id: "switch_profile", label_code: "actions.switch_profile" },
+            { id: "dismiss", label_code: "actions.dismiss" },
+          ],
+        },
+        {
+          id: "chapter_prefixes_unique",
+          status: "blocker",
+          message_code: "preflight.duplicate_prefix",
+          params: { prefix: "03", conflicting_files: "03" },
+          actions: [{ id: "show_conflicting_files", label_code: "actions.show_conflicting_files" }],
+        },
+      ],
+    };
+
+    render(
+      <PreflightChecklist
+        report={report}
+        onRerun={vi.fn()}
+        onAction={vi.fn()}
+        availableActions={new Set(["switch_profile"])}
+      />
+    );
+
+    expect(screen.getByText(/JP→EN/)).toBeInTheDocument();
+    expect(screen.getByText(/Bahasa instruction|Instruction language/)).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /Lihat file|Show files/i })).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: /Abaikan|Dismiss/i }));
+    expect(screen.queryByText(/JP→EN/)).not.toBeInTheDocument();
   });
 });

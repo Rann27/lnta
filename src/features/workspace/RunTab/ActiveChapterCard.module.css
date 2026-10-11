@@ -26,7 +26,6 @@
 .planMeta {
   color: var(--color-text-3);
   font: var(--text-mono);
-  font-size: var(--text-small);
 }
 
 .parts {
@@ -49,7 +48,6 @@
 .partLines {
   color: var(--color-text-3);
   font: var(--text-mono);
-  font-size: var(--text-small);
   text-align: right;
 }
 
@@ -80,7 +78,6 @@
   padding: 0 var(--space-2);
   border-radius: var(--radius-1);
   font: var(--text-label);
-  font-size: var(--text-small);
 }
 
 .stateTagLive {

@@ -1,0 +1,106 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  height: 100%;
+  overflow-y: auto;
+  padding: var(--space-5) var(--space-6);
+  box-sizing: border-box;
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding: var(--space-5);
+  background: var(--color-surface);
+  border: var(--hairline) solid var(--color-border);
+  border-radius: var(--radius-2);
+}
+
+.sectionTitle {
+  margin: 0;
+  font: var(--text-subtitle);
+  color: var(--color-text);
+}
+
+.hint {
+  margin: 0;
+  font: var(--text-small);
+  color: var(--color-text-2);
+}
+
+.facts {
+  display: grid;
+  grid-template-columns: 7rem minmax(0, 1fr);
+  column-gap: var(--space-4);
+  row-gap: var(--space-2);
+  margin: 0;
+  font: var(--text-body);
+}
+
+.facts dt {
+  color: var(--color-text-2);
+}
+
+.facts dd {
+  margin: 0;
+  color: var(--color-text);
+  min-width: 0;
+}
+
+.factWithAction {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.path {
+  font: var(--text-mono);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+
+.fieldGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr));
+  gap: var(--space-4);
+  align-items: start;
+}
+
+.fieldWithAction {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-2);
+}
+
+.fieldWithAction > :first-child {
+  align-self: stretch;
+}
+
+.switches {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.formActions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+.status {
+  font: var(--text-small);
+  color: var(--color-text-2);
+}
+
+.error {
+  margin: 0;
+  font: var(--text-small);
+  color: var(--color-danger);
+}

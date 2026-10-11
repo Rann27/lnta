@@ -221,8 +221,8 @@ describe("QaTab Component", () => {
     expect(screen.getByRole("button", { name: /^Q04/i })).toBeInTheDocument();
 
     // Findings items rendered
-    expect(screen.getAllByText("Aksara Jepang tersisa")).toHaveLength(2);
-    expect(screen.getByText("Atribusi dialog redundan")).toBeInTheDocument();
+    expect(screen.getAllByText("Sisa aksara Jepang")).toHaveLength(2);
+    expect(screen.getByText("Atribusi dialog berulang")).toBeInTheDocument();
   });
 
   it("filters findings when clicking check code chip", () => {
@@ -237,8 +237,8 @@ describe("QaTab Component", () => {
     fireEvent.click(q04Chip);
 
     // Q04 item should remain, Q01 should be filtered out
-    expect(screen.getByText("Atribusi dialog redundan")).toBeInTheDocument();
-    expect(screen.queryByText("Aksara Jepang tersisa")).not.toBeInTheDocument();
+    expect(screen.getByText("Atribusi dialog berulang")).toBeInTheDocument();
+    expect(screen.queryByText("Sisa aksara Jepang")).not.toBeInTheDocument();
   });
 
   it("jumps to segment when clicking Buka Segmen", () => {

@@ -29,8 +29,8 @@
 }
 
 .segment:focus-visible {
-  outline: none;
-  box-shadow: var(--focus-ring);
+  outline: var(--focus-width) solid var(--color-focus);
+  outline-offset: var(--focus-offset);
 }
 
 .segment:disabled {

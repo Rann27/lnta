@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { formatNumber } from "../../../lib/format";
+import { formatNumber, parseNumber } from "../../../lib/format";
 import { TextField } from "../TextField";
 
 export interface NumberFieldProps {
@@ -46,17 +46,8 @@ export const NumberField: React.FC<NumberFieldProps> = ({
     const raw = e.target.value;
     setTextValue(raw);
 
-    // Parse input, stripping non-digit / separators
-    const cleaned = raw.replace(/[^\d.-]/g, "");
-    if (cleaned === "" || cleaned === "-") {
-      onChange?.(undefined);
-      return;
-    }
-
-    const parsed = Number(cleaned);
-    if (!Number.isNaN(parsed)) {
-      onChange?.(parsed);
-    }
+    // Grouping separators differ per locale ("1.500" is 1500 in Indonesian).
+    onChange?.(parseNumber(raw));
   };
 
   const handleFocus = () => {

@@ -3,4 +3,4 @@
 /**
  * Project configuration stored in `.lnta/project.toml`.
  */
-export type ProjectConfig = { profile: string, target_language: string, instruction_file: string | null, chunk_threshold_lines: number, context_k_segments: number, send_full_glossary: boolean, title_source: string, strip_title_brackets: boolean, normalize_ruby: boolean, template_treatment: string, budget_token_limit: bigint | null, budget_cost_limit: number | null, };
+export type ProjectConfig = { profile: string, target_language: string, instruction_file: string | null, chunk_threshold_lines: number, context_k_segments: number, send_full_glossary: boolean, title_source: string, strip_title_brackets: boolean, normalize_ruby: boolean, template_treatment: string, budget_token_limit: number | null, budget_cost_limit: number | null, };

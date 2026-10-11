@@ -6,6 +6,25 @@ export function formatNumber(value: number, lang?: SupportedLanguage): string {
   return new Intl.NumberFormat(locale).format(value);
 }
 
+/**
+ * Parses a number as typed in the active locale: in Indonesian "1.500" is 1500 and "1,5"
+ * is 1.5; in English the separators swap.
+ */
+export function parseNumber(text: string, lang?: SupportedLanguage): number | undefined {
+  const activeLang = lang ?? getLanguage();
+  const group = activeLang === "id" ? "." : ",";
+  const decimal = activeLang === "id" ? "," : ".";
+  const cleaned = text
+    .trim()
+    .split(group)
+    .join("")
+    .replace(decimal, ".")
+    .replace(/[^\d.-]/g, "");
+  if (cleaned === "" || cleaned === "-" || cleaned === ".") return undefined;
+  const parsed = Number(cleaned);
+  return Number.isNaN(parsed) ? undefined : parsed;
+}
+
 export function formatDuration(seconds: number, lang?: SupportedLanguage): string {
   const activeLang = lang ?? getLanguage();
   const secUnit = activeLang === "id" ? "d" : "s";

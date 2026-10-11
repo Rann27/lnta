@@ -30,7 +30,7 @@ use crate::glossary::lint::{lint_glossary, GlossaryLintKind};
 use crate::glossary::parse::parse_glossary;
 use crate::profiles::load_profile;
 use crate::project::discover::discover_chapters;
-use crate::project::instruction::resolve_instruction_candidates;
+use crate::project::instruction::rank_instruction_candidates;
 use crate::raw::classify::{Classifier, IllustrationSet, RawLineKind};
 use crate::raw::encoding::read_raw_file;
 use ts_rs::TS;
@@ -132,6 +132,8 @@ pub struct PreflightEnvironment {
     pub max_output_tokens: Option<u32>,
     pub skip_model_check: bool,
     pub chunk_threshold_lines: usize,
+    /// Instruction file chosen in `project.toml`; it replaces candidate discovery.
+    pub instruction_file: Option<String>,
 }
 
 impl Default for PreflightEnvironment {
@@ -142,6 +144,7 @@ impl Default for PreflightEnvironment {
             max_output_tokens: Some(4096),
             skip_model_check: false,
             chunk_threshold_lines: 1500,
+            instruction_file: None,
         }
     }
 }
@@ -204,13 +207,15 @@ pub fn run_preflight_on_folder(
     settings: &crate::project::settings::GlobalSettings,
 ) -> PreflightReport {
     let layout = crate::project::layout::ProjectLayout::new(project_root);
-    let profile = if layout.config_file.exists() {
-        crate::project::config::ProjectConfig::load_from_file(&layout.config_file)
-            .map(|c| c.profile)
-            .unwrap_or_else(|_| "ja-id".to_string())
+    let config = if layout.config_file.exists() {
+        crate::project::config::ProjectConfig::load_from_file(&layout.config_file).ok()
     } else {
-        "ja-id".to_string()
+        None
     };
+    let profile = config
+        .as_ref()
+        .map(|c| c.profile.clone())
+        .unwrap_or_else(|| "ja-id".to_string());
 
     let trans_role = settings
         .roles
@@ -241,7 +246,11 @@ pub fn run_preflight_on_folder(
         api_key_or_cli_available: has_key,
         max_output_tokens: trans_role.max_output_tokens.or(Some(4096)),
         skip_model_check: false,
-        chunk_threshold_lines: 1500,
+        chunk_threshold_lines: config
+            .as_ref()
+            .map(|c| c.chunk_threshold_lines)
+            .unwrap_or(1500),
+        instruction_file: config.and_then(|c| c.instruction_file),
     };
 
     run_preflight(project_root, &profile, &env)
@@ -256,8 +265,18 @@ pub fn run_preflight<P: AsRef<Path>>(
     let root = project_root.as_ref();
     let mut items = Vec::new();
 
-    // 1 & 2. Instruction file detection and candidates
-    let instruction_candidates_result = resolve_instruction_candidates(root, profile);
+    // 1 & 2. Instruction file detection and candidates. A file chosen in project.toml wins,
+    // so a saved choice never shows up again as an unresolved tie.
+    let configured_instruction = env
+        .instruction_file
+        .as_deref()
+        .map(str::trim)
+        .filter(|f| !f.is_empty())
+        .map(|f| root.join(f));
+    let instruction_candidates_result = match &configured_instruction {
+        Some(path) => Ok(vec![(0, path.clone())]),
+        None => rank_instruction_candidates(root, profile),
+    };
     let mut resolved_instruction_content: Option<String> = None;
 
     match instruction_candidates_result {
@@ -279,7 +298,7 @@ pub fn run_preflight<P: AsRef<Path>>(
                     "preflight.instruction_candidates_ok",
                 ));
             } else {
-                let first = &candidates[0];
+                let first = &candidates[0].1;
                 match std::fs::read_to_string(first) {
                     Ok(content) if content.trim().is_empty() => {
                         items.push(PreflightItem {
@@ -304,10 +323,13 @@ pub fn run_preflight<P: AsRef<Path>>(
                             "preflight.instruction_file_ok",
                         ));
 
-                        if candidates.len() > 1 {
+                        let tied = candidates.len() > 1 && candidates[0].0 == candidates[1].0;
+                        if tied {
+                            let best = candidates[0].0;
                             let candidate_names: Vec<String> = candidates
                                 .iter()
-                                .filter_map(|p| p.file_name())
+                                .filter(|(rank, _)| *rank == best)
+                                .filter_map(|(_, p)| p.file_name())
                                 .map(|f| f.to_string_lossy().to_string())
                                 .collect();
 
@@ -924,6 +946,47 @@ mod tests {
             "preflight.instruction_multiple_candidates"
         );
         assert_eq!(item.actions[0].id, "select_instruction_candidate");
+
+        let _ = fs::remove_dir_all(&dir);
+    }
+
+    #[test]
+    fn test_ranked_instruction_candidates_do_not_block() {
+        let dir = create_temp_project("inst_ranked");
+        fs::write(dir.join("instruction-en.md"), "content").unwrap();
+        fs::write(dir.join("instruction.md"), "content").unwrap();
+        let env = PreflightEnvironment::default();
+
+        let report = run_preflight(&dir, "ja-en", &env);
+        let item = report.get_item("instruction_candidates").unwrap();
+        assert_eq!(item.status, PreflightStatus::Pass);
+        assert_eq!(
+            report.get_item("instruction_file").unwrap().status,
+            PreflightStatus::Pass
+        );
+
+        let _ = fs::remove_dir_all(&dir);
+    }
+
+    #[test]
+    fn test_configured_instruction_settles_a_tie() {
+        let dir = create_temp_project("inst_configured");
+        fs::write(dir.join("instruction-1.md"), "content").unwrap();
+        fs::write(dir.join("instruction-2.md"), "content").unwrap();
+        let env = PreflightEnvironment {
+            instruction_file: Some("instruction-2.md".to_string()),
+            ..Default::default()
+        };
+
+        let report = run_preflight(&dir, "ja-id", &env);
+        assert_eq!(
+            report.get_item("instruction_candidates").unwrap().status,
+            PreflightStatus::Pass
+        );
+        assert_eq!(
+            report.get_item("instruction_file").unwrap().status,
+            PreflightStatus::Pass
+        );
 
         let _ = fs::remove_dir_all(&dir);
     }

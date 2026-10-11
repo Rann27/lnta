@@ -82,6 +82,25 @@ export function checkOutlineNone(content) {
   return violations;
 }
 
+/** Custom properties a stylesheet defines (`--name:`). */
+export function definedVariables(content) {
+  return new Set([...content.matchAll(/(--[a-zA-Z0-9-]+)\s*:/g)].map((m) => m[1]));
+}
+
+/** `var(--name)` references that nothing defines; such a declaration silently drops. */
+export function checkUndefinedVariables(content, defined) {
+  return [...content.matchAll(/var\(\s*(--[a-zA-Z0-9-]+)/g)]
+    .map((m) => m[1])
+    .filter((name) => !defined.has(name));
+}
+
+/** `--text-*` tokens are `font` shorthands; a longhand such as font-size drops them. */
+export function checkTypeTokenLonghand(content) {
+  return [...content.matchAll(/\bfont-(size|family|weight|style)\s*:\s*var\(--text-/g)].map(
+    (m) => `font-${m[1]}: var(--text-*)`
+  );
+}
+
 function getAllFiles(dir, extensions) {
   if (!fs.existsSync(dir)) return [];
   const results = [];
@@ -159,6 +178,26 @@ export function runGuards(rootDir = process.cwd()) {
     }
   }
 
+  // Guard 5: every var(--x) in components must be a real token
+  const defined = new Set();
+  for (const file of getAllFiles(path.join(srcDir, "styles"), [".css"])) {
+    for (const name of definedVariables(fs.readFileSync(file, "utf8"))) defined.add(name);
+  }
+  for (const file of [...getAllFiles(srcDir, [".css"]), ...tsxFiles]) {
+    const content = fs.readFileSync(file, "utf8");
+    const local = definedVariables(content);
+    const longhand = checkTypeTokenLonghand(content);
+    if (longhand.length > 0) {
+      errors.push(`Type token in a longhand in ${path.relative(rootDir, file)}: use font: instead`);
+    }
+    const missing = checkUndefinedVariables(content, new Set([...defined, ...local]));
+    if (missing.length > 0) {
+      errors.push(
+        `Undefined CSS variables in ${path.relative(rootDir, file)}: ${[...new Set(missing)].join(", ")}`
+      );
+    }
+  }
+
   return errors;
 }
 
@@ -211,6 +250,24 @@ export function runTests() {
   const goodOutline = ".btn { outline: none; box-shadow: var(--focus-ring); }";
   if (checkOutlineNone(goodOutline).length !== 0) {
     throw new Error("Test failed: checkOutlineNone should accept outline: none when focus ring is specified");
+  }
+
+  // Test 6: Undefined CSS variables
+  const tokens = definedVariables(":root { --color-text: #000; --space-2: 4px; }");
+  const undefinedVars = checkUndefinedVariables(
+    ".a { color: var(--color-text); box-shadow: var(--focus-ring); }",
+    tokens
+  );
+  if (undefinedVars.length !== 1 || undefinedVars[0] !== "--focus-ring") {
+    throw new Error("Test failed: checkUndefinedVariables should report --focus-ring only");
+  }
+
+  // Test 7: Type tokens used as font-size
+  if (checkTypeTokenLonghand(".a { font-size: var(--text-small); }").length !== 1) {
+    throw new Error("Test failed: checkTypeTokenLonghand should flag font-size: var(--text-small)");
+  }
+  if (checkTypeTokenLonghand(".a { font: var(--text-small); }").length !== 0) {
+    throw new Error("Test failed: checkTypeTokenLonghand should accept the font shorthand");
   }
 
   console.log("All check-guards self-tests passed!");

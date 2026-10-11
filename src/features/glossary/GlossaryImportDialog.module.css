@@ -19,20 +19,20 @@
   padding: var(--space-3);
   background-color: var(--color-surface);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-2);
 }
 
 .summaryRow {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: var(--font-size-sm);
-  color: var(--color-text-secondary);
+  font: var(--text-small);
+  color: var(--color-text-2);
 }
 
 .summaryValue {
   font-weight: 600;
-  color: var(--color-text-primary);
+  color: var(--color-text);
   font-variant-numeric: tabular-nums;
 }
 
@@ -49,7 +49,7 @@
   gap: var(--space-2);
   padding: var(--space-3);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-2);
   background-color: var(--color-surface);
 }
 
@@ -60,17 +60,16 @@
 }
 
 .conflictSource {
-  font-family: var(--font-family-japanese);
-  font-size: var(--font-size-md);
-  font-weight: 600;
-  color: var(--color-text-primary);
+  font: var(--text-body-strong);
+  font-family: var(--font-jp);
+  color: var(--color-text);
 }
 
 .conflictBadge {
-  font-size: var(--font-size-xs);
+  font: var(--text-small);
   padding: var(--space-1) var(--space-2);
-  border-radius: var(--radius-sm);
-  background-color: var(--color-surface-hover);
+  border-radius: var(--radius-1);
+  background-color: var(--state-hover);
   color: var(--color-warn);
 }
 
@@ -86,34 +85,34 @@
   gap: var(--space-2);
   padding: var(--space-2);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-1);
   cursor: pointer;
-  background-color: var(--color-background);
+  background-color: var(--color-canvas);
 }
 
 .optionLabelActive {
   border-color: var(--color-tally);
-  background-color: var(--color-surface-hover);
+  background-color: var(--state-hover);
 }
 
 .optionDetails {
   display: flex;
   flex-direction: column;
   gap: var(--space-1);
-  font-size: var(--font-size-sm);
+  font: var(--text-small);
 }
 
 .optionTitle {
   font-weight: 600;
-  color: var(--color-text-primary);
+  color: var(--color-text);
 }
 
 .optionSub {
-  font-size: var(--font-size-xs);
-  color: var(--color-text-secondary);
+  font: var(--text-small);
+  color: var(--color-text-2);
 }
 
 .error {
   color: var(--color-danger);
-  font-size: var(--font-size-sm);
+  font: var(--text-small);
 }

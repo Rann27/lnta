@@ -1,7 +1,7 @@
 import { invoke, isTauri } from "@tauri-apps/api/core";
 import { PreviewTransport } from "./preview/transport";
 import { listen, type UnlistenFn } from "@tauri-apps/api/event";
-import { openPath as openWithDefaultApp } from "@tauri-apps/plugin-opener";
+import { openPath as openWithDefaultApp, revealItemInDir } from "@tauri-apps/plugin-opener";
 import type {
   AppInfo,
   Chapter,
@@ -42,6 +42,8 @@ export interface IpcTransport {
   confirmFrozenChapters(projectPath: string, mappings: FrozenChapterMapping[]): Promise<void>;
   getPlanPreview(path: string, model?: ModelReference | null): Promise<ProjectPlanPreview>;
   createDefaultTemplate(path: string): Promise<void>;
+  importTemplate(path: string, source: string): Promise<void>;
+  listInstructionCandidates(path: string, profile: string): Promise<string[]>;
 
   // Preflight
   runPreflight(path: string): Promise<PreflightReport>;
@@ -78,6 +80,7 @@ export interface IpcTransport {
   startQa(path: string): Promise<string>;
   renderDocx(path: string): Promise<void>;
   openPath(path: string): Promise<void>;
+  revealPath(path: string): Promise<void>;
   retranslateChapter(
     path: string,
     chapterId: string,
@@ -119,6 +122,7 @@ export interface IpcTransport {
   listGlossary(path: string): Promise<GlossaryEntry[]>;
   addGlossaryEntry(path: string, entry: GlossaryEntryInput): Promise<GlossaryEntry>;
   updateGlossaryEntry(path: string, entry: GlossaryEntryInput): Promise<void>;
+  fixGlossaryMacrons(path: string): Promise<number>;
   deleteGlossaryEntry(path: string, source: string): Promise<void>;
   inspectGlossaryImport(targetPath: string, sourcePath: string): Promise<GlossaryImportPreview>;
   applyGlossaryImport(targetPath: string, entries: GlossaryEntryInput[]): Promise<number>;
@@ -172,6 +176,14 @@ export class TauriTransport implements IpcTransport {
 
   createDefaultTemplate(path: string): Promise<void> {
     return invoke<void>("create_default_template", { path });
+  }
+
+  importTemplate(path: string, source: string): Promise<void> {
+    return invoke<void>("import_template", { path, source });
+  }
+
+  listInstructionCandidates(path: string, profile: string): Promise<string[]> {
+    return invoke<string[]>("list_instruction_candidates", { path, profile });
   }
 
   runPreflight(path: string): Promise<PreflightReport> {
@@ -270,6 +282,10 @@ export class TauriTransport implements IpcTransport {
     return openWithDefaultApp(path);
   }
 
+  revealPath(path: string): Promise<void> {
+    return revealItemInDir(path);
+  }
+
   retranslateChapter(
     path: string,
     chapterId: string,
@@ -358,6 +374,10 @@ export class TauriTransport implements IpcTransport {
 
   addGlossaryEntry(path: string, entry: GlossaryEntryInput): Promise<GlossaryEntry> {
     return invoke<GlossaryEntry>("add_glossary_entry", { path, entry });
+  }
+
+  fixGlossaryMacrons(path: string): Promise<number> {
+    return invoke<number>("fix_glossary_macrons", { path });
   }
 
   updateGlossaryEntry(path: string, entry: GlossaryEntryInput): Promise<void> {

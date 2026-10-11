@@ -87,8 +87,8 @@
 }
 
 .itemCollapsed .ordinal {
-  font-size: var(--text-small);
-}
+  font: var(--text-small);
+  }
 
 .itemCollapsedDot {
   width: var(--tally-size);

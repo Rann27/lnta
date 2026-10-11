@@ -53,8 +53,8 @@
 
 .formatHelp {
   margin: 0;
-  font: var(--text-caption);
-  color: var(--color-text-muted);
+  font: var(--text-small);
+  color: var(--color-text-3);
 }
 
 .warningBox {
@@ -65,7 +65,7 @@
   background: var(--color-danger-subtle);
   color: var(--color-danger);
   border-radius: var(--radius-1);
-  font: var(--text-caption);
+  font: var(--text-small);
 }
 
 .actions {
@@ -132,12 +132,12 @@
   display: flex;
   align-items: center;
   gap: var(--space-2);
-  font: var(--text-caption);
-  color: var(--color-text-muted);
+  font: var(--text-small);
+  color: var(--color-text-3);
 }
 
 .historyText {
-  font: var(--text-caption);
+  font: var(--text-small);
   color: var(--color-text);
   white-space: pre-wrap;
   word-break: break-word;

@@ -381,6 +381,31 @@ function buildSyntheticChapterDetails(): {
   return { chapters, details };
 }
 
+/** Passing checks with the ids and codes the Rust preflight really sends. */
+function passItems(skip: string[] = []): PreflightReport["items"] {
+  const checks: [string, string][] = [
+    ["instruction_file", "preflight.instruction_file_ok"],
+    ["instruction_candidates", "preflight.instruction_candidates_ok"],
+    ["instruction_language_match", "preflight.instruction_language_match_ok"],
+    ["chapter_files_detected", "preflight.chapter_files_detected_ok"],
+    ["chapter_prefixes_unique", "preflight.chapter_prefixes_unique_ok"],
+    ["translator_model_configured", "preflight.translator_model_ok"],
+    ["docx_template_valid", "preflight.template_valid_ok"],
+    ["docx_template_contains_text", "preflight.template_no_text"],
+    ["glossary_file_exists", "preflight.glossary_exists_ok"],
+    ["glossary_macrons", "preflight.glossary_macrons_ok"],
+    ["glossary_conflicts", "preflight.glossary_conflicts_ok"],
+    ["missing_illustrations", "preflight.missing_illustrations_ok"],
+    ["unsupported_image_formats", "preflight.unsupported_image_formats_ok"],
+    ["raw_encoding_utf8", "preflight.raw_encoding_utf8_ok"],
+    ["chapters_exceed_chunk_threshold", "preflight.chapters_exceed_chunk_threshold_ok"],
+    ["model_max_output_tokens", "preflight.model_max_output_tokens_ok"],
+  ];
+  return checks
+    .filter(([id]) => !skip.includes(id))
+    .map(([id, message_code]) => ({ id, status: "pass", message_code, params: {}, actions: [] }));
+}
+
 export function createPreviewScenarios(): Record<string, PreviewScenarioData> {
   const { chapters, details } = buildSyntheticChapterDetails();
 
@@ -419,26 +444,24 @@ export function createPreviewScenarios(): Record<string, PreviewScenarioData> {
       can_run: false,
       items: [
         {
-          id: "check_instruction",
+          id: "instruction_file",
           status: "blocker",
-          message_code: "errors.instruction_missing",
+          message_code: "preflight.instruction_missing",
           params: {},
-          actions: [{ id: "browse_instruction", label_code: "actions.browse" }],
+          actions: [
+            { id: "choose_instruction_file", label_code: "actions.choose_instruction_file" },
+          ],
         },
         {
-          id: "check_chapters",
-          status: "pass",
-          message_code: "preflight.chapters_found",
-          params: { count: "4" },
-          actions: [],
-        },
-        {
-          id: "check_template",
-          status: "pass",
-          message_code: "preflight.template_ready",
+          id: "docx_template_contains_text",
+          status: "warning",
+          message_code: "preflight.template_has_text",
           params: {},
-          actions: [],
+          actions: [
+            { id: "choose_template_treatment", label_code: "actions.choose_template_treatment" },
+          ],
         },
+        ...passItems(["instruction_file", "docx_template_contains_text"]),
       ],
     },
     runState: { state: "idle", active: false, current_chapter_id: null, latest_run: null },
@@ -466,15 +489,7 @@ export function createPreviewScenarios(): Record<string, PreviewScenarioData> {
     projectConfig: SYNTHETIC_CONFIG,
     preflight: {
       can_run: true,
-      items: [
-        {
-          id: "check_all",
-          status: "pass",
-          message_code: "preflight.ready",
-          params: {},
-          actions: [],
-        },
-      ],
+      items: passItems(),
     },
     runState: {
       state: "running",
@@ -519,7 +534,7 @@ export function createPreviewScenarios(): Record<string, PreviewScenarioData> {
     projectConfig: SYNTHETIC_CONFIG,
     preflight: {
       can_run: true,
-      items: [],
+      items: passItems(),
     },
     runState: {
       state: "needs_attention",
@@ -560,12 +575,16 @@ export function createPreviewScenarios(): Record<string, PreviewScenarioData> {
       can_run: false,
       items: [
         {
-          id: "check_docx_locked",
+          id: "docx_template_valid",
           status: "blocker",
-          message_code: "errors.docx_locked",
+          message_code: "preflight.template_unreadable",
           params: {},
-          actions: [{ id: "render_again", label_code: "actions.render_again" }],
+          actions: [
+            { id: "choose_template_file", label_code: "actions.choose_template_file" },
+            { id: "create_default_template", label_code: "actions.create_default_template" },
+          ],
         },
+        ...passItems(["docx_template_valid"]),
       ],
     },
     runState: {
@@ -610,7 +629,7 @@ export function createPreviewScenarios(): Record<string, PreviewScenarioData> {
     projectConfig: SYNTHETIC_CONFIG,
     preflight: {
       can_run: true,
-      items: [],
+      items: passItems(),
     },
     runState: {
       state: "done",

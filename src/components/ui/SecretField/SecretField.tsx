@@ -97,7 +97,7 @@ export const SecretField: React.FC<SecretFieldProps> = ({
         label={label}
         value={value}
         onChange={(e) => onChange?.(e.target.value)}
-        placeholder={placeholder ?? "contoh: sk-..."}
+        placeholder={placeholder ?? t("fields.secret_placeholder")}
         error={error}
         hint={hint}
         disabled={disabled}

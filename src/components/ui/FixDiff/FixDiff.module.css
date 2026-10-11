@@ -32,7 +32,6 @@
 
 .badge {
   font: var(--text-mono);
-  font-size: var(--text-small);
   padding: 0 var(--space-2);
   background: var(--color-raised);
   border: 1px solid var(--color-border-strong);
@@ -75,7 +74,7 @@
 .rowText {
   font: var(--text-reading-tgt);
   color: var(--color-text);
-  line-height: var(--leading-relaxed);
+  line-height: 1.6;
   word-break: break-word;
 }
 

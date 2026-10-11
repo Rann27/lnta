@@ -106,7 +106,10 @@ describe("Preview scenarios and transport", () => {
 
     const preflight = await transport.runPreflight("");
     expect(preflight.can_run).toBe(false);
-    expect(preflight.items.some((i) => i.message_code === "errors.docx_locked")).toBe(true);
+    // Preview reports use the ids and codes the Rust preflight sends.
+    expect(preflight.items.some((i) => i.message_code === "preflight.template_unreadable")).toBe(
+      true
+    );
   });
 
   it("handles scenario qa-finished correctly", async () => {
